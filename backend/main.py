@@ -5,6 +5,9 @@ from rq import Queue
 from api.main import api_router
 from core.config import settings
 from starlette.middleware.cors import CORSMiddleware
+import uvicorn
+from core.db import Base, engine
+from models import *
 
 app = FastAPI()
 
@@ -39,3 +42,6 @@ def test_function(x, y):
 
 app.include_router(api_router, prefix="/api")
 
+if __name__ == "__main__":
+    uvicorn.run(app, host="localhost", port=8000)
+    Base.metadata.create_all(bind=engine)

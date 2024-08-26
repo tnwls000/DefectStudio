@@ -1,4 +1,6 @@
+import aioredis
 from models import Member
+from aioredis import Redis
 from core.db import Session
 from typing import Annotated
 from jose import jwt, JWTError
@@ -7,6 +9,15 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/login')
+
+
+async def get_redis() -> Redis:
+    redis = await aioredis.create_redis_pool((settings.REDIS_HOST, settings.REDIS_PORT))
+    try:
+        yield redis
+    finally:
+        redis.close()
+        await redis.wait_closed()
 
 
 def get_db():
@@ -23,7 +34,7 @@ async def get_current_user(session: Depends(get_db), token: Annotated[str, Depen
         login_id: str = payload.get('sub')
         token_category: str = payload.get('category')
 
-        if login_id is None:
+        if not login_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail='Could not validate user.')
 

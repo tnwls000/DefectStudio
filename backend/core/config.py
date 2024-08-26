@@ -12,12 +12,19 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
+
+    # ENVIRONMENT
+    DOMAIN: str
+    ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+
+    # JWT
     ENCODE_ALGORITHM: str
     JWT_SECRET_KEY: str
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
+
+    # REDIS
     REDIS_HOST: str
-    DOMAIN: str
-    ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+    REDIS_PORT: str
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -26,8 +33,10 @@ class Settings(BaseSettings):
             return f"http://{self.DOMAIN}"
         return f"https://{self.DOMAIN}"
 
+    # CORS
     BACKEND_CORS_ORIGINS: list[AnyUrl] = ["http://localhost:3000"]
 
+    # DB
     POSTGRES_SERVER: str
     POSTGRES_PORT: int
     POSTGRES_USER: str

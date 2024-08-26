@@ -13,7 +13,7 @@ from models import *
 app = FastAPI()
 
 # Managing Redis queues directly with rq
-redis_conn = Redis(host=settings.REDIS_HOST, port=6379)
+redis_conn = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 task_queue = Queue("task_queue", connection=redis_conn)
 
 celery = Celery(

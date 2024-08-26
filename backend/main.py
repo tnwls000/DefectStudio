@@ -7,6 +7,7 @@ from core.config import settings
 from starlette.middleware.cors import CORSMiddleware
 import uvicorn
 from core.db import Base, engine
+from models import *
 
 app = FastAPI()
 

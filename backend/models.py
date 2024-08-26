@@ -21,5 +21,5 @@ class Member(Base):
     email = Column(String(255), nullable=False)
     role = Column(Enum(Role), nullable=False)
     token_quantity = Column(Integer, nullable=False)
-    department_id = Column(Integer, ForeignKey('department.id'))
+    department_id = Column(Integer, ForeignKey('department.department_id'))
     department = relationship("Department", back_populates="members")

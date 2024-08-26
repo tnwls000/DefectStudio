@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 import crud
-from core.db import get_db
+from dependencies import get_db
 from fastapi import APIRouter
 from schema import MemberCreate
 

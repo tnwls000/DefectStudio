@@ -3,6 +3,7 @@ from celery import Celery
 from redis import Redis
 from rq import Queue
 from api.main import api_router
+from api.routes import members
 from core.config import settings
 from starlette.middleware.cors import CORSMiddleware
 import uvicorn
@@ -41,6 +42,7 @@ def test_function(x, y):
     return x / y
 
 app.include_router(api_router, prefix="/api")
+app.include_router(members.app)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)

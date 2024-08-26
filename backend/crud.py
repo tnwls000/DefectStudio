@@ -1,12 +1,13 @@
-from sqlalchemy.orm import Session
 from models import Member
+from fastapi import Depends
 from schema import MemberCreate
+from dependencies import get_db
 from core.security import hash_password
 
-def get_member_by_login_id(session: Session, login_id: str):
+def get_member_by_login_id(session: Depends(get_db), login_id: str):
     return session.query(Member).filter(Member.login_id == login_id).first()
 
-def create_member(session: Session, member: MemberCreate):
+def create_member(session: Depends(get_db), member: MemberCreate):
     hashed_password = hash_password(member.password)
     db_member = Member(
         login_id=member.login_id,

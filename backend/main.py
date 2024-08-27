@@ -1,14 +1,15 @@
-from fastapi import FastAPI
-from celery import Celery
-from redis import Redis
-from rq import Queue
-from api.main import api_router
-from api.routes import members, login
-from core.config import settings
-from starlette.middleware.cors import CORSMiddleware
 import uvicorn
-from core.db import Base, engine
+from rq import Queue
+from redis import Redis
+from celery import Celery
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+
 from models import *
+from core.db import engine
+from api.main import api_router
+from core.config import settings
+from api.routes import members, login
 
 app = FastAPI()
 

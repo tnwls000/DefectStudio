@@ -1,26 +1,15 @@
-import aioredis
-
-from core.security import get_refresh_token
-from models import Member
-from aioredis import Redis
-from core.db import Session
 from typing import Annotated
-from jose import jwt, JWTError, ExpiredSignatureError
-from core.config import settings
+
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
+from jose import jwt, JWTError, ExpiredSignatureError
+
+from core.config import settings
+from core.db import Session
+from models import Member
 
 # Access 토큰만을 리턴
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/login')
-
-
-async def get_redis() -> Redis:
-    redis = await aioredis.create_redis_pool((settings.REDIS_HOST, settings.REDIS_PORT))
-    try:
-        yield redis
-    finally:
-        redis.close()
-        await redis.wait_closed()
 
 
 def get_db():
@@ -32,7 +21,6 @@ def get_db():
 
 
 async def get_current_user(session: Depends(get_db), token: Annotated[str, Depends(oauth2_bearer)]):
-    login_id = None
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ENCODE_ALGORITHM])
         login_id: str = payload.get('sub')
@@ -53,8 +41,10 @@ async def get_current_user(session: Depends(get_db), token: Annotated[str, Depen
                                 detail='존재하지 않는 유저입니다.')
 
         return member
+
     except ExpiredSignatureError:
-        refresh_token = get_refresh_token(login_id)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='만료된 Access 토큰입니다.')
 
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,

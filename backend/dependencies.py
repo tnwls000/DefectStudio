@@ -1,9 +1,11 @@
 import aioredis
+
+from core.security import get_refresh_token
 from models import Member
 from aioredis import Redis
 from core.db import Session
 from typing import Annotated
-from jose import jwt, JWTError
+from jose import jwt, JWTError, ExpiredSignatureError
 from core.config import settings
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
@@ -30,6 +32,7 @@ def get_db():
 
 
 async def get_current_user(session: Depends(get_db), token: Annotated[str, Depends(oauth2_bearer)]):
+    login_id = None
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ENCODE_ALGORITHM])
         login_id: str = payload.get('sub')
@@ -37,20 +40,22 @@ async def get_current_user(session: Depends(get_db), token: Annotated[str, Depen
 
         if not login_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                detail='Could not validate user.')
+                                detail='유효하지 않은 토큰입니다.')
 
         if token_category != 'access':
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail='Incorrect token type.')
+                                detail='올바르지 않은 유형의 토큰입니다.')
 
         member = session.query(Member).filter(Member.login_id == login_id).first()
 
         if not member:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail='Member does not exist.')
+                                detail='존재하지 않는 유저입니다.')
 
         return member
+    except ExpiredSignatureError:
+        refresh_token = get_refresh_token(login_id)
 
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail='Could not validate user.')
+                            detail='유효하지 않은 토큰입니다.')

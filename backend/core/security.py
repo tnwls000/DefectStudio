@@ -21,15 +21,15 @@ def hash_password(password):
     return bcrypt_context.hash(password)
 
 
-def create_access_token(login_id: str, role: str):
-    payload = {'sub': login_id, 'role': role, 'category': 'access'}
+def create_access_token(login_id: str):
+    payload = {'sub': login_id, 'category': 'access'}
     expiration_minutes = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
     payload.update({'exp': expiration_minutes})
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.ENCODE_ALGORITHM)
 
 
-def create_refresh_token(login_id: str, role: str):
-    payload = {'sub': login_id, 'role': role, 'category': 'refresh'}
+def create_refresh_token(login_id: str):
+    payload = {'sub': login_id, 'category': 'refresh'}
     expiration_minutes = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_REFRESH_TOKEN_EXPIRE_MINUTES)
     payload.update({'exp': expiration_minutes})
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.ENCODE_ALGORITHM)
@@ -44,10 +44,9 @@ async def decode_refresh_token(token: str):
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ENCODE_ALGORITHM])
         login_id: str = payload.get('sub')
-        role: str = payload.get('role')
         token_category: str = payload.get('category')
 
-        return {'login_id': login_id, 'role': role, 'token_category': token_category}
+        return {'login_id': login_id, 'token_category': token_category}
 
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")

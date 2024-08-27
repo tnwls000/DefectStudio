@@ -1,16 +1,22 @@
+import AIToolBoxList from '../components/home/AIToolBoxList';
 import Header from '../components/home/Header';
-import Main from '../components/home/Main';
 
 const Home = () => {
   return (
-    <div className="Home">
-      <header className="Header">
-        <Header />
-      </header>
-      <main>
-        <Main />
-      </main>
-    </div>
+    <>
+      <div className="relative overflow-hidden bg-white z-0">
+        <header>
+          <Header />
+        </header>
+        <main>
+          <p className="mt-8 md:mt-16 text-2xl font-bold text-black text-center md:text-left md:ml-10">
+            SamGen’s AI Tools
+          </p>
+
+          <AIToolBoxList />
+        </main>
+      </div>
+    </>
   );
 };
 

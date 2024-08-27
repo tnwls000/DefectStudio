@@ -20,6 +20,6 @@ class Member(Base):
     nickname = Column(String(100), nullable=False, unique=True)
     email = Column(String(255), nullable=False)
     role = Column(Enum(Role), nullable=False)
-    token_quantity = Column(Integer, nullable=False)
+    token_quantity = Column(Integer, nullable=False, default=0)
     department_id = Column(Integer, ForeignKey('department.department_id'))
     department = relationship("Department", back_populates="members")

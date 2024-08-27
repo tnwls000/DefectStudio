@@ -8,6 +8,7 @@ from core.config import settings
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 
+# Access 토큰만을 리턴
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/login')
 
 

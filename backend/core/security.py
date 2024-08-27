@@ -8,6 +8,8 @@ from passlib.context import CryptContext
 from dependencies import get_redis, get_current_user
 from datetime import datetime, timedelta, timezone
 
+from models import Member
+
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
@@ -38,16 +40,14 @@ async def get_refresh_token(login_id: str, redis: Redis = Depends(get_redis)):
     return token
 
 
-# TODO : 토큰 불러오기 + 토큰 유효성 검사
-async def verify_refresh_token(token: str, user_dependency=Depends(get_current_user)):
+async def decode_refresh_token(token: str):
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ENCODE_ALGORITHM]) if token else None
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ENCODE_ALGORITHM])
         login_id: str = payload.get('sub')
+        role: str = payload.get('role')
         token_category: str = payload.get('category')
 
-        if token_category != 'refresh':
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail='Incorrect token type.')
+        return {'login_id': login_id, 'role': role, 'token_category': token_category}
 
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")

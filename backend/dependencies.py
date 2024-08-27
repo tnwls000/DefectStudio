@@ -1,5 +1,7 @@
 from typing import Annotated
 
+import aioredis
+from aioredis import Redis
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from jose import jwt, JWTError, ExpiredSignatureError
@@ -18,6 +20,17 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+async def get_redis() -> Redis:
+    redis = await aioredis.from_url(
+    f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
+        decode_responses=True
+    )
+    try:
+        yield redis
+    finally:
+        await redis.close()
 
 
 async def get_current_user(session: Depends(get_db), token: Annotated[str, Depends(oauth2_bearer)]):

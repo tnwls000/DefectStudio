@@ -1,6 +1,7 @@
 from typing import Annotated
 from datetime import datetime, timedelta, timezone
 
+from aioredis import Redis
 from fastapi import APIRouter
 from alembic.util import status
 from fastapi.params import Depends
@@ -9,8 +10,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import HTTPException, Response, status, Request
 
 import crud
-from dependencies import get_db
 from core.config import settings
+from dependencies import get_db, get_redis
 from core.security import verify_password, create_access_token, create_refresh_token, decode_refresh_token
 
 app = APIRouter(
@@ -30,12 +31,27 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     return response
 
 
+@app.post("/logout")
+async def logout(request: Request, response: Response, redis: Redis = Depends(get_redis)):
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="이미 로그아웃 된 상태입니다.")
+    decoded_refresh_token = decode_refresh_token(refresh_token)
+    expiration_datetime = datetime.fromtimestamp(decoded_refresh_token.get("expiration_time"))
+    await redis.setex(refresh_token, int((expiration_datetime - datetime.utcnow()).total_seconds()), "blacklisted")
+    response.delete_cookie("refresh_token")
+
+
 @app.post("/reissue")
-def reissue(request: Request):
+async def reissue(request: Request, redis: Redis = Depends(get_redis)):
     refresh_token = request.cookies.get("refresh_token")
 
     if not refresh_token:
-        raise HTTPException(status_code=401, detail="Refresh token is missing")
+        raise HTTPException(status_code=401, detail="리프레시 토큰이 존재하지 않습니다.")
+
+    blacklisted = await redis.get(refresh_token)
+    if blacklisted:
+        raise HTTPException(status_code=401, detail="만료된 Refresh 토큰입니다.")
 
     decoded_refresh_token = decode_refresh_token(refresh_token)
     login_id = decoded_refresh_token.get("login_id")
@@ -44,7 +60,7 @@ def reissue(request: Request):
     return response
 
 
-def authentication_member(username: str, password: str, session):
+def authentication_member(username: str, password: str, session: Session = Depends(get_db)):
     member = crud.get_member_by_login_id(session, username)
     if not member:
         raise HTTPException(status_code=404, detail="해당 유저를 찾을 수 없습니다.")

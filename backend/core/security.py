@@ -36,12 +36,13 @@ def decode_refresh_token(token: str):
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ENCODE_ALGORITHM])
         login_id: str = payload.get('sub')
         token_category: str = payload.get('category')
+        expiration_time: int = payload.get('exp')
 
         if token_category != 'refresh':
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail='올바르지 않은 유형의 토큰입니다.')
 
-        return {'login_id': login_id, 'token_category': token_category}
+        return {'login_id': login_id, 'token_category': token_category, 'expiration_time': expiration_time}
 
     except ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,

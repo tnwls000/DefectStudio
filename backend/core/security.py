@@ -37,6 +37,10 @@ def decode_refresh_token(token: str):
         login_id: str = payload.get('sub')
         token_category: str = payload.get('category')
 
+        if token_category != 'refresh':
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail='올바르지 않은 유형의 토큰입니다.')
+
         return {'login_id': login_id, 'token_category': token_category}
 
     except ExpiredSignatureError:

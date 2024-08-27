@@ -32,15 +32,18 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
 
 @celery.task
 def test_function(x, y):
     import time
     time.sleep(5)
     return x / y
+
 
 app.include_router(api_router, prefix="/api")
 app.include_router(members.app)

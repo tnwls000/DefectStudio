@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from passlib.context import CryptContext
-from fastapi import HTTPException, status, Response
+from fastapi import HTTPException, status
 from jose import jwt, JWTError, ExpiredSignatureError
 
 from core.config import settings

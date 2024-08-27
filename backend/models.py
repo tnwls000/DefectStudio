@@ -1,7 +1,9 @@
-from core.db import Base
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Date
 from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey
+
 from enums import Role
+from core.db import Base
+
 
 class Department(Base):
     __tablename__ = 'department'
@@ -9,6 +11,7 @@ class Department(Base):
     department_id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     members = relationship("Member", back_populates="department")
+
 
 class Member(Base):
     __tablename__ = 'member'

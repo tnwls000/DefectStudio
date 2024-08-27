@@ -4,9 +4,9 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from jose import jwt, JWTError, ExpiredSignatureError
 
-from core.config import settings
-from core.db import Session
 from models import Member
+from core.db import Session
+from core.config import settings
 
 # Access 토큰만을 리턴
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/login')

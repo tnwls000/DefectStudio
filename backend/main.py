@@ -1,19 +1,20 @@
-from fastapi import FastAPI
-from celery import Celery
-from redis import Redis
-from rq import Queue
-from api.main import api_router
-from api.routes import members, login
-from core.config import settings
-from starlette.middleware.cors import CORSMiddleware
 import uvicorn
-from core.db import Base, engine
+from rq import Queue
+from redis import Redis
+from celery import Celery
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+
 from models import *
+from core.db import engine
+from api.main import api_router
+from core.config import settings
+from api.routes import members, login
 
 app = FastAPI()
 
 # Managing Redis queues directly with rq
-redis_conn = Redis(host=settings.REDIS_HOST, port=6379)
+redis_conn = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 task_queue = Queue("task_queue", connection=redis_conn)
 
 celery = Celery(
@@ -31,15 +32,18 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
 
 @celery.task
 def test_function(x, y):
     import time
     time.sleep(5)
     return x / y
+
 
 app.include_router(api_router, prefix="/api")
 app.include_router(members.app)

@@ -1,16 +1,17 @@
-from fastapi.params import Depends
+from fastapi import APIRouter
 from fastapi import HTTPException
+from fastapi.params import Depends
 from sqlalchemy.orm import Session
 
 import crud
 from dependencies import get_db
-from fastapi import APIRouter
 from schema import MemberCreate
 
 app = APIRouter(
     prefix="/auth",
     tags=["auth"]
 )
+
 
 @app.post("/signup")
 async def signup(member: MemberCreate, session: Session = Depends(get_db)):

@@ -29,11 +29,13 @@ const Navbar = () => {
   };
 
   return (
-    <div className="z-20 w-full h-[60px] flex items-center px-10 bg-white shadow-md">
-      <div className="flex items-center">
-        <img src={logo} className="w-[30px] h-[30px] mr-2 object-cover" alt="logo" />
-        <p className="text-xl font-bold text-[#1428a0] font-samsung">Defect Studio</p>
-      </div>
+    <div className="z-50 w-full h-[60px] flex items-center px-10 bg-white shadow-md">
+      <Link to={'/'}>
+        <div className="flex items-center">
+          <img src={logo} className="w-[30px] h-[30px] mr-2 object-cover" alt="logo" />
+          <p className="text-xl font-bold text-[#1428a0] font-samsung">Defect Studio</p>
+        </div>
+      </Link>
       <div className="hidden md:flex ml-10 space-x-8">
         <div className="relative">
           <button
@@ -43,7 +45,7 @@ const Navbar = () => {
             Generation
           </button>
           {isGenerationDropdownOpen && (
-            <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
+            <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
               {[
                 { name: 'Text To Image', path: '/generation/text-to-image' },
                 { name: 'Image To Image', path: '/generation/image-to-image' },

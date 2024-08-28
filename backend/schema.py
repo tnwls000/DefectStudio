@@ -1,6 +1,9 @@
 from pydantic import BaseModel, EmailStr, Field
 from enums import Role
 import re
+from models import *
+from typing import Optional
+
 
 class MemberCreate(BaseModel):
     login_id: str = Field(..., min_length=3, max_length=50)
@@ -10,3 +13,21 @@ class MemberCreate(BaseModel):
     email: EmailStr
     role: Role = Field(default=Role.department_member)
     department_id: int = Field(...)
+
+
+class MemberRead(BaseModel):
+    login_id: str = Field(..., min_length=3, max_length=50)
+    nickname: str = Field(..., min_length=3, max_length=50, )
+    email: EmailStr
+    role: Role
+    department_name: str
+
+    @classmethod
+    def from_orm(cls, member: 'Member') -> 'MemberRead':
+        return cls(
+            login_id=member.login_id,
+            nickname=member.nickname,
+            email=member.email,
+            role=member.role,
+            department_name=member.department.name
+        )

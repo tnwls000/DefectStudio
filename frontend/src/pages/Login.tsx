@@ -2,7 +2,17 @@ const Login = () => {
   return (
     <div className="relative overflow-hidden w-full min-h-screen flex flex-row">
       {/* 움직이는 화면 넣는 곳 */}
-      <section className="w-1/2 h-screen hidden lg:block bg-slate-400"></section>
+      <section className="w-1/2 h-screen hidden lg:block bg-slate-400 relative">
+        <p className="text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[50px] ">
+          Welcome
+          <br />
+          to
+          <br />
+          Defect
+          <br />
+          Studio
+        </p>
+      </section>
 
       {/* 로그인 폼 */}
       <section className="w-full lg:w-1/2 flex flex-col justify-center items-center">
@@ -29,11 +39,11 @@ const Login = () => {
           placeholder="Password"
           required
         />
-        <button className="w-[400px] h-[50px] rounded-[100px] bg-[#6200ea] text-lg font-black text-white mb-10">
+        <button className="w-[400px] h-[50px] rounded-[100px] bg-[#6200ea] text-lg font-black text-white ">
           Log in
         </button>
         {/* or */}
-        <div className="w-[350px] h-[37px] my-4 relative">
+        <div className="w-[350px] h-[37px] my-5 relative">
           <svg
             width={350}
             height={1}

@@ -33,7 +33,7 @@ async def get_redis() -> Redis:
         await redis.close()
 
 
-async def get_current_user(session: Depends(get_db), token: Annotated[str, Depends(oauth2_bearer)]):
+async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)], session: Session = Depends(get_db)):
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ENCODE_ALGORITHM])
         login_id: str = payload.get('sub')

@@ -17,7 +17,7 @@ class Member(Base):
     __tablename__ = 'member'
 
     member_id = Column(Integer, primary_key=True)
-    login_id = Column(String(50), nullable=False)
+    login_id = Column(String(50), nullable=False, unique=True)
     password = Column(String, nullable=False)
     name = Column(String(100), nullable=False)
     nickname = Column(String(100), nullable=False, unique=True)

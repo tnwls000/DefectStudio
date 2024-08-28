@@ -1,12 +1,11 @@
 from fastapi import APIRouter
-from fastapi import HTTPException
-from fastapi.params import Depends
 from sqlalchemy.orm import Session, joinedload
+from fastapi import HTTPException, Response, status, Depends
 
 import crud
 from models import *
-from dependencies import get_db
-from schema import MemberCreate, MemberRead
+from dependencies import get_db, get_current_user
+from schema import MemberCreate, MemberRead, MemberUpdate
 
 app = APIRouter(
     prefix="/auth",
@@ -22,15 +21,28 @@ async def signup(member: MemberCreate, session: Session = Depends(get_db)):
 
     crud.create_member(session, member)
 
-    return HTTPException(status_code=200, detail="회원가입이 완료되었습니다.")
+    return Response(status_code=status.HTTP_200_OK, content="회원가입이 완료되었습니다.")
 
 
-# TODO : 회원정보 조회
 @app.get("/members/{member_id}", response_model=MemberRead)
-def get_user(member_id: int, session: Session = Depends(get_db)):
+def read_member_by_id(member_id: int, session: Session = Depends(get_db)):
     member = session.query(Member).options(joinedload(Member.department)).filter(Member.member_id == member_id).one_or_none()
-    return member
+    response = MemberRead.from_orm(member)
+    return response
 
-# TODO : 회원정보수정
+@app.patch("/members", response_model=MemberRead)
+def update_member_me(request: MemberUpdate, member: Member = Depends(get_current_user), session: Session = Depends(get_db)):
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자를 찾을 수 없습니다.")
+
+    update_data = request.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(member, key, value)
+
+    session.commit()
+    session.refresh(member)
+    response = MemberRead.from_orm(member)
+    return response
+
 
 # TODO : 회원삭제

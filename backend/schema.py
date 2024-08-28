@@ -16,8 +16,8 @@ class MemberCreate(BaseModel):
 
 
 class MemberRead(BaseModel):
-    login_id: str = Field(..., min_length=3, max_length=50)
-    nickname: str = Field(..., min_length=3, max_length=50, )
+    login_id: str
+    nickname: str
     email: EmailStr
     role: Role
     department_name: str
@@ -29,5 +29,10 @@ class MemberRead(BaseModel):
             nickname=member.nickname,
             email=member.email,
             role=member.role,
-            department_name=member.department.name
+            department_name=member.department.name if member.department else "null"
         )
+
+class MemberUpdate(BaseModel):
+    password: Optional[str] = Field(None, pattern=re.compile(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$"))
+    nickname: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[EmailStr] = None

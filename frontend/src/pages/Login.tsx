@@ -59,9 +59,10 @@ const Login = () => {
           <p className="absolute left-[161px] top-[5px] text-base text-left text-[#696969]">OR</p>
         </div>
         {/* Google Login */}
-        <div className="w-[350px] h-[50px] relative">
-          <div className="w-[350px] h-[50px] absolute left-[-1px] top-[-1px] rounded-[100px] border border-[#ccc]" />
-          <p className="absolute left-[106px] top-3 text-base text-left text-black">Log in with Google</p>
+        <div className="w-[400px] h-[50px] relative">
+          <button className="w-[400px] h-[50px] absolute  rounded-[100px] border border-[#ccc]">
+            Log in with Google
+          </button>
           <img src={'./src/assets/google.svg'} className="w-5 h-5 absolute left-[19px] top-3.5 object-contain" />
         </div>
       </section>

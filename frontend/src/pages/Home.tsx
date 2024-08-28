@@ -4,7 +4,7 @@ import Header from '../components/home/Header';
 const Home = () => {
   return (
     <>
-      <div className="relative overflow-hidden bg-white z-0">
+      <div className="relative overflow-hidden bg-white ">
         <header>
           <Header />
         </header>

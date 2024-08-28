@@ -1,6 +1,6 @@
 const Header = () => {
   return (
-    <div className="relative overflow-hidden flex items-center justify-center w-full h-[535px] bg-gray-300 z-0">
+    <div className="relative overflow-hidden flex items-center justify-center w-full h-[535px] bg-gray-300">
       <div className="absolute inset-0">
         <img src={'./homeimg.png'} alt="Background" className="w-full h-full object-cover z-0" />
       </div>

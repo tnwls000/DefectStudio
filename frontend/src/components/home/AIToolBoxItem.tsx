@@ -8,7 +8,7 @@ const AIToolBoxItem = ({ text, imageUrl, linkUrl }: SelectBoxProps) => {
     <Link to={linkUrl}>
       <div className="relative bg-gray-600 rounded-md p-6 h-48 flex items-center justify-center">
         {imageUrl && imageUrl !== '' && (
-          <img src={imageUrl} className="w-full h-full object-cover absolute inset-0 z-0 rounded-md" />
+          <img src={imageUrl} className="w-full h-full object-cover absolute inset-0 rounded-md" />
         )}
         <p className="text-white text-xl font-bold z-10 relative">{text}</p>
       </div>

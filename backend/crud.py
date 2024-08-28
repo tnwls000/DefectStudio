@@ -16,7 +16,6 @@ def create_member(session: Depends(get_db), member: MemberCreate):
         nickname=member.nickname,
         email=member.email,
         role=member.role,
-        token_quantity=member.token_quantity,
         department_id=member.department_id
     )
     session.add(db_member)

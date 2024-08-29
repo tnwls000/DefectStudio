@@ -22,10 +22,17 @@ async def upload_file(s3_client, image_io: BytesIO, key: str) -> str:
         return None
 
 
+async def delete_file(s3_client, key: str):
+    try:
+        await s3_client.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=key)
+        print(f"파일 삭제 성공: {key}")
+    except Exception as e:
+        print(f"삭제 실패: {e}")
+
+
 async def upload_files(image_list: List[BytesIO]) -> List[str]:
     s3_urls = []
 
-    # 비동기적으로 생성된 S3 클라이언트 객체, 해당 블록이 끝나면 s3_client는 자동으로 정리
     async with aioboto3.client(
         's3',
         aws_access_key_id=settings.AWS_S3_ACCESS_KEY,
@@ -39,3 +46,18 @@ async def upload_files(image_list: List[BytesIO]) -> List[str]:
         s3_urls = await asyncio.gather(*tasks)
 
     return [url for url in s3_urls if url is not None]
+
+
+async def delete_files(num_of_images: int, key: str):
+    async with aioboto3.client(
+        's3',
+        aws_access_key_id=settings.AWS_S3_ACCESS_KEY,
+        aws_secret_access_key=settings.AWS_S3_PRIVATE_KEY
+    ) as s3_client:
+        tasks = []
+
+        for index in range(num_of_images):
+            key_url = f"{key}/{index}"
+            tasks.append(delete_file(s3_client, key_url))
+
+        await asyncio.gather(*tasks)

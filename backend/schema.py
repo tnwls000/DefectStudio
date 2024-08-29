@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 from enums import Role
 import re
@@ -36,3 +37,9 @@ class MemberUpdate(BaseModel):
     password: Optional[str] = Field(None, pattern=re.compile(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$"))
     nickname: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
+
+class TokenCreate(BaseModel):
+    end_date: datetime = Field(...)
+    quantity: int = Field(..., gt=0)
+    department_id: int = Field(...)
+

@@ -7,6 +7,7 @@ import Model from './pages/Model';
 import Settings from './pages/Settings';
 import Docs from './pages/Docs';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/generation/*" element={<Generation />} />
         <Route path="/training" element={<Training />} />
         <Route path="/model" element={<Model />} />

@@ -20,7 +20,7 @@ const Signup = () => {
       </p>
       <form onSubmit={onSubmit} className="flex flex-col absolute top-[100px] left-1/2 transform -translate-x-1/2">
         <input
-          {...register('login_id', { required: 'Username is required' })}
+          {...register('login_id', { required: 'loginId is required' })}
           type="text"
           placeholder="loginId"
           className={`w-[90%] min-w-[400px] my-5 max-w-[400px] h-[50px] px-4 rounded-[10px] border ${errors.login_id ? 'border-red-500' : 'border-[#ccc]'} text-sm sm:text-base text-[#808080] focus:outline-none`}
@@ -36,9 +36,9 @@ const Signup = () => {
         {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
 
         <input
-          {...register('name', { required: 'Nickname is required' })}
+          {...register('name', { required: 'Name is required' })}
           type="text"
-          placeholder="Nickname"
+          placeholder="Name"
           className={`w-[90%] min-w-[400px] my-5 max-w-[400px] h-[50px] px-4 rounded-[10px] border ${errors.name ? 'border-red-500' : 'border-[#ccc]'} text-sm sm:text-base text-[#808080] focus:outline-none`}
         />
         {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}

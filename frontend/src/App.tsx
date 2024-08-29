@@ -1,4 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
+import { Provider } from 'react-redux'; 
+import store from './store/store'; 
 import Navbar from './components/common/Navbar';
 import Home from './pages/Home';
 import Generation from './pages/Generation';
@@ -7,9 +9,9 @@ import Model from './pages/Model';
 import Settings from './pages/Settings';
 import Docs from './pages/Docs';
 
-function App() {
+function AppContent() {
   return (
-    <>
+    <div>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -19,7 +21,15 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/docs" element={<Docs />} />
       </Routes>
-    </>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Provider store={store}>
+      <AppContent />
+    </Provider>
   );
 }
 

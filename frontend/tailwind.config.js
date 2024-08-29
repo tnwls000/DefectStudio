@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        samsung: ['samsung-sharp-sans'],
+        samsung: ['SamsungSharpSans'],
         helvetica: ['helvetica-neue-55']
       }
     }

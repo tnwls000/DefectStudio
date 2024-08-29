@@ -1,5 +1,5 @@
-import Sidebar from '../../components/generation/txt2img/Sidebar';
-import Prompt from '../../components/generation/txt2img/Prompt';
+import Sidebar from '../sidebar/Txt2ImgSidebar';
+import Prompt from '../parameters/Prompt';
 
 const TextToImage = () => {
   return (

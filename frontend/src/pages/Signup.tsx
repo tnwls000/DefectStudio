@@ -1,11 +1,19 @@
 import { useForm } from 'react-hook-form';
 
+type formData = {
+  login_id: string;
+  name: string;
+  nickname: string;
+  password: string;
+  email: string;
+};
+
 const Signup = () => {
   const {
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm();
+  } = useForm<formData>();
 
   const onSubmit = handleSubmit((data) => {
     console.log(data);
@@ -16,17 +24,14 @@ const Signup = () => {
       <p className="absolute left-1/2 top-8 transform -translate-x-1/2 text-2xl sm:text-3xl font-black text-center text-black">
         Welcome to Defect Studio
       </p>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col absolute top-[200px] left-1/2 transform -translate-x-1/2"
-      >
+      <form onSubmit={onSubmit} className="flex flex-col absolute top-[100px] left-1/2 transform -translate-x-1/2">
         <input
-          {...register('username', { required: 'Username is required' })}
+          {...register('login_id', { required: 'Username is required' })}
           type="text"
-          placeholder="Username"
-          className={`w-[90%] min-w-[400px] my-5 max-w-[400px] h-[50px] px-4 rounded-[10px] border ${errors.username ? 'border-red-500' : 'border-[#ccc]'} text-sm sm:text-base text-[#808080] focus:outline-none`}
+          placeholder="loginId"
+          className={`w-[90%] min-w-[400px] my-5 max-w-[400px] h-[50px] px-4 rounded-[10px] border ${errors.login_id ? 'border-red-500' : 'border-[#ccc]'} text-sm sm:text-base text-[#808080] focus:outline-none`}
         />
-        {errors.username && <p className="text-red-500 text-sm">{errors.username.message}</p>}
+        {errors.login_id && <p className="text-red-500 text-sm">{errors.login_id.message}</p>}
 
         <input
           {...register('password', { required: 'Password is required' })}
@@ -35,6 +40,14 @@ const Signup = () => {
           className={`w-[90%] min-w-[400px] my-5 max-w-[400px] h-[50px] px-4 rounded-[10px] border ${errors.password ? 'border-red-500' : 'border-[#ccc]'} text-sm sm:text-base text-[#808080] focus:outline-none`}
         />
         {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+
+        <input
+          {...register('name', { required: 'Nickname is required' })}
+          type="text"
+          placeholder="Nickname"
+          className={`w-[90%] min-w-[400px] my-5 max-w-[400px] h-[50px] px-4 rounded-[10px] border ${errors.name ? 'border-red-500' : 'border-[#ccc]'} text-sm sm:text-base text-[#808080] focus:outline-none`}
+        />
+        {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
 
         <input
           {...register('nickname', { required: 'Nickname is required' })}

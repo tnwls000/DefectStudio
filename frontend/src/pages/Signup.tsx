@@ -1,22 +1,16 @@
 import { useForm } from 'react-hook-form';
-
-type formData = {
-  login_id: string;
-  name: string;
-  nickname: string;
-  password: string;
-  email: string;
-};
+import { signUpFormType } from '../types/signup';
+import { signupHTTP } from '../util/signupHTTP';
 
 const Signup = () => {
   const {
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm<formData>();
+  } = useForm<signUpFormType>();
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
+    signupHTTP(data);
   });
 
   return (

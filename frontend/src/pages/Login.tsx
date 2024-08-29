@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import LoginForm from '../components/login/LoginForm';
 import OrBar from '../components/login/OrBar';
 
@@ -21,7 +22,9 @@ const Login = () => {
       <section className="w-full lg:w-1/2 flex flex-col justify-center items-center">
         <p className="text-3xl font-black text-center text-black mb-6">Welcome to Defect Studio</p>
         <p className="text-base text-center mb-6">
-          <span className="text-base text-black">Don’t have an account? </span>
+          <Link to="/signup">
+            <span className="text-base text-black">Don’t have an account? </span>
+          </Link>
           <span className="text-base font-black text-[#6200ea]">Sign up for free</span>
         </p>
 

@@ -1,6 +1,8 @@
-from models import Member
+from datetime import datetime
+
+from models import Member, Token
 from fastapi import Depends
-from schema import MemberCreate
+from schema import MemberCreate, TokenCreate
 from dependencies import get_db
 from core.security import hash_password
 
@@ -22,3 +24,18 @@ def create_member(session: Depends(get_db), member: MemberCreate):
     session.commit()
     session.refresh(db_member)
     return db_member
+
+def create_token(session: Depends(get_db), token: TokenCreate):
+    db_token = Token(
+        start_date=datetime.today(),
+        end_date=token.end_date,
+        origin_quantity=token.quantity,
+        remain_quantity=token.quantity,
+        is_active=True, # 토큰 발급 시 활성화되어 발급됨
+        department_id=token.department_id
+    )
+
+    session.add(db_token)
+    session.commit()
+    session.refresh(db_token)
+    return db_token

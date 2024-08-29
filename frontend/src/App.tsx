@@ -8,6 +8,7 @@ import Training from './pages/Training';
 import Model from './pages/Model';
 import Settings from './pages/Settings';
 import Docs from './pages/Docs';
+import Login from './pages/Login';
 
 function AppContent() {
   return (
@@ -15,6 +16,7 @@ function AppContent() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/generation/*" element={<Generation />} />
         <Route path="/training" element={<Training />} />
         <Route path="/model" element={<Model />} />

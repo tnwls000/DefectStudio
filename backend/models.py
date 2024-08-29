@@ -35,6 +35,7 @@ class Token(Base):
     end_date = Column(DateTime, nullable=False)
     origin_quantity = Column(Integer, nullable=False)
     remain_quantity = Column(Integer, nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True)
     department_id = Column(Integer, ForeignKey('department.department_id'))
     department = relationship("Department", back_populates="tokens")
 

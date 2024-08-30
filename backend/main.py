@@ -9,7 +9,7 @@ from models import *
 from core.db import engine
 from api.main import api_router
 from core.config import settings
-from api.routes import members, auth, admin
+
 
 app = FastAPI()
 
@@ -44,11 +44,8 @@ def test_function(x, y):
     time.sleep(5)
     return x / y
 
-
 app.include_router(api_router, prefix="/api")
-app.include_router(auth.app)
-app.include_router(members.app)
-app.include_router(admin.app)
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)

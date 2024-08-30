@@ -1,9 +1,11 @@
 from datetime import datetime
-from models import Member, Token, TokenUsage
+from models import Member, Token, TokenUsage, Department
 from fastapi import Depends
-from schema import MemberCreate, TokenCreate, TokenUsageCreate
+from schema import MemberCreate, TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment
 from dependencies import get_db
 from core.security import hash_password
+from itertools import groupby
+from typing import List
 
 def get_member_by_login_id(session: Depends(get_db), login_id: str):
     return session.query(Member).filter(Member.login_id == login_id).first()
@@ -44,6 +46,29 @@ def create_token(session: Depends(get_db), token: TokenCreate):
 
 def get_token_by_token_id(session: Depends(get_db), token_id: int):
     return session.query(Token).filter(Token.token_id == token_id).first()
+
+def get_tokens_for_super_admin(session: Depends(get_db)):
+    tokens = session.query(Token).all()
+    return convert_to_token_read_by_department(session, tokens)
+
+
+def get_tokens_for_department_admin(session: Depends(get_db), department_id: int):
+    tokens = session.query(Token).filter(Token.department_id == department_id).all()
+    return convert_to_token_read_by_department(session, tokens)
+
+def convert_to_token_read_by_department(session: Depends(get_db), tokens: List[Token]):
+    # 부서별로 토큰을 그룹화
+    tokens_by_department = []
+    tokens.sort(key=lambda x: x.department_id)
+    for department_id, group in groupby(tokens, key=lambda x: x.department_id):
+        department_name = session.query(Department.name).filter(Department.department_id == department_id).scalar()
+
+        tokens_by_department.append(TokenReadByDepartment(
+            department_id=department_id,
+            department_name=department_name,
+            tokens=[TokenRead.from_orm(token) for token in group]
+        ))
+    return tokens_by_department
 
 def create_token_usage(session: Depends(get_db), token_usage: TokenUsageCreate):
     db_token_usage = TokenUsage(

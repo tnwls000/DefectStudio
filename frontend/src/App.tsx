@@ -15,6 +15,7 @@ function AppContent() {
   return (
     <div>
       <Navbar />
+      <div className="pt-[60px]">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -25,6 +26,7 @@ function AppContent() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/docs" element={<Docs />} />
       </Routes>
+      </div>
     </div>
   );
 }

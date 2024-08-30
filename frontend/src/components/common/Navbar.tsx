@@ -40,7 +40,7 @@ const Navbar = () => {
   ];
 
   return (
-    <div className="z-20 w-full h-[60px] flex items-center px-10 bg-white shadow-md border-b border-gray-300">
+    <div className="fixed z-20 w-full h-[60px] flex items-center px-10 bg-white shadow-md border-b border-gray-300">
       <div className="flex items-center">
         <img
           src={logo}

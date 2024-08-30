@@ -45,8 +45,8 @@ def upload_files(image_list: List[BytesIO]) -> List[str]:
     key = "temp"
 
     for index, image_io in enumerate(image_list):
-        key = f"{key}/{index + 1}.jpeg"
-        url = upload_file(s3_client, image_io, key)
+        image_key = f"{key}/{index + 1}.jpeg"
+        url = upload_file(s3_client, image_io, image_key)
         if url:
             s3_urls.append(url)
 
@@ -61,5 +61,5 @@ def delete_files(num_of_images: int, key: str):
     )
 
     for index in range(num_of_images):
-        key_url = f"{key}/{index + 1}"
+        key_url = f"{key}/{index + 1}.jpeg"
         delete_file(s3_client, key_url)

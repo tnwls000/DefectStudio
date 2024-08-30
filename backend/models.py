@@ -1,5 +1,5 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean, Index
 
 from enums import Role
 from core.db import Base
@@ -26,6 +26,7 @@ class Member(Base):
     token_quantity = Column(Integer, nullable=False, default=0)
     department_id = Column(Integer, ForeignKey('department.department_id'))
     department = relationship("Department", back_populates="members")
+    token_usages = relationship("TokenUsage", back_populates="member")
 
 class Token(Base):
     __tablename__ = 'token'
@@ -38,4 +39,17 @@ class Token(Base):
     is_active = Column(Boolean, nullable=False, default=True)
     department_id = Column(Integer, ForeignKey('department.department_id'))
     department = relationship("Department", back_populates="tokens")
+    token_usages = relationship("TokenUsage", back_populates="token")
 
+class TokenUsage(Base):
+    __tablename__ = 'token_usage'
+    __table_args__ = (Index('ix_member_id_end_date', 'member_id', 'end_date'),)
+
+    usage_id = Column(Integer, primary_key=True)
+    quantity = Column(Integer, nullable=False)
+    start_date = Column(DateTime, nullable=False)
+    end_date = Column(DateTime, nullable=False)
+    member_id = Column(Integer, ForeignKey('member.member_id'))
+    member = relationship("Member", back_populates="token_usages")
+    token_id = Column(Integer, ForeignKey('token.token_id'))
+    token = relationship("Token", back_populates="token_usages")

@@ -1,13 +1,15 @@
 from datetime import datetime
-
-from models import Member, Token
+from models import Member, Token, TokenUsage
 from fastapi import Depends
-from schema import MemberCreate, TokenCreate
+from schema import MemberCreate, TokenCreate, TokenUsageCreate
 from dependencies import get_db
 from core.security import hash_password
 
 def get_member_by_login_id(session: Depends(get_db), login_id: str):
     return session.query(Member).filter(Member.login_id == login_id).first()
+
+def get_members_by_department_id(session: Depends(get_db), department_id: int):
+    return session.query(Member).filter(Member.department_id == department_id).all()
 
 def create_member(session: Depends(get_db), member: MemberCreate):
     hashed_password = hash_password(member.password)
@@ -39,3 +41,20 @@ def create_token(session: Depends(get_db), token: TokenCreate):
     session.commit()
     session.refresh(db_token)
     return db_token
+
+def get_token_by_token_id(session: Depends(get_db), token_id: int):
+    return session.query(Token).filter(Token.token_id == token_id).first()
+
+def create_token_usage(session: Depends(get_db), token_usage: TokenUsageCreate):
+    db_token_usage = TokenUsage(
+        quantity=token_usage.quantity,
+        start_date=token_usage.start_date,
+        end_date=token_usage.end_date,
+        member_id=token_usage.member_id,
+        token_id=token_usage.token_id
+    )
+
+    session.add(db_token_usage)
+    session.commit()
+    session.refresh(db_token_usage)
+    return db_token_usage

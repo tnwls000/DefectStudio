@@ -4,12 +4,11 @@ from typing import List
 import aioboto3
 import asyncio
 
-
 async def upload_file(s3_client, image_io: BytesIO, key: str) -> str:
     image_io.seek(0)
     try:
         await s3_client.upload_fileobj(image_io, settings.AWS_S3_BUCKET, key)
-        s3_url = f"https://{settings.AWS_S3_BUCKET}.s3.amazonaws.com/{key}"
+        s3_url = f"https://{settings.AWS_S3_BUCKET}.s3.{settings.AWS_S3_REGION_STATIC}.amazonaws.com/{key}"
         return s3_url
     except Exception as e:
         print(f"업로드 실패: {e}")
@@ -34,7 +33,7 @@ async def upload_files(image_list: List[BytesIO]) -> List[str]:
     ) as s3_client:
         tasks = []
         for index, image_io in enumerate(image_list):
-            key = f"file_name_{index}.jpg"
+            key = f"{key}/{index}"
             tasks.append(upload_file(s3_client, image_io, key))
 
         s3_urls = await asyncio.gather(*tasks)

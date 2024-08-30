@@ -56,6 +56,9 @@ async def distribute_token(token_id : int, quantity: int,
     if quantity <= 0:
         raise HTTPException(status_code=422, detail="토큰 수는 0보다 커야 합니다.")
 
+    if token.remain_quantity < quantity:
+        raise HTTPException(status_code=422, detail="남아 있는 토큰 수보다 더 많은 양의 토큰을 지정할 수 없습니다.")
+
     if token.remain_quantity/member_count < quantity: # 토큰 수 / 회원 수 보다 작아야 함
         raise HTTPException(status_code=422, detail="모든 회원에게 분배할 수 없는 토큰 수입니다.")
 

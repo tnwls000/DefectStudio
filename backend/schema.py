@@ -1,6 +1,5 @@
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
-from enums import Role
 import re
 from models import *
 from typing import Optional
@@ -42,4 +41,11 @@ class TokenCreate(BaseModel):
     end_date: datetime = Field(...)
     quantity: int = Field(..., gt=0)
     department_id: int = Field(...)
+
+class TokenUsageCreate(BaseModel):
+    quantity: int
+    start_date: datetime
+    end_date: datetime
+    member_id: int
+    token_id: int
 

@@ -15,6 +15,8 @@ interface Point {
   y: number;
 }
 
+type Lasso = Point[][];
+
 // 곡선을 계산하는 함수
 const calCurve = (points: number[], tension = 0.5, numOfSeg = 20, close = true): number[] => {
   tension = typeof tension === 'number' ? tension : 0.5;
@@ -110,27 +112,31 @@ const clearPreviousElements = (drawCanvas: fabric.Canvas, curIndex: number): voi
 };
 
 // 윤곽선을 그리는 함수
-const drawContour = (drawCanvas: fabric.Canvas, points: Point[]): void => {
+const drawContour = (drawCanvas: fabric.Canvas, lassos: Lasso, curIndex: number): void => {
+  const points = lassos[curIndex];
   if (points.length < 2) return;
   const newPoints = calCurve(pointsObjToArray(points));
   const curvePoints = pointsArrayToObj(newPoints);
   const polygon = new fabric.Polyline(curvePoints, {
     fill: DEFAULT_COLOR,
-    selectable: false
+    selectable: false,
+    hoverCursor: 'crosshair' // 마우스 커서를 항상 crosshair로 유지
   } as any);
+  (polygon as any).lassoIndex = curIndex;
   drawCanvas.add(polygon);
 };
 
 // 제어 점을 그리는 함수
-const drawControlPoints = (drawCanvas: fabric.Canvas, points: Point[]): void => {
-  points.forEach((point) => {
+const drawControlPoints = (drawCanvas: fabric.Canvas, lassos: Lasso, curIndex: number): void => {
+  lassos[curIndex].forEach((point) => {
     const circle = new fabric.Circle({
       top: point.y - RADIUS,
       left: point.x - RADIUS,
       radius: RADIUS,
       fill: 'rgba(56, 189, 248, 0.9)',
       selectable: false
-    } as any);
+    } as any); // 'as any'를 사용하여 타입 체크 우회
+    (circle as any).lassoIndex = curIndex; // 'lassoIndex'를 직접 설정
     drawCanvas.add(circle);
   });
 };
@@ -278,8 +284,10 @@ const InpaintingModal: React.FC<{
       setDrawType('LASSO_DRAW');
       drawCanvas.current.isDrawingMode = false;
 
+      // 커서를 점 찍는 커서로 변경
       drawCanvas.current.defaultCursor = 'crosshair';
 
+      // 이전 폴리곤 점들을 초기화하지 않고 새로운 폴리곤을 시작
       const newLassos = [...lassos];
       const curIndex = newLassos.length;
       newLassos.push([]);
@@ -291,6 +299,7 @@ const InpaintingModal: React.FC<{
         const pointer = drawCanvas.current.getPointer(options.e);
         newLassos[curIndex].push({ x: pointer.x, y: pointer.y });
 
+        // 각 점을 찍을 때마다 하늘색 점을 추가
         const pointIndicator = new fabric.Circle({
           left: pointer.x,
           top: pointer.y,
@@ -303,8 +312,8 @@ const InpaintingModal: React.FC<{
 
         if (newLassos[curIndex].length > 2) {
           clearPreviousElements(drawCanvas.current, curIndex);
-          drawContour(drawCanvas.current, newLassos[curIndex]);
-          drawControlPoints(drawCanvas.current, newLassos[curIndex]);
+          drawContour(drawCanvas.current, newLassos, curIndex);
+          drawControlPoints(drawCanvas.current, newLassos, curIndex);
         }
 
         setLassos(newLassos);
@@ -312,7 +321,7 @@ const InpaintingModal: React.FC<{
       });
     } else {
       setDrawType('NONE');
-      drawCanvas.current.defaultCursor = 'default';
+      drawCanvas.current.defaultCursor = 'default'; // 기본 커서로 복원
       drawCanvas.current.off('mouse:down');
     }
   }, [setDrawType, drawCanvas, drawType, lassos, setLassos, setActiveIndex, resetSelection]);

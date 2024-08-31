@@ -5,7 +5,8 @@ from fastapi import HTTPException, Response, status, Depends
 import crud
 from models import *
 from dependencies import get_db, get_current_user
-from schema import MemberCreate, MemberRead, MemberUpdate
+from schema import MemberCreate, MemberRead, MemberUpdate, TokenUsageRead
+from typing import List
 
 app = APIRouter(
     prefix="/members",
@@ -23,6 +24,12 @@ async def signup(member: MemberCreate, session: Session = Depends(get_db)):
 
     return Response(status_code=status.HTTP_200_OK, content="회원가입이 완료되었습니다.")
 
+@app.get("/tokens", response_model=List[TokenUsageRead])
+def get_tokens_usages(session: Session = Depends(get_db),
+                      member: Member = Depends(get_current_user)):
+    member_id = member.member_id
+    token_usage_reads = crud.get_token_usages(session, member_id)
+    return token_usage_reads
 
 @app.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):

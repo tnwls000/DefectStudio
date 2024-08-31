@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 import re
 from models import *
-from typing import Optional, List
+from typing import Optional, List, Any
 
 
 class MemberCreate(BaseModel):
@@ -22,6 +22,7 @@ class MemberRead(BaseModel):
     email: EmailStr
     role: Role
     department_name: str
+    token_quantity: int
 
     @classmethod
     def from_orm(cls, member: 'Member') -> 'MemberRead':
@@ -30,7 +31,8 @@ class MemberRead(BaseModel):
             nickname=member.nickname,
             email=member.email,
             role=member.role,
-            department_name=member.department.name if member.department else "null"
+            department_name=member.department.name if member.department else "null",
+            token_quantity=member.token_quantity
         )
 
 class MemberUpdate(BaseModel):
@@ -75,3 +77,18 @@ class TokenReadByDepartment(BaseModel):
     department_id: int
     department_name: str
     tokens: List[TokenRead]
+
+class TokenUsageRead(BaseModel):
+    usage_id: int
+    quantity: int
+    start_date: datetime
+    end_date: datetime
+
+    @classmethod
+    def from_orm(cls, token_usage: 'TokenUsage') -> 'TokenUsageRead':
+        return cls(
+            usage_id=token_usage.usage_id,
+            quantity=token_usage.quantity,
+            start_date=token_usage.start_date,
+            end_date=token_usage.end_date
+        )

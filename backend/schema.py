@@ -22,6 +22,7 @@ class MemberRead(BaseModel):
     email: EmailStr
     role: Role
     department_name: str
+    token_quantity: int
 
     @classmethod
     def from_orm(cls, member: 'Member') -> 'MemberRead':
@@ -30,7 +31,8 @@ class MemberRead(BaseModel):
             nickname=member.nickname,
             email=member.email,
             role=member.role,
-            department_name=member.department.name if member.department else "null"
+            department_name=member.department.name if member.department else "null",
+            token_quantity=member.token_quantity
         )
 
 class MemberUpdate(BaseModel):

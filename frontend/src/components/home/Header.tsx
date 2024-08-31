@@ -5,7 +5,7 @@ const Header = () => {
         <img src={'./homeimg.png'} alt="Background" className="w-full h-full object-cover z-0" />
       </div>
       <div className="relative text-center text-white p-4">
-        <p className="text-2xl md:text-4xl font-bold mb-8">Imagine, Create, and Innovate with Defect Studio</p>
+        <p className="text-2xl md:text-4xl font-bold mb-8 font-Gmarket" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)' }}>Imagine, Create, and Innovate with Defect Studio</p>
         <div className="relative w-full max-w-[750px] mx-auto">
           <div className="bg-white rounded-[20px] h-16 flex items-center justify-center w-full">
             <div className="relative flex justify-end items-center w-full h-full pr-5">

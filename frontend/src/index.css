@@ -5,10 +5,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'GmarketSansMedium';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   font-family: 'helvetica';
 }
-
 
 /* custom-scrollbar 스크롤 안보이게 커스텀 */
 .custom-scrollbar {
@@ -41,5 +47,3 @@ body {
   background-color: #fffff;
   transition: all 0.2s;
 } */
-
-

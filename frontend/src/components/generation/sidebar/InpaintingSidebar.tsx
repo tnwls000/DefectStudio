@@ -1,22 +1,32 @@
+import { useState, useEffect } from 'react';
 import { Button } from 'antd';
 import { FormatPainterOutlined } from '@ant-design/icons';
-import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../store/store';
+import { useFabric } from '../../../contexts/FabricContext';
 import Model from '../parameters/Model';
-import InpaintingModal from '../inpainting/InpaintingModal';
+import InpaintingModal from '../masking/InpaintingModal';
 import SamplingSettings from '../parameters/SamplingSettings';
 import ImageDimensions from '../parameters/ImageDimensions';
 import GeneralSettings from '../parameters/GeneralSettings';
 import BatchSettings from '../parameters/BatchSettings';
-import UploadImage from '../parameters/UploadImage';
+import UploadImagePlusMask from '../parameters/UploadImagePlusMask';
 
-const InpaintingSidebar = () => {
+const InpaintingSidebar: React.FC = () => {
+  const {
+    imageDownloadUrl,
+    canvasDownloadUrl,
+    setImageDownloadUrl,
+    setCanvasDownloadUrl,
+    maskingResult,
+    setMaskingResult
+  } = useFabric();
+
   const level = useSelector((state: RootState) => state.level) as 'Basic' | 'Advanced';
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [height, setHeight] = useState(512);
   const [width, setWidth] = useState(512);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [guidanceScale, setGuidanceScale] = useState(7.5);
   const [samplingMethod, setSamplingMethod] = useState('DPM++ 2M');
   const [samplingSteps, setSamplingSteps] = useState(50);
@@ -25,8 +35,12 @@ const InpaintingSidebar = () => {
   const [isRandomSeed, setIsRandomSeed] = useState(false);
   const [batchCount, setBatchCount] = useState('1');
   const [batchSize, setBatchSize] = useState('1');
-  const [inpaintingResult, setInpaintingResult] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('manual');
+
+  // 탭 들어가면 MaskingResult 리셋되야함
+  useEffect(() => {
+    setMaskingResult(null);
+  }, [setMaskingResult]);
 
   const handleRandomSeedChange = () => {
     setIsRandomSeed(!isRandomSeed);
@@ -52,25 +66,31 @@ const InpaintingSidebar = () => {
         setWidth(newWidth);
         setHeight(newHeight);
         setImageSrc(reader.result as string);
+        setImageDownloadUrl(reader.result as string);
       };
       img.src = reader.result as string;
     };
     reader.readAsDataURL(file);
   };
 
-  const handleApplyMask = (maskCanvas: HTMLCanvasElement) => {
-    setShowModal(false);
-    const dataUrl = maskCanvas.toDataURL();
-    setInpaintingResult(dataUrl);
+  const handleDownloadImage = (url: string | null, filename: string) => {
+    if (url) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
-  const handleDownload = () => {
-    if (inpaintingResult) {
-      const link = document.createElement('a');
-      link.href = inpaintingResult;
-      link.download = 'inpainting_result.png';
-      link.click();
-    }
+  const handleDownloadCanvasImage = () => {
+    console.log(canvasDownloadUrl)
+    handleDownloadImage(canvasDownloadUrl, 'canvas.png');
+  };
+
+  const handleDownloadBackgroundImage = () => {
+    handleDownloadImage(imageDownloadUrl, 'image.png');
   };
 
   return (
@@ -82,51 +102,48 @@ const InpaintingSidebar = () => {
         <hr className="border-t-[2px] border-[#E6E6E6] w-full" />
 
         {/* 이미지 업로드 */}
-        <UploadImage
+        <UploadImagePlusMask
           handleImageUpload={handleImageUpload}
           imagePreview={imageSrc}
-          showInpaintingInput={true}
-          activeTab={activeTab}
+          inpaintingResult={maskingResult}
+          handleDownloadImage={handleDownloadImage}
           setActiveTab={setActiveTab}
         />
 
         {imageSrc && (
           <div className="px-6 pb-10">
-            {/* Inpainting 버튼 */}
+            {/* Start Masking 버튼 (배치 모드가 아닐 때만 보임) */}
             {activeTab === 'manual' && (
               <Button
                 type="primary"
                 icon={<FormatPainterOutlined />}
-                onClick={() => setShowModal(true)}  // 모달 창 열림
+                onClick={() => setShowModal(true)}
                 className="w-full mt-2"
               >
-                Start Inpainting
+                Start Masking
               </Button>
             )}
 
-            {/* 인페인팅 작업 결과 이미지 표시 */}
-            {inpaintingResult && (
+            {/* 인페인팅 작업 결과 이미지 표시 및 다운로드 버튼 */}
+            {activeTab === 'manual' && maskingResult && (
               <div className="relative w-full pb-[61.8%] bg-gray-100 border border-dashed border-gray-300 rounded-lg mt-4 flex items-center justify-center">
                 <img
-                  src={imageSrc}
-                  alt="Original Image"
-                  className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
-                  style={{ opacity: 0.5 }}
-                />
-
-                <img
-                  src={inpaintingResult}
+                  src={maskingResult}
                   alt="Inpainting Result"
                   className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
                 />
-              </div>
-            )}
 
-            {/* 다운로드 버튼 */}
-            {inpaintingResult && (
-              <Button type="default" onClick={handleDownload} className="mt-2">
-                Download Result
-              </Button>
+                {/* 다운로드 버튼 - 테스트용!!! */}
+                <div className="mt-2 flex gap-2 flex-col">
+                  <Button type="default" onClick={handleDownloadCanvasImage} className="w-full">
+                    Download Canvas Image
+                  </Button>
+
+                  <Button type="default" onClick={handleDownloadBackgroundImage} className="w-full">
+                    Download Background Image
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -174,15 +191,7 @@ const InpaintingSidebar = () => {
       </div>
 
       {/* Inpainting 모달 창 */}
-      {showModal && imageSrc && (
-        <InpaintingModal
-          imageSrc={imageSrc}
-          onClose={() => setShowModal(false)}
-          onApply={handleApplyMask}
-          width={width}
-          height={height}
-        />
-      )}
+      {showModal && imageSrc && <InpaintingModal imageSrc={imageSrc} onClose={() => setShowModal(false)} />}
     </div>
   );
 };

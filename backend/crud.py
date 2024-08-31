@@ -1,7 +1,7 @@
 from datetime import datetime
 from models import Member, Token, TokenUsage, Department
 from fastapi import Depends
-from schema import MemberCreate, TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment
+from schema import MemberCreate, TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead
 from dependencies import get_db
 from core.security import hash_password
 from itertools import groupby
@@ -83,3 +83,8 @@ def create_token_usage(session: Depends(get_db), token_usage: TokenUsageCreate):
     session.commit()
     session.refresh(db_token_usage)
     return db_token_usage
+
+def get_token_usages(session: Depends(get_db), member_id: int):
+    token_usages = session.query(TokenUsage).filter(TokenUsage.member_id == member_id).all()
+    token_usage_reads = [TokenUsageRead.from_orm(token_usage) for token_usage in token_usages]
+    return token_usage_reads

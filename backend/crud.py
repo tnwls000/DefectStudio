@@ -1,10 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy.orm import Session
-
-from models import Member, Token, TokenUsage, Department
+from models import Member, Token, TokenUsage, Department, TokenLog
 from fastapi import Depends
-from schema import MemberCreate, TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead
+from schema import MemberCreate, TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead, \
+    TokenLogCreate
 from dependencies import get_db
 from core.security import hash_password
 from itertools import groupby
@@ -100,6 +99,27 @@ def create_token_usage(session: Depends(get_db), token_usage: TokenUsageCreate):
     return db_token_usage
 
 def get_token_usages(session: Depends(get_db), member_id: int):
-    token_usages = session.query(TokenUsage).filter(TokenUsage.member_id == member_id).all()
+    token_usages = session.query(TokenUsage).filter(TokenUsage.member_id == member_id).order_by(TokenUsage.end_date.asc()).all()
     token_usage_reads = [TokenUsageRead.from_orm(token_usage) for token_usage in token_usages]
     return token_usage_reads
+
+def get_token_usages_with_batch_size(session: Depends(get_db), member_id: int, offset: int, batch_size: int):
+    token_usages = (session.query(TokenUsage)
+                    .filter(TokenUsage.member_id == member_id)
+                    .order_by(TokenUsage.end_date.asc())
+                    .offset(offset)
+                    .limit(batch_size)
+                    .all())
+    return token_usages
+
+def create_token_log(session: Depends(get_db), token_log: TokenLogCreate):
+    db_token_log = TokenLog(
+        create_date = datetime.today(),
+        log_type = token_log.log_type,
+        use_type = token_log.use_type,
+        member_id = token_log.member_id
+    )
+    session.add(db_token_log)
+    session.commit()
+    session.refresh(db_token_log)
+    return db_token_log

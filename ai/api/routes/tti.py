@@ -23,7 +23,7 @@ async def text_to_image(request: Request):
     batch_size = request_body.get("batch_size")
     num_images_per_prompt = request_body.get("num_images_per_prompt")
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("mps" if torch.cuda.is_available() else "cpu")
     t2i_pipe = StableDiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
 
     if seed == -1:
@@ -60,7 +60,6 @@ async def text_to_image(request: Request):
 
         image_list.extend(images)
 
-        # 메타데이터 저장
         for j in range(batch_size):
             metadata.append({
                 'batch': i,

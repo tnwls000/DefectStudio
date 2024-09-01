@@ -4,7 +4,7 @@ from fastapi.params import Depends
 from sqlalchemy.orm import Session
 
 from models import Member
-from schema import TokenCreate, TokenUsageCreate
+from schema import TokenCreate, TokenUsageCreate, TokenReadByDepartment
 from enums import Role
 import crud
 from dependencies import get_db, get_current_user
@@ -28,6 +28,7 @@ def role_required(allowed_roles: List[Role]):
         return wrapper
     return decorator
 
+# 토큰 발급
 @router.post("/tokens")
 @role_required([Role.super_admin]) # only super_admin can issue token
 async def issue_token(token: TokenCreate,
@@ -42,6 +43,20 @@ async def issue_token(token: TokenCreate,
     crud.create_token(session, token)
     return HTTPException(status_code=201, detail="토큰이 발급되었습니다.")
 
+
+# 관리자 토큰 조회
+@router.get("/tokens", response_model=List[TokenReadByDepartment])
+@role_required([Role.super_admin, Role.department_admin])
+async def get_tokens(session: Session = Depends(get_db),
+                      current_user: Member = Depends(get_current_user)):
+    # 총관리자는 모든 토큰을 조회
+    if current_user.role == Role.super_admin:
+        return crud.get_tokens_for_super_admin(session)
+    # 부서별 관리자는 해당 부서의 토큰만을 조회
+    if current_user.role == Role.department_admin:
+        return crud.get_tokens_for_department_admin(session, current_user.department_id)
+
+# 토큰 분배
 @router.post("/tokens/{token_id}")
 @role_required([Role.department_admin]) # only department_admin can distribute token
 async def distribute_token(token_id : int, quantity: int,

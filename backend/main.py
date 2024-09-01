@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from rq import Queue
 from redis import Redis
@@ -10,8 +12,18 @@ from core.db import engine
 from api.main import api_router
 from core.config import settings
 from api.routes import members, auth, admin
+from apscheduler.schedulers.background import BackgroundScheduler
+from scheduler import expire_tokens
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(expire_tokens, 'cron', hour=0, minute=0)
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 # Managing Redis queues directly with rq
 redis_conn = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)

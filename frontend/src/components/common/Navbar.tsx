@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from '../../store/store';
-import { setLevel, LevelState } from '../../store/levelSlice';
+import { setLevel, LevelState } from '../../store/slices/levelSlice';
 import logo from '../../assets/logo.png';
 import token from '../../assets/token.png';
 import { Dropdown, Button, Switch } from 'antd';
@@ -31,16 +31,16 @@ const Navbar = () => {
     { label: 'Image To Image', key: 'image-to-image', onClick: () => navigateTo('/generation/image-to-image') },
     { label: 'Inpainting', key: 'inpainting', onClick: () => navigateTo('/generation/inpainting') },
     { label: 'Remove Background', key: 'remove-bg', onClick: () => navigateTo('/generation/remove-background') },
-    { label: 'Cleanup', key: 'cleanup', onClick: () => navigateTo('/generation/cleanup') },
+    { label: 'Cleanup', key: 'cleanup', onClick: () => navigateTo('/generation/cleanup') }
   ];
 
   const levelItems: MenuProps['items'] = [
     { label: 'Basic', key: 'basic', onClick: () => selectLevel('Basic') },
-    { label: 'Advanced', key: 'advanced', onClick: () => selectLevel('Advanced') },
+    { label: 'Advanced', key: 'advanced', onClick: () => selectLevel('Advanced') }
   ];
 
   return (
-    <div className="fixed z-20 w-full h-[60px] flex items-center px-10 bg-white shadow-md border-b border-gray-300">
+    <div className="fixed z-20 w-full h-[60px] flex items-center px-10 bg-white border-b border-gray-300">
       <div className="flex items-center">
         <img
           src={logo}
@@ -48,10 +48,7 @@ const Navbar = () => {
           alt="logo"
           onClick={() => navigateTo('/')}
         />
-        <p
-          className="text-xl font-bold text-[#1428a0] font-samsung cursor-pointer"
-          onClick={() => navigateTo('/')}
-        >
+        <p className="text-xl font-bold text-[#1428a0] font-samsung cursor-pointer" onClick={() => navigateTo('/')}>
           Defect Studio
         </p>
       </div>

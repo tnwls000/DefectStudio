@@ -1,24 +1,33 @@
-import { Tabs, Upload, Input } from 'antd';
-import type { UploadProps } from 'antd';
+import React, { useState } from 'react';
+import { Upload, Tabs, Input, Button } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 
-interface UploadImageProps {
+interface UploadImagePlusMaskProps {
   handleImageUpload: (file: File) => void;
-  imagePreview: string | ArrayBuffer | null;
+  imagePreview: string | null;
+  inpaintingResult: string | null;
+  handleDownloadImage: (url: string | null, filename: string) => void;
+  setActiveTab: (key: string) => void; // Add this prop to handle tab change
 }
 
-const UploadImage = ({
+const UploadImagePlusMask: React.FC<UploadImagePlusMaskProps> = ({
   handleImageUpload,
   imagePreview,
-}: UploadImageProps) => {
-
-  const uploadProps: UploadProps = {
+  inpaintingResult,
+  handleDownloadImage,
+  setActiveTab
+}) => {
+  const uploadProps = {
     accept: 'image/*',
-    beforeUpload: (file) => {
+    beforeUpload: (file: File) => {
       handleImageUpload(file);
       return false;
     },
-    showUploadList: false,
+    showUploadList: false
+  };
+
+  const handleDownload = (filename: string) => {
+    handleDownloadImage(inpaintingResult, filename);
   };
 
   const items = [
@@ -29,11 +38,7 @@ const UploadImage = ({
         <div>
           <Upload.Dragger {...uploadProps} className="mb-4">
             {imagePreview ? (
-              <img
-                src={imagePreview as string} 
-                alt="Uploaded preview"
-                className="w-full h-full object-cover rounded-md"
-              />
+              <img src={imagePreview} alt="Uploaded preview" className="w-full h-full object-cover rounded-md" />
             ) : (
               <div>
                 <p className="ant-upload-drag-icon">
@@ -44,7 +49,7 @@ const UploadImage = ({
             )}
           </Upload.Dragger>
         </div>
-      ),
+      )
     },
     {
       key: 'batch',
@@ -57,7 +62,12 @@ const UploadImage = ({
             </label>
             <Input type="text" id="imagePath" className="w-full" placeholder="Enter the image path" />
           </div>
-
+          <div className="mb-4">
+            <label htmlFor="maskPath" className="block text-[14px] text-[#222] mb-1">
+              Masked Images directory
+            </label>
+            <Input type="text" id="maskPath" className="w-full" placeholder="Enter the mask path" />
+          </div>
           <div className="mb-2">
             <label htmlFor="outputPath" className="block text-[14px] text-[#222] mb-1">
               Output directory
@@ -65,18 +75,16 @@ const UploadImage = ({
             <Input type="text" id="outputPath" className="w-full" placeholder="Enter the output path" />
           </div>
         </div>
-      ),
-    },
+      )
+    }
   ];
 
   return (
     <div className="p-6">
       <p className="text-[14px] font-semibold text-[#222] mb-3">Upload Image</p>
-
-      {/* 메뉴얼 모드, 배치 모드 */}
-      <Tabs items={items} />
+      <Tabs items={items} onChange={setActiveTab} /> {/* Handle tab change */}
     </div>
   );
 };
 
-export default UploadImage;
+export default UploadImagePlusMask;

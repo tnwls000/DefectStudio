@@ -5,7 +5,8 @@ export default {
     extend: {
       fontFamily: {
         samsung: ['SamsungSharpSans'],
-        helvetica: ['helvetica-neue-55']
+        helvetica: ['helvetica-neue-55'],
+        Gmarket: ['GmarketSansMedium']
       }
     }
   },

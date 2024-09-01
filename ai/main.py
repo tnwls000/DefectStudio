@@ -4,6 +4,7 @@ import uvicorn
 from PIL import Image
 from fastapi import FastAPI
 
+from api.main import api_router
 from util import upload_files, delete_files
 
 app = FastAPI()
@@ -36,5 +37,8 @@ def upload():
     delete_files(2, key)
 
 
+app.include_router(api_router, prefix="/api")
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app, host="localhost", port=8001)

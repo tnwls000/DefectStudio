@@ -1,4 +1,7 @@
 from datetime import datetime
+
+from sqlalchemy.orm import Session
+
 from models import Member, Token, TokenUsage, Department
 from fastapi import Depends
 from schema import MemberCreate, TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead
@@ -51,7 +54,6 @@ def get_tokens_for_super_admin(session: Depends(get_db)):
     tokens = session.query(Token).all()
     return convert_to_token_read_by_department(session, tokens)
 
-
 def get_tokens_for_department_admin(session: Depends(get_db), department_id: int):
     tokens = session.query(Token).filter(Token.department_id == department_id).all()
     return convert_to_token_read_by_department(session, tokens)
@@ -69,6 +71,19 @@ def convert_to_token_read_by_department(session: Depends(get_db), tokens: List[T
             tokens=[TokenRead.from_orm(token) for token in group]
         ))
     return tokens_by_department
+
+def get_expired_active_tokens_with_usages_and_members(
+        session: Depends(get_db),
+        current_date: datetime,
+        offset: int,
+        limit: int):
+    return (session.query(Token, TokenUsage, Member)
+            .join(TokenUsage, Token.token_id == TokenUsage.token_id)
+            .join(Member, TokenUsage.member_id == Member.member_id)
+            .filter(Token.end_date < current_date, Token.is_active == True)
+            .offset(offset)
+            .limit(limit)
+            .all())
 
 def create_token_usage(session: Depends(get_db), token_usage: TokenUsageCreate):
     db_token_usage = TokenUsage(

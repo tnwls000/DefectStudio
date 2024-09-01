@@ -30,6 +30,7 @@ class Member(Base):
 
 class Token(Base):
     __tablename__ = 'token'
+    __table_args__ = (Index('ix_end_date_is_active', 'end_date', 'is_active'),)
 
     token_id = Column(Integer, primary_key=True)
     start_date = Column(DateTime, nullable=False)

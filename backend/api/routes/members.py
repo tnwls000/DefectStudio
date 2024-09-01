@@ -24,7 +24,7 @@ async def signup(member: MemberCreate, session: Session = Depends(get_db)):
 
     return Response(status_code=status.HTTP_200_OK, content="회원가입이 완료되었습니다.")
 
-@app.get("/tokens", response_model=List[TokenUsageRead])
+@router.get("/tokens", response_model=List[TokenUsageRead])
 def get_tokens_usages(session: Session = Depends(get_db),
                       member: Member = Depends(get_current_user)):
     member_id = member.member_id

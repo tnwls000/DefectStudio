@@ -8,13 +8,13 @@ from dependencies import get_db, get_current_user
 from schema import MemberCreate, MemberRead, MemberUpdate, TokenUsageRead, TokenLogCreate
 from typing import List
 
-app = APIRouter(
+router = APIRouter(
     prefix="/members",
     tags=["members"]
 )
 
 
-@app.post("/signup")
+@router.post("/signup")
 async def signup(member: MemberCreate, session: Session = Depends(get_db)):
     existing_member = crud.get_member_by_login_id(session, member.login_id)
     if existing_member:
@@ -24,14 +24,14 @@ async def signup(member: MemberCreate, session: Session = Depends(get_db)):
 
     return Response(status_code=status.HTTP_200_OK, content="회원가입이 완료되었습니다.")
 
-@app.get("/tokens", response_model=List[TokenUsageRead])
+@router.get("/tokens", response_model=List[TokenUsageRead])
 def get_tokens_usages(session: Session = Depends(get_db),
                       member: Member = Depends(get_current_user)):
     member_id = member.member_id
     token_usage_reads = crud.get_token_usages(session, member_id)
     return token_usage_reads
 
-@app.post("/tokens")
+@router.post("/tokens")
 def use_tokens(cost: int, use_type: UseType,
                session: Session = Depends(get_db),
                member: Member = Depends(get_current_user)):
@@ -72,7 +72,7 @@ def use_tokens(cost: int, use_type: UseType,
 
     return Response(status_code=200, content="토큰이 사용되었습니다.")
 
-@app.get("/{member_id}", response_model=MemberRead)
+@router.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):
     member = session.query(Member).options(joinedload(Member.department)).filter(
         Member.member_id == member_id).one_or_none()
@@ -80,7 +80,7 @@ def read_member_by_id(member_id: int, session: Session = Depends(get_db)):
     return response
 
 
-@app.patch("", response_model=MemberRead)
+@router.patch("", response_model=MemberRead)
 def update_member_me(request: MemberUpdate, member: Member = Depends(get_current_user),
                      session: Session = Depends(get_db)):
     if not member:
@@ -96,7 +96,7 @@ def update_member_me(request: MemberUpdate, member: Member = Depends(get_current
     return response
 
 
-@app.delete("", response_model=MemberRead)
+@router.delete("", response_model=MemberRead)
 def delete_member_me(member: Member = Depends(get_current_user), session: Session = Depends(get_db)):
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자를 찾을 수 없습니다.")

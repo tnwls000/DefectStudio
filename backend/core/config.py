@@ -15,7 +15,8 @@ class Settings(BaseSettings):
     )
 
     # ENVIRONMENT
-    DOMAIN: str
+    BACKEND_DOMAIN: str
+    AI_SERVER_URL: str
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     # JWT

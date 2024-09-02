@@ -17,3 +17,7 @@ class UseType(enum.Enum):
     remove_background = "remove_background"
     clip = "clip"
     clean_up = "clean_up"
+
+class GPUEnvironment(enum.Enum):
+    local = "local"
+    remote = "remote"

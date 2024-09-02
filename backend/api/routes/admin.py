@@ -12,7 +12,7 @@ from dependencies import get_db, get_current_user
 from typing import List
 from functools import wraps
 
-app = APIRouter(
+router = APIRouter(
     prefix="/admin",
     tags=["admin"]
 )
@@ -29,7 +29,7 @@ def role_required(allowed_roles: List[Role]):
     return decorator
 
 # 토큰 발급
-@app.post("/tokens")
+@router.post("/tokens")
 @role_required([Role.super_admin]) # only super_admin can issue token
 async def issue_token(token: TokenCreate,
                       session: Session = Depends(get_db),
@@ -50,8 +50,9 @@ async def issue_token(token: TokenCreate,
 
     return Response(status_code=201, content="토큰이 발급되었습니다.")
 
+
 # 관리자 토큰 조회
-@app.get("/tokens", response_model=List[TokenReadByDepartment])
+@router.get("/tokens", response_model=List[TokenReadByDepartment])
 @role_required([Role.super_admin, Role.department_admin])
 async def get_tokens(session: Session = Depends(get_db),
                       current_user: Member = Depends(get_current_user)):
@@ -63,7 +64,7 @@ async def get_tokens(session: Session = Depends(get_db),
         return crud.get_tokens_for_department_admin(session, current_user.department_id)
 
 # 토큰 분배
-@app.post("/tokens/{token_id}")
+@router.post("/tokens/{token_id}")
 @role_required([Role.department_admin]) # only department_admin can distribute token
 async def distribute_token(token_id : int, quantity: int,
                            session: Session = Depends(get_db),

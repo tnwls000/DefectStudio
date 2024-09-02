@@ -14,13 +14,13 @@ from core.config import settings
 from dependencies import get_db, get_redis
 from core.security import verify_password, create_access_token, create_refresh_token, decode_refresh_token
 
-app = APIRouter(
+router = APIRouter(
     prefix="/auth",
     tags=["auth"]
 )
 
 
-@app.post("/login")
+@router.post("/login")
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                 session: Session = Depends(get_db)):
     member = authentication_member(form_data.username, form_data.password, session)
@@ -31,7 +31,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     return response
 
 
-@app.post("/logout")
+@router.post("/logout")
 async def logout(request: Request, response: Response, redis: Redis = Depends(get_redis)):
     refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
@@ -42,7 +42,7 @@ async def logout(request: Request, response: Response, redis: Redis = Depends(ge
     response.delete_cookie("refresh_token")
 
 
-@app.post("/reissue")
+@router.post("/reissue")
 async def reissue(request: Request, redis: Redis = Depends(get_redis)):
     refresh_token = request.cookies.get("refresh_token")
 

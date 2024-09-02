@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 class TTIRequest(BaseModel):
-    model: str = Field("runwayml/stable-diffusion-v1-5")
+    model: str = Field("CompVis/stable-diffusion-v1-4")
     prompt: str = Field(...)
     negative_prompt: Optional[str] = Field(None)
     width: Optional[int] = Field(512)

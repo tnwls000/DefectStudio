@@ -14,3 +14,4 @@ class TTIRequest(BaseModel):
     num_images_per_prompt: Optional[int] = Field(1)
     batch_count: Optional[int] = Field(1)
     batch_size: Optional[int] = Field(1)
+    output_path: Optional[str] = Field(None)

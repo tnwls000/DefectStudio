@@ -5,5 +5,5 @@ export type signUpFormType = {
   nickname: string;
   email: string;
   role: "super_admin" | "department_member" | "department_admin";
-  department_id: 0;
+  department_id: number;
 };

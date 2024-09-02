@@ -1,8 +1,8 @@
-from sys import prefix
-
 import uvicorn
 from fastapi import FastAPI
+
 from api.main import api_router
+
 app = FastAPI(
     prefix="/api"
 )

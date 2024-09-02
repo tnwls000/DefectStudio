@@ -1,9 +1,10 @@
-import random
-import torch
-from fastapi import APIRouter, Request
-from diffusers import StableDiffusionPipeline
 import base64
+import random
 from io import BytesIO
+
+import torch
+from diffusers import StableDiffusionPipeline
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 router = APIRouter(

@@ -9,9 +9,19 @@ from models import *
 from core.db import engine
 from api.main import api_router
 from core.config import settings
+from api.routes import members, auth, admin
+from apscheduler.schedulers.background import BackgroundScheduler
+from scheduler import expire_tokens
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(expire_tokens, 'cron', hour=0, minute=0)
+    scheduler.start()
+    yield
+    scheduler.shutdown()
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # Managing Redis queues directly with rq
 redis_conn = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
@@ -43,6 +53,7 @@ def test_function(x, y):
     import time
     time.sleep(5)
     return x / y
+
 
 app.include_router(api_router, prefix="/api")
 

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean, Index
 
-from enums import Role
+from enums import Role, LogType, UseType
 from core.db import Base
 
 
@@ -27,9 +27,11 @@ class Member(Base):
     department_id = Column(Integer, ForeignKey('department.department_id'))
     department = relationship("Department", back_populates="members")
     token_usages = relationship("TokenUsage", back_populates="member")
+    token_logs = relationship("TokenLog", back_populates="member")
 
 class Token(Base):
     __tablename__ = 'token'
+    __table_args__ = (Index('ix_end_date_is_active', 'end_date', 'is_active'),)
 
     token_id = Column(Integer, primary_key=True)
     start_date = Column(DateTime, nullable=False)
@@ -53,3 +55,13 @@ class TokenUsage(Base):
     member = relationship("Member", back_populates="token_usages")
     token_id = Column(Integer, ForeignKey('token.token_id'))
     token = relationship("Token", back_populates="token_usages")
+
+class TokenLog(Base):
+    __tablename__ = 'token_log'
+
+    log_id = Column(Integer, primary_key=True)
+    create_date = Column(DateTime, nullable=False)
+    log_type = Column(Enum(LogType), nullable=False)
+    use_type = Column(Enum(UseType), nullable=True)
+    member_id = Column(Integer, ForeignKey('member.member_id'))
+    member = relationship("Member", back_populates="token_logs")

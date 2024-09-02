@@ -1,11 +1,11 @@
 from fastapi import APIRouter
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from fastapi.params import Depends
 from sqlalchemy.orm import Session
 
 from models import Member
-from schema import TokenCreate, TokenUsageCreate, TokenReadByDepartment
-from enums import Role
+from schema import TokenCreate, TokenUsageCreate, TokenReadByDepartment, TokenLogCreate
+from enums import Role, LogType
 import crud
 from dependencies import get_db, get_current_user
 
@@ -41,7 +41,14 @@ async def issue_token(token: TokenCreate,
         raise HTTPException(status_code=400, detail="발급 토큰 수는 해당 부서의 회원 수보다 많아야 합니다.")
 
     crud.create_token(session, token)
-    return HTTPException(status_code=201, detail="토큰이 발급되었습니다.")
+
+    token_log_create = TokenLogCreate(
+        log_type=LogType.issue,
+        member_id=current_user.member_id
+    )
+    crud.create_token_log(session, token_log_create)
+
+    return Response(status_code=201, content="토큰이 발급되었습니다.")
 
 
 # 관리자 토큰 조회
@@ -93,4 +100,10 @@ async def distribute_token(token_id : int, quantity: int,
         session.add(member)
     session.commit()
 
-    return HTTPException(status_code=201, detail="토큰이 해당 부서의 회원들에게 분배되었습니다.")
+    token_log_create = TokenLogCreate(
+        log_type=LogType.distribute,
+        member_id=current_user.member_id
+    )
+    crud.create_token_log(session, token_log_create)
+
+    return Response(status_code=201, content="토큰이 해당 부서의 회원들에게 분배되었습니다.")

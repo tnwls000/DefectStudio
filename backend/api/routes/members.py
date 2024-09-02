@@ -5,7 +5,7 @@ from fastapi import HTTPException, Response, status, Depends
 import crud
 from models import *
 from dependencies import get_db, get_current_user
-from schema import MemberCreate, MemberRead, MemberUpdate, TokenUsageRead
+from schema import MemberCreate, MemberRead, MemberUpdate, TokenUsageRead, TokenLogCreate
 from typing import List
 
 router = APIRouter(
@@ -30,6 +30,47 @@ def get_tokens_usages(session: Session = Depends(get_db),
     member_id = member.member_id
     token_usage_reads = crud.get_token_usages(session, member_id)
     return token_usage_reads
+
+@router.post("/tokens")
+def use_tokens(cost: int, use_type: UseType,
+               session: Session = Depends(get_db),
+               member: Member = Depends(get_current_user)):
+    if member.token_quantity < cost:
+        raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
+
+    remaining_cost = cost
+    batch_size = 100
+    offset = 0
+
+    while remaining_cost > 0:
+        token_usages = crud.get_token_usages_with_batch_size(session, member.member_id, offset, batch_size)
+
+        if not token_usages:
+            break
+
+        for token_usage in token_usages:
+            if remaining_cost <= 0:
+                break
+
+            if token_usage.quantity <= remaining_cost:
+                remaining_cost -= token_usage.quantity
+                session.delete(token_usage)
+            else:
+                token_usage.quantity -= remaining_cost
+                remaining_cost = 0
+        offset += batch_size
+
+    member.token_quantity -= cost
+    session.commit()
+
+    token_log_create = TokenLogCreate(
+        log_type=LogType.use,
+        use_type=use_type,
+        member_id=member.member_id
+    )
+    crud.create_token_log(session, token_log_create)
+
+    return Response(status_code=200, content="토큰이 사용되었습니다.")
 
 @router.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):

@@ -2,6 +2,9 @@ import random
 import torch
 from fastapi import APIRouter, Request
 from diffusers import StableDiffusionPipeline
+import base64
+from io import BytesIO
+from fastapi.responses import JSONResponse
 
 router = APIRouter(
     prefix="/tti",
@@ -23,7 +26,7 @@ async def text_to_image(request: Request):
     batch_size = request_body.get("batch_size")
     num_images_per_prompt = request_body.get("num_images_per_prompt")
 
-    device = torch.device("mps" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     t2i_pipe = StableDiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
 
     if seed == -1:
@@ -32,10 +35,7 @@ async def text_to_image(request: Request):
     image_list = []
     metadata = []
 
-    # 전체 반복 횟수 계산
     total_images = batch_size * batch_count
-
-    # 고유한 시드를 각각의 이미지에 할당
     seeds = [seed + i for i in range(total_images)]
 
     # 각 배치의 이미지 생성
@@ -46,15 +46,11 @@ async def text_to_image(request: Request):
         # 생성할 이미지 개수만큼의 랜덤 생성기를 미리 준비
         generators = [torch.Generator(device=device).manual_seed(s) for s in current_seeds]
 
-        # 한 번의 호출로 batch_size만큼의 이미지 생성
+        # TODO : Advanced 버전 이미지 생성 로직 추가
         images = t2i_pipe(
             prompt=prompt,
-            height=height,
-            width=width,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
-            negative_prompt=negative_prompt,
-            num_images_per_prompt=num_images_per_prompt,
             generator=generators
         ).images
 
@@ -70,4 +66,11 @@ async def text_to_image(request: Request):
                 'prompt': prompt
             })
 
-    return image_list, metadata
+    encoded_images = []
+    for image in image_list:
+        buffered = BytesIO()
+        image.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        encoded_images.append(img_str)
+
+    return JSONResponse(content={"image_list": encoded_images, "metadata": metadata})

@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from rq import Queue
 from redis import Redis
@@ -9,7 +11,6 @@ from models import *
 from core.db import engine
 from api.main import api_router
 from core.config import settings
-from api.routes import members, auth, admin
 from apscheduler.schedulers.background import BackgroundScheduler
 from scheduler import expire_tokens
 

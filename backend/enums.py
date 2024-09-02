@@ -13,6 +13,7 @@ class LogType(enum.Enum):
 class UseType(enum.Enum):
     text_to_image = "text_to_image"
     image_to_image = "image_to_image"
-    inpaint = "inpaint"
+    inpainter = "inpainter"
     remove_background = "remove_background"
     clip = "clip"
+    clean_up = "clean_up"

@@ -1,3 +1,4 @@
+import base64
 from io import BytesIO
 from typing import List
 
@@ -8,7 +9,7 @@ from core.config import settings
 
 
 # TODO : 비동기로 변경
-def upload_files(image_list: List[BytesIO]) -> List[str]:
+def upload_files(image_list: List[str]) -> List[str]:
     s3_urls = []
     s3_client = boto3.client(
         's3',
@@ -19,10 +20,15 @@ def upload_files(image_list: List[BytesIO]) -> List[str]:
     # TODO : key 지정
     key = "temp"
 
-    for index, image_io in enumerate(image_list):
+    for index, encoded_image in enumerate(image_list):
         # TODO : url 형식 지정
         image_key = f"{key}/{index + 1}.jpeg"
-        url = upload_file(s3_client, image_io, image_key)
+
+        image_bytes = base64.b64decode(encoded_image)
+        image_stream = BytesIO(image_bytes)
+        image_stream.seek(0)
+
+        url = upload_file(s3_client, image_stream, image_key)
         if url:
             s3_urls.append(url)
 

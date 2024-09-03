@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
     JWT_REFRESH_TOKEN_EXPIRE_MINUTES: int
 
+    # S3
+    AWS_S3_BUCKET: str
+    AWS_S3_REGION_STATIC: str
+    AWS_S3_ACCESS_KEY: str
+    AWS_S3_SECRET_KEY: str
+
     # REDIS
     REDIS_HOST: str
     REDIS_PORT: str

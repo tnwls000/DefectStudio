@@ -52,7 +52,8 @@ async def text_to_image(request: Request):
             prompt=prompt,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
-            generator=generators
+            generator=generators,
+            num_images_per_prompt=num_images_per_prompt
         ).images
 
         image_list.extend(images)
@@ -68,6 +69,8 @@ async def text_to_image(request: Request):
             })
 
     encoded_images = []
+
+    # 바이트 형식의 이미지를 JSON 직렬화 가능하게 만들기 위해 base64 인코딩
     for image in image_list:
         buffered = BytesIO()
         image.save(buffered, format="PNG")

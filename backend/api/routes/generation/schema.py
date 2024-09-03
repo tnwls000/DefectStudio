@@ -50,7 +50,7 @@ class ITIRequest(BaseModel):
 
 
 class InpaintingRequest(BaseModel):
-    model: str = Field("CompVis/stable-diffusion-v1-4")
+    model: str = Field("diffusers/stable-diffusion-xl-1.0-inpainting-0.1")
 
     # 프롬프트
     prompt: str = Field(..., description="이미지를 생성할 텍스트 프롬프트")

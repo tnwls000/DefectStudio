@@ -1,29 +1,36 @@
 import { useForm } from "react-hook-form";
 import { loginRequest } from "../../util/loginHTTP";
+import { useState } from "react";
+import { message } from "antd";
 interface loginForm {
   username: string;
   password: string;
 }
 
-const onSubmit = async (data: loginForm) => {
+const onSubmit = async (
+  data: loginForm,
+  setErrorMessage: React.Dispatch<React.SetStateAction<string>>
+) => {
   try {
     const response = await loginRequest(data.username, data.password);
     console.log(response);
+    setErrorMessage("");
   } catch (error) {
-    throw new Error("Login failed");
+    message.error("Login failed Try again later");
   }
 };
 
 const LoginForm = () => {
+  const [errorMessage, setErrorMessage] = useState("");
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<loginForm>();
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit((data) => onSubmit(data, setErrorMessage))}>
         {/* Id */}
         <input
           type="text"
@@ -50,7 +57,7 @@ const LoginForm = () => {
         >
           {isSubmitting ? "Logging in..." : "Login"}
         </button>
-        {errors && <p>Error!</p>}
+        {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
       </form>
     </>
   );

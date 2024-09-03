@@ -2,6 +2,7 @@ import json
 
 import requests
 from fastapi import APIRouter, Response, status, HTTPException
+from starlette.responses import JSONResponse
 
 from api.routes.generation.schema import TTIRequest
 from core.config import settings
@@ -37,13 +38,14 @@ def text_to_image(gpu_env: GPUEnvironment, request: TTIRequest):
     # 로컬 GPU 사용 시 지정된 로컬 경로로 이미지 저장
     if gpu_env == GPUEnvironment.local:
         # r"C:\Users\SSAFY\Desktop"
-        output_path = request.get("output_path")
+        output_path = payload_dict.get("output_path")
+        print(output_path)
 
         if save_image_files(output_path, image_list):
-            return Response(status_code=status.HTTP_201_CREATED, content=metadata)
+            return JSONResponse(status_code=status.HTTP_201_CREATED, content=metadata)
 
     # GPU 서버 사용 시 S3로 이미지 저장
     elif gpu_env == GPUEnvironment.remote:
         image_url_list = upload_files(image_list)
-        return Response(status_code=status.HTTP_201_CREATED,
+        return JSONResponse(status_code=status.HTTP_201_CREATED,
                         content={"image_list": image_url_list, "metadata": metadata})

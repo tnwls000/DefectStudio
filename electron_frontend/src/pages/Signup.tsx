@@ -1,6 +1,7 @@
 import { Form, Input, Button, Select, message } from "antd";
 import { signUpFormType } from "../types/user";
 import { signupHTTP } from "../util/signupHTTP";
+import { useNavigate } from "react-router-dom";
 
 const initialValues: signUpFormType = {
   login_id: "defaultLoginID",
@@ -13,8 +14,17 @@ const initialValues: signUpFormType = {
 };
 
 const Signup = () => {
-  const onSubmit = (data: signUpFormType) => {
+  const navigate = useNavigate();
+  const onSubmit = async (data: signUpFormType) => {
     console.log(data);
+    try {
+      await signupHTTP(data);
+      form.resetFields();
+      message.success("Successfully signed up. Try logging in now.");
+      navigate("/login");
+    } catch (error) {
+      message.error("Failed to sign up. Please try again later.");
+    }
   };
 
   const [form] = Form.useForm();

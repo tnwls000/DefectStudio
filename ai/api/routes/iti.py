@@ -1,16 +1,19 @@
+import base64
+from io import BytesIO
+from typing import List
+
+import PIL.Image
 import torch
 from diffusers import StableDiffusionImg2ImgPipeline
 from fastapi import APIRouter, Request, Form, UploadFile, File
 from fastapi.responses import JSONResponse
-from typing import List
+
 from schema import ITIRequestForm
-import PIL.Image
-from io import BytesIO
-import base64
 
 router = APIRouter(
     prefix="/img-to-img",
 )
+
 
 @router.post("")
 async def image_to_image(
@@ -31,17 +34,18 @@ async def image_to_image(
     batch_size = request_body.get("batch_size")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    i2i_pipe = (StableDiffusionImg2ImgPipeline.from_pretrained(model, torch_dtype=torch.float16)).to(device)
+    i2i_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
 
     image_list = []
 
+    # PIL.Image로 변환
     for field_name, (file_name, file_data, mime_type) in files:
         if field_name == "images":
             image_bytes_io = BytesIO(file_data)
             image = PIL.Image.open(image_bytes_io)
             image_list.append(image)
 
-    generated_image = i2i_pipe(
+    generated_image_list = i2i_pipe(
         image=image_list,
         prompt=prompt,
         negative_prompt=negative_prompt,
@@ -53,7 +57,7 @@ async def image_to_image(
 
     encoded_images = []
 
-    for image in image_list:
+    for image in generated_image_list:
         buffered = BytesIO()
         image.save(buffered, format="PNG")
         img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")

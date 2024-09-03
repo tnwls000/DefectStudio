@@ -16,14 +16,16 @@ router = APIRouter(
     prefix="/img-to-img",
 )
 
+
 @router.post("/{gpu_env}")
-def text_to_image(gpu_env: GPUEnvironment, request: ITIRequest):
+def image_to_image(gpu_env: GPUEnvironment, request: ITIRequest):
     # TODO : 유저 인증 확인 후 토큰 사용
     payload_dict = request.model_dump()
 
     input_path = payload_dict.get("input_path")
 
-    image_files = [file for file in Path(input_path).glob("*") if re.search(r"\.(png|jpg|jpeg|jfif)$", file.suffix, re.IGNORECASE)]
+    image_files = [file for file in Path(input_path).glob("*") if
+                   re.search(r"\.(png|jpg|jpeg|jfif)$", file.suffix, re.IGNORECASE)]
     if not image_files:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="유효한 이미지가 없습니다.")
 
@@ -50,16 +52,15 @@ def text_to_image(gpu_env: GPUEnvironment, request: ITIRequest):
     response_data = response.json()
 
     image_list = response_data.get("image_list")
-    metadata = response_data.get("metadata")
 
     # 로컬 GPU 사용 시 지정된 로컬 경로로 이미지 저장
     if gpu_env == GPUEnvironment.local:
         output_path = payload_dict.get("output_path")
         if save_image_files(output_path, image_list):
-            return JSONResponse(status_code=status.HTTP_201_CREATED, content=metadata)
+            return JSONResponse(status_code=status.HTTP_201_CREATED)
 
     # GPU 서버 사용 시 S3로 이미지 저장
     elif gpu_env == GPUEnvironment.remote:
         image_url_list = upload_files(image_list)
         return JSONResponse(status_code=status.HTTP_201_CREATED,
-                        content={"image_list": image_url_list, "metadata": metadata})
+                            content={"image_list": image_url_list})

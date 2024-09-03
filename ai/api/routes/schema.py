@@ -1,7 +1,7 @@
 from typing import Optional
 
-import PIL
 from pydantic import BaseModel, Field
+
 
 class ITIRequestForm(BaseModel):
     model: str = Field("CompVis/stable-diffusion-v1-4")
@@ -19,5 +19,3 @@ class ITIRequestForm(BaseModel):
     num_images_per_prompt: Optional[int] = Field(1)
     batch_count: Optional[int] = Field(1, ge=1, le=10, description="호출할 횟수")
     batch_size: Optional[int] = Field(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수")
-
-    image: PIL.Image = Field(...)

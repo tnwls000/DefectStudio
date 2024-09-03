@@ -38,6 +38,7 @@ async def image_to_image(
     init_image_list = []
     mask_image_list = []
 
+    # PIL.Image로 변환
     for field_name, (file_name, file_data, mime_type) in files:
         if field_name == "images":
             image_bytes_io = BytesIO(file_data)

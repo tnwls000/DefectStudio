@@ -1,18 +1,19 @@
-from typing import Annotated
+import json
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 from aioredis import Redis
-from fastapi import APIRouter
 from alembic.util import status
-from fastapi.params import Depends
-from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter
 from fastapi import HTTPException, Response, status, Request
+from fastapi.params import Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 
 import crud
 from core.config import settings
-from dependencies import get_db, get_redis
 from core.security import verify_password, create_access_token, create_refresh_token, decode_refresh_token
+from dependencies import get_db, get_redis
 
 router = APIRouter(
     prefix="/auth",
@@ -27,7 +28,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     if not member:
         raise HTTPException(status_code=401, detail="아이디나 비밀번호가 일치하지 않습니다.")
 
-    response = create_response_with_tokens(member.login_id)
+    response = create_response_with_tokens(member.login_id, session)
     return response
 
 
@@ -60,8 +61,8 @@ async def reissue(request: Request, redis: Redis = Depends(get_redis)):
     return response
 
 
-def authentication_member(username: str, password: str, session: Session = Depends(get_db)):
-    member = crud.get_member_by_login_id(session, username)
+def authentication_member(login_id: str, password: str, session: Session = Depends(get_db)):
+    member = crud.get_member_by_login_id(session, login_id)
     if not member:
         raise HTTPException(status_code=404, detail="해당 유저를 찾을 수 없습니다.")
     if not verify_password(password, member.password):
@@ -69,14 +70,19 @@ def authentication_member(username: str, password: str, session: Session = Depen
     return member
 
 
-def create_response_with_tokens(login_id: str):
+def create_response_with_tokens(login_id: str, session: Session):
     access_token = create_access_token(login_id)
     refresh_token = create_refresh_token(login_id)
 
+    member = crud.get_member_by_login_id(session, login_id)
     headers = {"Authorization": f"Bearer {access_token}"}
-    response = Response(status_code=status.HTTP_200_OK, headers=headers)
-    expiration_time = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_REFRESH_TOKEN_EXPIRE_MINUTES)
+    content = {
+        'member_role': member.role.value
+    }
 
+    response = Response(status_code=status.HTTP_200_OK, headers=headers, content=json.dumps(content))
+
+    expiration_time = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_REFRESH_TOKEN_EXPIRE_MINUTES)
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,

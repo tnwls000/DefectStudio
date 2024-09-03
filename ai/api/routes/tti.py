@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 router = APIRouter(
-    prefix="/tti",
+    prefix="/txt-to-img",
 )
 
 @router.post("")

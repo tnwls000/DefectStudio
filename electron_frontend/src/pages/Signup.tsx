@@ -1,4 +1,4 @@
-import { Form, Input, Button, Select, message } from "antd";
+import { Form, Input, Button, Select, message, InputNumber } from "antd";
 import { signUpFormType } from "../types/user";
 import { signupHTTP } from "../util/signupHTTP";
 import { useNavigate } from "react-router-dom";
@@ -15,8 +15,9 @@ const initialValues: signUpFormType = {
 
 const Signup = () => {
   const navigate = useNavigate();
+
   const onSubmit = async (data: signUpFormType) => {
-    console.log(data);
+    // console.log(data);
     try {
       await signupHTTP(data);
       form.resetFields();
@@ -64,9 +65,8 @@ const Signup = () => {
               { min: 8, message: "Password must be at least 8 characters" },
               { max: 20, message: "Password must be at most 20 characters" },
               {
-                pattern: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[#![\]]).{8,}$/,
-                message:
-                  "Password must include alphabet, numbers, and special characters #![]",
+                pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$/,
+                message: "Password must include alphabet, numbers respectively",
               },
             ]}
           >
@@ -77,7 +77,8 @@ const Signup = () => {
             name="name"
             rules={[
               { required: true, message: "Name is required" },
-              { max: 15, message: "Name must be at most 15 characters" },
+              { min: 3, message: "Name must be at least 3 characters" },
+              { max: 15, message: "Name must be at most 50 characters" },
               {
                 pattern: /^[a-zA-Z0-9가-힣]+$/,
                 message:
@@ -92,7 +93,8 @@ const Signup = () => {
             name="nickname"
             rules={[
               { required: true, message: "Nickname is required" },
-              { max: 15, message: "Nickname must be at most 15 characters" },
+              { min: 3, message: "Nickname must be at least 3 characters" },
+              { max: 15, message: "Nickname must be at most 50 characters" },
               {
                 pattern: /^[a-zA-Z0-9가-힣]+$/,
                 message:
@@ -122,7 +124,7 @@ const Signup = () => {
                 Department Member
               </Select.Option>
               <Select.Option value="department_admin">
-                Department Admin"
+                Department Admin
               </Select.Option>
               <Select.Option value="super_admin">Super Admin</Select.Option>
             </Select>
@@ -132,7 +134,7 @@ const Signup = () => {
             name="department_id"
             rules={[{ required: true, message: "Department ID is required" }]}
           >
-            <Input />
+            <InputNumber style={{ width: "100%" }} />
           </Form.Item>
           <Form.Item style={{ display: "flex", justifyContent: "center" }}>
             <Button

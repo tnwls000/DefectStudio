@@ -1,10 +1,16 @@
+import axios from "axios";
+import apiServer from "./apiSERVER";
+
 export const loginRequest = async (username: string, password: string) => {
-  const response = await fetch("https://13.125.235.189/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, password }),
-  });
+  const response = await axios.post(
+    apiServer + "api/auth/login",
+    { username, password },
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    }
+  );
   return response;
 };

@@ -1,15 +1,20 @@
 import axios from "axios";
 import { signUpFormType } from "../types/user";
+import apiServer from "./apiSERVER";
 
 export const signupHTTP = async (data: signUpFormType) => {
   try {
-    const response = axios.post("http://localhost:4000/signup", data, {
-      headers: {
-        "Content-Type": "",
-      },
-    });
+    const response = axios.post(
+      apiServer + "api/members/signup",
+      JSON.stringify(data),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return response;
   } catch (error) {
-    throw new Error("Signup failed");
+    throw new Error(error as string);
   }
 };

@@ -36,6 +36,22 @@ class MemberRead(BaseModel):
             token_quantity=member.token_quantity
         )
 
+class MemberReadByDepartment(BaseModel):
+    member_id: int
+    name: str
+    nickname: str
+    token_quantity: int
+
+    @classmethod
+    def from_orm(cls, member: 'Member') -> 'MemberReadByDepartment':
+        return cls(
+            member_id = member.member_id,
+            name = member.name,
+            nickname = member.nickname,
+            token_quantity = member.token_quantity
+        )
+
+
 class MemberUpdate(BaseModel):
     password: Optional[str] = Field(None, pattern=re.compile(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$"))
     nickname: Optional[str] = Field(None, min_length=3, max_length=50)

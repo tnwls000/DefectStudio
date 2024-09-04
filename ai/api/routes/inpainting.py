@@ -8,7 +8,7 @@ from diffusers import AutoPipelineForInpainting
 from fastapi import APIRouter, Request, Form, UploadFile, File
 from fastapi.responses import JSONResponse
 
-from schema import ITIRequestForm
+from api.routes.schema import ITIRequestForm
 
 router = APIRouter(
     prefix="/img-to-img",

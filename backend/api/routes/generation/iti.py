@@ -44,7 +44,7 @@ def image_to_image(gpu_env: GPUEnvironment, request: ITIRequest):
 
             files.append(("images", (image_file.name, image_bytes, mime_type)))
 
-    response = requests.post(settings.AI_SERVER_URL + "/img-to-img", files=files)
+    response = requests.post(settings.AI_SERVER_URL + "/img-to-img", files=files, data=payload_dict)
 
     if response.status_code != 200:
         return Response(status_code=response.status_code, content=response.content)
@@ -57,7 +57,7 @@ def image_to_image(gpu_env: GPUEnvironment, request: ITIRequest):
     if gpu_env == GPUEnvironment.local:
         output_path = payload_dict.get("output_path")
         if save_image_files(output_path, image_list):
-            return JSONResponse(status_code=status.HTTP_201_CREATED)
+            return Response(status_code=status.HTTP_201_CREATED)
 
     # GPU 서버 사용 시 S3로 이미지 저장
     elif gpu_env == GPUEnvironment.remote:

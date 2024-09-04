@@ -1,8 +1,10 @@
 from fastapi import APIRouter
 from sqlalchemy.orm import Session
-from dependencies import get_db
-from fastapi import HTTPException, Response, status, Depends
+from dependencies import get_db, get_current_user
+from fastapi import Depends
 import crud
+from schema import MemberReadByDepartment
+from models import Member
 
 router = APIRouter(
     prefix="/departments",
@@ -10,5 +12,14 @@ router = APIRouter(
 )
 
 @router.get("")
-async def get_departments(session: Session = Depends(get_db)):
+async def get_departments(session: Session = Depends(get_db),
+                          member: Member = Depends(get_current_user)):
     return crud.get_departments(session)
+
+@router.get("/{department_id}/members")
+async def get_members_by_department(department_id: int,
+                                    session: Session = Depends(get_db),
+                                    member: Member = Depends(get_current_user)):
+    members = crud.get_members_by_department_id(session, department_id)
+    member_reads = [MemberReadByDepartment.from_orm(member) for member in members]
+    return member_reads

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing_extensions import Self
 
 from pydantic import BaseModel, EmailStr, Field
 import re
@@ -97,3 +98,14 @@ class TokenLogCreate(BaseModel):
     log_type: LogType
     use_type: Optional[UseType] = None
     member_id: int
+
+class DepartmentRead(BaseModel):
+    department_id: int
+    department_name: str
+
+    @classmethod
+    def from_orm(cls, department: 'Department') -> 'DepartmentRead':
+        return cls(
+            department_id=department.department_id,
+            department_name=department.name
+        )

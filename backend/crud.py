@@ -9,7 +9,7 @@ from core.security import hash_password
 from dependencies import get_db
 from models import Member, Token, TokenUsage, Department, TokenLog
 from schema import MemberCreate, TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead, \
-    TokenLogCreate
+    TokenLogCreate, DepartmentRead
 
 
 def get_member_by_login_id(session: Depends(get_db), login_id: str):
@@ -141,3 +141,8 @@ def create_token_log(session: Depends(get_db), token_log: TokenLogCreate):
     session.commit()
     session.refresh(db_token_log)
     return db_token_log
+
+def get_departments(session: Depends(get_db)):
+    departments = session.query(Department).all()
+    department_reads = [DepartmentRead.from_orm(department) for department in departments]
+    return department_reads

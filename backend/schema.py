@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing_extensions import Self
 
 from pydantic import BaseModel, EmailStr, Field
 import re
@@ -34,6 +35,22 @@ class MemberRead(BaseModel):
             department_name=member.department.name if member.department else "null",
             token_quantity=member.token_quantity
         )
+
+class MemberReadByDepartment(BaseModel):
+    member_id: int
+    name: str
+    nickname: str
+    token_quantity: int
+
+    @classmethod
+    def from_orm(cls, member: 'Member') -> 'MemberReadByDepartment':
+        return cls(
+            member_id = member.member_id,
+            name = member.name,
+            nickname = member.nickname,
+            token_quantity = member.token_quantity
+        )
+
 
 class MemberUpdate(BaseModel):
     password: Optional[str] = Field(None, pattern=re.compile(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$"))
@@ -97,3 +114,14 @@ class TokenLogCreate(BaseModel):
     log_type: LogType
     use_type: Optional[UseType] = None
     member_id: int
+
+class DepartmentRead(BaseModel):
+    department_id: int
+    department_name: str
+
+    @classmethod
+    def from_orm(cls, department: 'Department') -> 'DepartmentRead':
+        return cls(
+            department_id=department.department_id,
+            department_name=department.name
+        )

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.routes.generation import tti, rembg
+from api.routes.generation import tti, rembg, cleanup
 
 router = APIRouter(
     prefix="/generation",
@@ -9,3 +9,4 @@ router = APIRouter(
 
 router.include_router(tti.router)
 router.include_router(rembg.router)
+router.include_router(cleanup.router)

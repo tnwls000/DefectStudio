@@ -1,8 +1,7 @@
-from apscheduler.schedulers.background import BackgroundScheduler
 from core.db import Session
 from datetime import datetime
 
-import crud
+from crud import tokens as tokens_crud
 
 def expire_tokens(batch_size=100):
     with Session() as session:
@@ -10,7 +9,7 @@ def expire_tokens(batch_size=100):
         offset = 0
 
         while True:
-            expired_tokens = crud.get_expired_active_tokens_with_usages_and_members(session, current_date, offset=offset, limit=batch_size)
+            expired_tokens = tokens_crud.get_expired_active_tokens_with_usages_and_members(session, current_date, offset=offset, limit=batch_size)
             if not expired_tokens:
                 break
 

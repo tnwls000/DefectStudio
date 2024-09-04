@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction } from 'react';
-import { Select, Form } from 'antd';
+import { Dispatch, SetStateAction } from "react";
+import { Select, Form } from "antd";
 
 interface ModelProps {
   model: string;
@@ -9,16 +9,24 @@ interface ModelProps {
 const Model = ({ model, setModel }: ModelProps) => {
   return (
     <div className="px-6 pt-6 pb-2">
-      <p className="text-[14px] font-semibold text-[#222] mb-3">Model</p>
+      <p className="text-[14px] font-semibold mb-3 text-[#222] dark:text-gray-300">
+        Model
+      </p>
       <Form layout="vertical">
         <Form.Item>
           <Select
             value={model}
             onChange={setModel}
             options={[
-              { value: 'Stable Diffusion v1-5', label: 'Stable Diffusion v1-5' },
-              { value: 'Stable Diffusion v2-1', label: 'Stable Diffusion v2-1' },
-              { value: 'Custom Model', label: 'Custom Model' },
+              {
+                value: "Stable Diffusion v1-5",
+                label: "Stable Diffusion v1-5",
+              },
+              {
+                value: "Stable Diffusion v2-1",
+                label: "Stable Diffusion v2-1",
+              },
+              { value: "Custom Model", label: "Custom Model" },
             ]}
             placeholder="Select a model"
           />

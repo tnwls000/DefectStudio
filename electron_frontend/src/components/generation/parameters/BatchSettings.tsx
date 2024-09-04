@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction } from 'react';
-import { Input, Form, Row, Col } from 'antd';
+import { Dispatch, SetStateAction } from "react";
+import { Input, Form, Row, Col } from "antd";
 
 interface BatchSettingsProps {
   batchCount: string;
@@ -8,10 +8,17 @@ interface BatchSettingsProps {
   setBatchSize: Dispatch<SetStateAction<string>>;
 }
 
-const BatchSettings = ({ batchCount, batchSize, setBatchCount, setBatchSize }: BatchSettingsProps) => {
+const BatchSettings = ({
+  batchCount,
+  batchSize,
+  setBatchCount,
+  setBatchSize,
+}: BatchSettingsProps) => {
   return (
     <div className="px-6 pt-6 pb-10">
-      <p className="text-[14px] font-semibold text-[#222] mb-3">Batch Settings</p>
+      <p className="text-[14px] font-semibold text-[#222] mb-3 dark:text-gray-300">
+        Batch Settings
+      </p>
       <Form layout="vertical" className="space-y-4">
         <Form.Item label="Batch count" className="mb-0">
           <Row gutter={16}>

@@ -11,17 +11,15 @@ import Docs from "./pages/Docs";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import { FabricProvider } from "./contexts/FabricContext";
-import Profile from "./pages/Profile";
 
 function AppContent() {
   return (
-    <div>
+    <>
       <Navbar />
       <div className="pt-[60px]">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/profile/:userId" element={<Profile />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/generation/*" element={<Generation />} />
           <Route path="/training" element={<Training />} />
@@ -30,7 +28,7 @@ function AppContent() {
           <Route path="/docs" element={<Docs />} />
         </Routes>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -10,7 +10,7 @@ from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-import crud
+from crud import members as members_crud
 from core.config import settings
 from core.security import verify_password, create_access_token, create_refresh_token, decode_refresh_token
 from dependencies import get_db, get_redis
@@ -62,7 +62,7 @@ async def reissue(request: Request, redis: Redis = Depends(get_redis)):
 
 
 def authentication_member(login_id: str, password: str, session: Session = Depends(get_db)):
-    member = crud.get_member_by_login_id(session, login_id)
+    member = members_crud.get_member_by_login_id(session, login_id)
     if not member:
         raise HTTPException(status_code=404, detail="해당 유저를 찾을 수 없습니다.")
     if not verify_password(password, member.password):
@@ -74,7 +74,7 @@ def create_response_with_tokens(login_id: str, session: Session):
     access_token = create_access_token(login_id)
     refresh_token = create_refresh_token(login_id)
 
-    member = crud.get_member_by_login_id(session, login_id)
+    member = members_crud.get_member_by_login_id(session, login_id)
     headers = {"Authorization": f"Bearer {access_token}"}
     content = {
         'member_role': member.role.value

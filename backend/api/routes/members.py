@@ -1,8 +1,7 @@
 from fastapi import APIRouter
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException, Response, status, Depends
-
-import crud
+from crud import members as members_crud, tokens as tokens_crud
 from models import *
 from dependencies import get_db, get_current_user
 from schema import MemberCreate, MemberRead, MemberUpdate, TokenUsageRead, TokenLogCreate
@@ -16,11 +15,11 @@ router = APIRouter(
 
 @router.post("/signup")
 async def signup(member: MemberCreate, session: Session = Depends(get_db)):
-    existing_member = crud.get_member_by_login_id(session, member.login_id)
+    existing_member = members_crud.get_member_by_login_id(session, member.login_id)
     if existing_member:
         raise HTTPException(status_code=409, detail="이미 동일한 아이디의 회원이 존재합니다.")
 
-    crud.create_member(session, member)
+    members_crud.create_member(session, member)
 
     return Response(status_code=status.HTTP_200_OK, content="회원가입이 완료되었습니다.")
 
@@ -28,7 +27,7 @@ async def signup(member: MemberCreate, session: Session = Depends(get_db)):
 def get_tokens_usages(session: Session = Depends(get_db),
                       member: Member = Depends(get_current_user)):
     member_id = member.member_id
-    token_usage_reads = crud.get_token_usages(session, member_id)
+    token_usage_reads = tokens_crud.get_token_usages(session, member_id)
     return token_usage_reads
 
 @router.post("/tokens")
@@ -43,7 +42,7 @@ def use_tokens(cost: int, use_type: UseType,
     offset = 0
 
     while remaining_cost > 0:
-        token_usages = crud.get_token_usages_with_batch_size(session, member.member_id, offset, batch_size)
+        token_usages = tokens_crud.get_token_usages_with_batch_size(session, member.member_id, offset, batch_size)
 
         if not token_usages:
             break
@@ -68,7 +67,7 @@ def use_tokens(cost: int, use_type: UseType,
         use_type=use_type,
         member_id=member.member_id
     )
-    crud.create_token_log(session, token_log_create)
+    tokens_crud.create_token_log(session, token_log_create)
 
     return Response(status_code=200, content="토큰이 사용되었습니다.")
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.routes.generation import tti, iti, inpainting, rembg
+from api.routes.generation import tti, iti, inpainting, rembg, cleanup
 
 router = APIRouter(
     prefix="/generation",

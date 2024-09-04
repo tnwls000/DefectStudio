@@ -7,9 +7,9 @@ import Generation from "./pages/Generation";
 import Training from "./pages/Training";
 import Model from "./pages/Model";
 import Settings from "./pages/Settings";
-import Docs from "./pages/Docs";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Tokens from "./pages/Tokens";
 import { FabricProvider } from "./contexts/FabricContext";
 
 function AppContent() {
@@ -25,7 +25,7 @@ function AppContent() {
           <Route path="/training" element={<Training />} />
           <Route path="/model" element={<Model />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/docs" element={<Docs />} />
+          <Route path="/tokens" element={<Tokens />} />
         </Routes>
       </div>
     </>

@@ -1,23 +1,18 @@
-import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../store/store";
 import { setLevel, LevelState } from "../../store/slices/levelSlice";
+import { toggleMode } from "../../store/slices/themeSlice";
 import logo from "../../assets/logo.png";
 import token from "../../assets/token.png";
 import { Dropdown, Button, Switch } from "antd";
 import type { MenuProps } from "antd";
-import MiniProfile from "../profile/MiniProfile";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const level = useSelector((state: RootState) => state.level);
-  const [mode, setMode] = useState<"light" | "dark">("light");
-
-  const toggleMode = (checked: boolean) => {
-    setMode(checked ? "dark" : "light");
-  };
+  const mode = useSelector((state: RootState) => state.theme.mode);
 
   const selectLevel = (selectedLevel: LevelState) => {
     dispatch(setLevel(selectedLevel));
@@ -65,7 +60,7 @@ const Navbar = () => {
   ];
 
   return (
-    <div className="fixed z-20 w-full h-[60px] flex items-center px-10 bg-white border-b border-gray-300">
+    <div className="fixed z-20 w-full h-[60px] flex items-center px-10 bg-white border-b border-gray-300 dark:bg-gray-800 dark:border-none">
       <div className="flex items-center">
         <img
           src={logo}
@@ -74,7 +69,7 @@ const Navbar = () => {
           onClick={() => navigateTo("/")}
         />
         <p
-          className="text-xl font-bold text-[#1428a0] font-samsung cursor-pointer"
+          className="text-xl font-bold text-[#1428a0] dark:text-gray-200 font-samsung cursor-pointer"
           onClick={() => navigateTo("/")}
         >
           Defect Studio
@@ -82,34 +77,37 @@ const Navbar = () => {
       </div>
       <div className="hidden md:flex ml-20 space-x-4">
         <Dropdown menu={{ items: generationItems }} trigger={["hover"]}>
-          <Button type="link" className="text-base text-black cursor-pointer">
+          <Button
+            type="link"
+            className="text-base text-black dark:text-gray-300 cursor-pointer"
+          >
             Generation
           </Button>
         </Dropdown>
         <Button
           type="link"
-          className="text-base text-black cursor-pointer"
+          className="text-base text-black dark:text-gray-300 cursor-pointer"
           onClick={() => navigateTo("/training")}
         >
           Training
         </Button>
         <Button
           type="link"
-          className="text-base text-black cursor-pointer"
+          className="text-base text-black dark:text-gray-300 cursor-pointer"
           onClick={() => navigateTo("/model")}
         >
           Model
         </Button>
         <Button
           type="link"
-          className="text-base text-black cursor-pointer"
+          className="text-base text-black dark:text-gray-300 cursor-pointer"
           onClick={() => navigateTo("/settings")}
         >
           Settings
         </Button>
         <Button
           type="link"
-          className="text-base text-black cursor-pointer"
+          className="text-base text-black dark:text-gray-300 cursor-pointer"
           onClick={() => navigateTo("/docs")}
         >
           Docs
@@ -122,20 +120,17 @@ const Navbar = () => {
             className="w-[25px] h-[25px] object-contain"
             alt="token"
           />
-          <p className="ml-2 text-base font-bold">300</p>
+          <p className="ml-2 text-base font-bold text-black dark:text-gray-300">
+            300
+          </p>
         </div>
-
-        <Dropdown overlay={<MiniProfile />} trigger={["hover"]}>
-          <a onClick={(e) => e.preventDefault()}>
-            이름{" "}
-            {/* 여기에 사용자의 이름 또는 사용자를 나타내는 아이콘을 넣으세요 */}
-          </a>
-        </Dropdown>
-
+        <p className="text-base text-black dark:text-gray-300 hidden md:block">
+          정현수
+        </p>
         <Dropdown menu={{ items: levelItems }} trigger={["hover"]}>
           <Button
             type="link"
-            className="flex items-center justify-between text-base text-black cursor-pointer"
+            className="flex items-center justify-between text-base text-black dark:text-gray-300 cursor-pointer"
             style={{ width: "100px" }}
           >
             <span>{level}</span>
@@ -143,9 +138,9 @@ const Navbar = () => {
         </Dropdown>
         <Switch
           checked={mode === "dark"}
-          onChange={toggleMode}
-          checkedChildren="Dark"
-          unCheckedChildren="Light"
+          onChange={() => dispatch(toggleMode())}
+          checkedChildren="dark"
+          unCheckedChildren="light"
         />
       </div>
     </div>

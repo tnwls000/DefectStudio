@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Button } from 'antd';
-import { FormatPainterOutlined } from '@ant-design/icons';
-import { useFabric } from '../../../contexts/FabricContext';
-import InpaintingModal from '../masking/InpaintingModal';
-import UploadImagePlusMask from '../parameters/UploadImagePlusMask';
+import { useState, useEffect } from "react";
+import { Button } from "antd";
+import { FormatPainterOutlined } from "@ant-design/icons";
+import { useFabric } from "../../../contexts/FabricContext";
+import InpaintingModal from "../masking/InpaintingModal";
+import UploadImagePlusMask from "../parameters/UploadImagePlusMask";
 
 const CleanupSidebar: React.FC = () => {
   const {
     imageDownloadUrl,
     canvasDownloadUrl,
     maskingResult,
-    setMaskingResult
+    setMaskingResult,
   } = useFabric();
 
   const [showModal, setShowModal] = useState(false);
@@ -18,7 +18,7 @@ const CleanupSidebar: React.FC = () => {
   const [, setWidth] = useState(512);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<string>('manual');
+  const [activeTab, setActiveTab] = useState<string>("manual");
 
   // 탭 들어가면 MaskingResult 리셋되야함
   useEffect(() => {
@@ -52,7 +52,7 @@ const CleanupSidebar: React.FC = () => {
 
   const handleDownloadImage = (url: string | null, filename: string) => {
     if (url) {
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = filename;
       document.body.appendChild(link);
@@ -62,16 +62,16 @@ const CleanupSidebar: React.FC = () => {
   };
 
   const handleDownloadCanvasImage = () => {
-    handleDownloadImage(canvasDownloadUrl, 'canvas.png');
+    handleDownloadImage(canvasDownloadUrl, "canvas.png");
   };
 
   const handleDownloadBackgroundImage = () => {
-    handleDownloadImage(imageDownloadUrl, 'image.png');
+    handleDownloadImage(imageDownloadUrl, "image.png");
   };
 
   return (
     <div className="w-full lg:w-72 h-full fixed-height mr-6">
-      <div className="w-full lg:w-72 h-full overflow-y-auto custom-scrollbar rounded-[15px] bg-white shadow-lg border border-gray-300">
+      <div className="w-full lg:w-72 h-full overflow-y-auto custom-scrollbar rounded-[15px] bg-white shadow-lg border border-gray-300 dark:bg-gray-600 dark:border-none">
         {/* 이미지 업로드 */}
         <UploadImagePlusMask
           handleImageUpload={handleImageUpload}
@@ -84,7 +84,7 @@ const CleanupSidebar: React.FC = () => {
         {imageSrc && (
           <div className="px-6 pb-10">
             {/* Start Masking 버튼 (배치 모드가 아닐 때만 보임) */}
-            {activeTab === 'manual' && (
+            {activeTab === "manual" && (
               <Button
                 type="primary"
                 icon={<FormatPainterOutlined />}
@@ -96,8 +96,8 @@ const CleanupSidebar: React.FC = () => {
             )}
 
             {/* 인페인팅 작업 결과 이미지 표시 및 다운로드 버튼 */}
-            {activeTab === 'manual' && maskingResult && (
-              <div className="relative w-full pb-[61.8%] bg-gray-100 border border-dashed border-gray-300 rounded-lg mt-4 flex items-center justify-center">
+            {activeTab === "manual" && maskingResult && (
+              <div className="relative w-full pb-[61.8%] border border-dashed border-gray-300 rounded-lg mt-4 flex items-center justify-center">
                 <img
                   src={maskingResult}
                   alt="Inpainting Result"
@@ -106,11 +106,19 @@ const CleanupSidebar: React.FC = () => {
 
                 {/* 다운로드 버튼 - 테스트용!!! */}
                 <div className="mt-2 flex gap-2 flex-col">
-                  <Button type="default" onClick={handleDownloadCanvasImage} className="w-full">
+                  <Button
+                    type="default"
+                    onClick={handleDownloadCanvasImage}
+                    className="w-full"
+                  >
                     Download Canvas Image
                   </Button>
 
-                  <Button type="default" onClick={handleDownloadBackgroundImage} className="w-full">
+                  <Button
+                    type="default"
+                    onClick={handleDownloadBackgroundImage}
+                    className="w-full"
+                  >
                     Download Background Image
                   </Button>
                 </div>
@@ -121,7 +129,12 @@ const CleanupSidebar: React.FC = () => {
       </div>
 
       {/* Inpainting 모달 창 */}
-      {showModal && imageSrc && <InpaintingModal imageSrc={imageSrc} onClose={() => setShowModal(false)} />}
+      {showModal && imageSrc && (
+        <InpaintingModal
+          imageSrc={imageSrc}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 };

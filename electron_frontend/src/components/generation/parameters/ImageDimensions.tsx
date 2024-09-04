@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction } from 'react';
-import { Form, Slider, InputNumber, Row, Col } from 'antd';
+import { Dispatch, SetStateAction } from "react";
+import { Form, Slider, InputNumber, Row, Col } from "antd";
 
 interface ImageDimensionsProps {
   width: number;
@@ -8,10 +8,17 @@ interface ImageDimensionsProps {
   setHeight: Dispatch<SetStateAction<number>>;
 }
 
-const ImageDimensions = ({ width, height, setWidth, setHeight }: ImageDimensionsProps) => {
+const ImageDimensions = ({
+  width,
+  height,
+  setWidth,
+  setHeight,
+}: ImageDimensionsProps) => {
   return (
     <div className="p-6">
-      <p className="text-[14px] font-semibold text-[#222] mb-3">Image Dimensions</p>
+      <p className="text-[14px] font-semibold text-[#222] mb-3 dark:text-gray-300">
+        Image Dimensions
+      </p>
       <Form layout="vertical" className="space-y-4">
         <Form.Item label="Width">
           <Row gutter={16}>

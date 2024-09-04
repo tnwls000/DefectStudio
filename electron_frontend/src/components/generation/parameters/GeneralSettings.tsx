@@ -1,6 +1,6 @@
-import { Dispatch, SetStateAction } from 'react';
-import { Form, Input, Checkbox, Slider, Row, Col, InputNumber } from 'antd';
-import { CheckboxChangeEvent } from 'antd/es/checkbox';
+import { Dispatch, SetStateAction } from "react";
+import { Form, Input, Checkbox, Slider, Row, Col, InputNumber } from "antd";
+import { CheckboxChangeEvent } from "antd/es/checkbox";
 
 interface GeneralSettingsProps {
   guidanceScale: number;
@@ -17,7 +17,7 @@ const GeneralSettings = ({
   isRandomSeed,
   setSeed,
   setGuidanceScale,
-  handleRandomSeedChange
+  handleRandomSeedChange,
 }: GeneralSettingsProps) => {
   const handleGuidanceScaleChange = (value: number | null) => {
     if (value !== null) {
@@ -27,7 +27,9 @@ const GeneralSettings = ({
 
   return (
     <div className="p-6">
-      <p className="text-[14px] font-semibold text-[#222] mb-3">General Settings</p>
+      <p className="text-[14px] font-semibold text-[#222] mb-3 dark:text-gray-300">
+        General Settings
+      </p>
       <Form layout="vertical" className="space-y-5">
         <Form.Item label="Guidance scale">
           <Row gutter={16}>
@@ -48,7 +50,7 @@ const GeneralSettings = ({
                 step={0.1}
                 value={guidanceScale}
                 onChange={handleGuidanceScaleChange}
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
               />
             </Col>
           </Row>
@@ -61,7 +63,11 @@ const GeneralSettings = ({
             disabled={isRandomSeed}
             placeholder="Enter seed"
           />
-          <Checkbox checked={isRandomSeed} onChange={handleRandomSeedChange} className="mt-2">
+          <Checkbox
+            checked={isRandomSeed}
+            onChange={handleRandomSeedChange}
+            className="mt-2"
+          >
             Random
           </Checkbox>
         </Form.Item>

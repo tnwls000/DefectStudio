@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -11,14 +11,51 @@ let win;
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    autoHideMenuBar: true,
+    // 메뉴 바 숨기기
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs")
-    },
-    minWidth: 800,
-    minHeight: 600,
-    width: 1600,
-    height: 900
+    }
   });
+  const menuTemplate = [
+    {
+      label: "Edit",
+      submenu: [
+        {
+          role: "zoomIn",
+          accelerator: "CmdOrCtrl+="
+          // 줌 인
+        },
+        {
+          role: "zoomOut",
+          accelerator: "CmdOrCtrl+-"
+          // 줌 아웃
+        }
+      ]
+    },
+    {
+      label: "View",
+      submenu: [
+        {
+          role: "reload",
+          accelerator: "CmdOrCtrl+R"
+          // 새로고침
+        },
+        {
+          role: "forcereload",
+          accelerator: "CmdOrCtrl+Shift+R"
+          // 강력 새로고침
+        },
+        {
+          role: "toggledevtools",
+          accelerator: "CmdOrCtrl+Shift+I"
+          // 개발자 도구 열기/닫기
+        }
+      ]
+    }
+  ];
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });

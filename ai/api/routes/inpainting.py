@@ -11,44 +11,59 @@ from fastapi.responses import JSONResponse
 from api.routes.schema import ITIRequestForm
 
 router = APIRouter(
-    prefix="/img-to-img",
+    prefix="/inpainting",
 )
 
 @router.post("")
-async def image_to_image(
-        request: Request,
-        files: List[UploadFile] = File(...),
-        form_data: ITIRequestForm = Form(...)
+async def inpainting(
+        request: Request
 ):
-    request_body = await request.json()
+    form = await request.form()
+    print(form)
+    print(form.getlist("images"))
 
-    model = request_body.get("model")
-    prompt = request_body.get("prompt")
-    negative_prompt = request_body.get("negative_prompt")
-    num_inference_steps = request_body.get("num_inference_steps")
-    guidance_scale = request_body.get("guidance_scale")
-    strength = request_body.get("strength")
-    num_images_per_prompt = request_body.get("num_images_per_prompt")
-    batch_count = request_body.get("batch_count")
-    batch_size = request_body.get("batch_size")
+    model = form.get("model")
+    prompt = form.get("prompt")
+    negative_prompt = form.get("negative_prompt")
+    num_inference_steps=int(form.get("num_inference_steps", 50))
+    guidance_scale=float(form.get("guidance_scale", 7.5))
+    strength=float(form.get("strength", 0.5))
+    num_images_per_prompt=int(form.get("num_images_per_prompt", 1))
+    batch_count=int(form.get("batch_count", 1))
+    batch_size=int(form.get("batch_size", 1))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     inpaint_pipe = AutoPipelineForInpainting.from_pretrained(model, torch_dtype=torch.float16).to(device)
+
+    images = form.getlist("images")
 
     init_image_list = []
     mask_image_list = []
 
     # PIL.Image로 변환
-    for field_name, (file_name, file_data, mime_type) in files:
-        if field_name == "images":
-            image_bytes_io = BytesIO(file_data)
-            image = PIL.Image.open(image_bytes_io)
-            # 파일 이름에 붙여준 prefix에 따라 구분한 후 분리
-            init_image_list.append(image) if file_name[0] == 'i' else mask_image_list.append(image)
+    for file in images:
+        file_data = await file.read()
+        image_bytes_io = BytesIO(file_data)
+        image = PIL.Image.open(image_bytes_io)
+        # 파일 이름에 붙여준 prefix에 따라 구분한 후 분리
+        init_image_list.append(image) if file.filename[0] == 'i' else mask_image_list.append(image)
 
+    # Debugging output
+    print(f"Init Images: {len(init_image_list)}")
+    print(f"Mask Images: {len(mask_image_list)}")
+
+    # Ensure init and mask lists are not empty and have the correct corresponding pairs
+    if not init_image_list or not mask_image_list:
+        raise ValueError("Init images or mask images are missing.")
+
+    # Ensure the number of init images matches the number of mask images
+    if len(init_image_list) != len(mask_image_list):
+        raise ValueError("The number of initial images and mask images must match.")
+
+    # Generate inpainted images
     generated_image_list = inpaint_pipe(
         image=init_image_list,
-        mask_image_list=mask_image_list,
+        mask_image=mask_image_list,
         prompt=prompt,
         negative_prompt=negative_prompt,
         num_inference_steps=num_inference_steps,
@@ -56,6 +71,7 @@ async def image_to_image(
         strength=strength,
         num_images_per_prompt=num_images_per_prompt,
     ).images
+
 
     encoded_images = []
 

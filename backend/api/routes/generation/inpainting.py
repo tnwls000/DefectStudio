@@ -51,7 +51,7 @@ def inpainting(gpu_env: GPUEnvironment, request: InpaintingRequest):
 
                 files.append(("images", (f"{file_name_prefix[i]}-{image_file.name}", image_bytes, mime_type)))
 
-    response = requests.post(settings.AI_SERVER_URL + "/img-to-img", files=files)
+    response = requests.post(settings.AI_SERVER_URL + "/inpainting", files=files, data=payload_dict)
 
     if response.status_code != 200:
         return Response(status_code=response.status_code, content=response.content)

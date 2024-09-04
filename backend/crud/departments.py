@@ -1,7 +1,7 @@
 from fastapi import Depends
 from dependencies import get_db
 from models import Department
-from schema import DepartmentRead
+from schema.departments import DepartmentRead
 
 def get_departments(session: Depends(get_db)):
     departments = session.query(Department).all()

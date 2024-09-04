@@ -4,7 +4,7 @@ from fastapi.params import Depends
 from sqlalchemy.orm import Session
 
 from models import Member
-from schema import TokenCreate, TokenUsageCreate, TokenReadByDepartment, TokenLogCreate
+from schema.tokens import TokenCreate, TokenUsageCreate, TokenReadByDepartment, TokenLogCreate
 from enums import Role, LogType
 from crud import members as members_crud, tokens as tokens_crud
 import crud

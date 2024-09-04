@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from dependencies import get_db, get_current_user
 from fastapi import Depends
 from crud import members as members_crud, departments as departments_crud
-from schema import MemberReadByDepartment
+from schema.members import MemberReadByDepartment
 from models import Member
 
 router = APIRouter(

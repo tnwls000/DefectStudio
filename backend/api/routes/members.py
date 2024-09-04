@@ -4,7 +4,8 @@ from fastapi import HTTPException, Response, status, Depends
 from crud import members as members_crud, tokens as tokens_crud
 from models import *
 from dependencies import get_db, get_current_user
-from schema import MemberCreate, MemberRead, MemberUpdate, TokenUsageRead, TokenLogCreate
+from schema.members import MemberCreate, MemberRead, MemberUpdate
+from schema.tokens import TokenUsageRead, TokenLogCreate
 from typing import List
 
 router = APIRouter(

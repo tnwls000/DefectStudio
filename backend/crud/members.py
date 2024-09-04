@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from core.security import hash_password
 from dependencies import get_db
 from models import Member
-from schema import MemberCreate
+from schema.members import MemberCreate
 
 def get_member_by_login_id(session: Depends(get_db), login_id: str):
     return session.query(Member).filter(Member.login_id == login_id).first()

@@ -1,11 +1,12 @@
 from fastapi import APIRouter
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException, Response, status, Depends
-from crud import members as members_crud, tokens as tokens_crud
+from crud import members as members_crud, tokens as tokens_crud, token_logs as token_logs_crud
 from models import *
 from dependencies import get_db, get_current_user
 from schema.members import MemberCreate, MemberRead, MemberUpdate
-from schema.tokens import TokenUsageRead, TokenLogCreate
+from schema.token_logs import TokenUsageLogSearch, TokenLogCreate
+from schema.tokens import TokenUsageRead
 from typing import List
 
 router = APIRouter(
@@ -73,6 +74,13 @@ def use_tokens(cost: int, use_type: UseType,
     tokens_crud.create_token_log(session, token_log_create)
 
     return Response(status_code=200, content="토큰이 사용되었습니다.")
+
+@router.get("/token-logs/use")
+def get_token_logs(token_usage_log: TokenUsageLogSearch,
+                   session: Session = Depends(get_db),
+                   member: Member = Depends(get_current_user)):
+
+    return token_logs_crud.get_token_usage_logs(session, token_usage_log)
 
 @router.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):

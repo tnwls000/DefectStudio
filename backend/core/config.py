@@ -43,7 +43,11 @@ class Settings(BaseSettings):
         return f"https://{self.DOMAIN}"
 
     # CORS
-    BACKEND_CORS_ORIGINS: list[AnyUrl] = ["http://localhost:3000"]
+    BACKEND_CORS_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5500",
+    ]
 
     # DB
     POSTGRES_SERVER: str

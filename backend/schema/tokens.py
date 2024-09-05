@@ -47,6 +47,10 @@ class TokenReadByDepartment(BaseModel):
     department_name: str
     tokens: List[TokenRead]
 
+class TokenDistribute(BaseModel):
+    quantity: int = Field(...)
+    member_ids: Optional[List[int]] = Field(None)
+
 class TokenUsageRead(BaseModel):
     usage_id: int
     quantity: int

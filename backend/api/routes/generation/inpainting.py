@@ -1,14 +1,9 @@
-import mimetypes
-import re
-from pathlib import Path
 from typing import Optional, List
 
 import requests
 from fastapi import APIRouter, status, HTTPException, Response, Form, UploadFile, File
-from pydantic import ValidationError
 from starlette.responses import JSONResponse
 
-from api.routes.generation.schema import InpaintingRequest
 from core.config import settings
 from enums import GPUEnvironment
 from utils.local_io import save_file_list_to_path
@@ -20,7 +15,7 @@ router = APIRouter(
 
 
 @router.post("/{gpu_env}")
-def inpainting(
+async def inpainting(
         gpu_env: str,  # GPU 환경 정보
         model: str = Form("diffusers/stable-diffusion-xl-1.0-inpainting-0.1"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
@@ -35,7 +30,8 @@ def inpainting(
         num_images_per_prompt: Optional[int] = Form(1, description="각 프롬프트 당 생성할 이미지 수"),
         batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
-        images: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
+        init_image_list: List[UploadFile] = File(..., description="초기 이미지 파일들, 페어인 마스킹 이미지의 업로드 순서와 동일해야합니다."),
+        mask_image_list: List[UploadFile] = File(..., description="마스킹 이미지 파일들, 페어인 초기 이미지의 업로드 순서와 동일해야합니다."),
         init_input_path: Optional[str] = Form(None, description="초기 이미지를 가져올 로컬 경로"),
         mask_input_path: Optional[str] = Form(None, description="마스킹 이미지를 가져올 로컬 경로"),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
@@ -56,8 +52,13 @@ def inpainting(
         "batch_size": batch_size,
     }
 
-    # TODO : 이미지 넣기
+    if len(init_image_list) != len(mask_image_list):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="초기 이미지와 마스크 이미지의 개수가 동일해야 합니다.")
+
     files = []
+
+    files.extend([('init_image', (image.filename, await image.read(), image.content_type)) for image in init_image_list])
+    files.extend([('mask_image', (image.filename, await image.read(), image.content_type)) for image in mask_image_list])
 
     response = requests.post(settings.AI_SERVER_URL + "/inpainting", files=files, data=form_data)
 

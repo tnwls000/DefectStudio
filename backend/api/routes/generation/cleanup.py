@@ -7,12 +7,14 @@ from core.config import settings
 from enums import GPUEnvironment
 from utils.local_io import save_file_list_to_path
 from utils.s3 import upload_files
+from typing import List
 
 router = APIRouter(
     prefix="/cleanup",
 )
 
 CLEAN_UP_URL = "/cleanup"
+
 
 @router.post("/{gpu_env}")
 async def cleanup(gpu_env: GPUEnvironment,

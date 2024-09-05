@@ -1,13 +1,9 @@
-from io import BytesIO
-import PIL
+from typing import Optional, List
 
 import requests
-from fastapi import APIRouter, status, HTTPException, Request, Response, Form, UploadFile, File
-from typing import Optional, List
+from fastapi import APIRouter, status, Response, Form, UploadFile, File
 from starlette.responses import JSONResponse
-from pydantic import ValidationError
 
-from api.routes.generation.schema import ITIRequest
 from core.config import settings
 from enums import GPUEnvironment
 from utils.local_io import save_file_list_to_path
@@ -20,7 +16,7 @@ router = APIRouter(
 
 @router.post("/{gpu_env}")
 async def image_to_image(
-        gpu_env: str,  # GPU 환경 정보
+        gpu_env: GPUEnvironment,  # GPU 환경 정보
         model: str = Form("CompVis/stable-diffusion-v1-4"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
         negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트로 작용할 텍스트"),
@@ -32,7 +28,7 @@ async def image_to_image(
         num_images_per_prompt: Optional[int] = Form(1, description="각 프롬프트 당 생성할 이미지 수"),
         batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
-        images: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
+        images: List[UploadFile] = File(..., description="초기 이미지 파일들"),
         input_path: Optional[str] = Form(None, description="이미지를 가져올 로컬 경로"),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
 ):
@@ -50,13 +46,7 @@ async def image_to_image(
         "batch_size": batch_size,
     }
 
-    files = []
-    for file in images:
-        file_data = await file.read()
-        image_bytes_io = BytesIO(file_data)
-        image_bytes_io.seek(0)
-        files.append(('images', (file.filename, image_bytes_io, file.content_type)))
-
+    files = [('images', (image.filename, await image.read(), image.content_type)) for image in images]
     response = requests.post(settings.AI_SERVER_URL + "/img-to-img", files=files, data=form_data)
 
     if response.status_code != 200:

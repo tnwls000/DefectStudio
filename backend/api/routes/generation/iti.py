@@ -20,17 +20,19 @@ router = APIRouter(
 
 @router.post("/{gpu_env}")
 async def image_to_image(
-        gpu_env: GPUEnvironment,
+        gpu_env: str,  # GPU 환경 정보
         model: str = Form("CompVis/stable-diffusion-v1-4"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
-        negative_prompt: Optional[str] = Form(None),
-        num_inference_steps: Optional[int] = Form(50),
-        guidance_scale: Optional[float] = Form(7.5),
-        strength: Optional[float] = Form(0.5),
-        num_images_per_prompt: Optional[int] = Form(1),
-        batch_count: Optional[int] = Form(1),
-        batch_size: Optional[int] = Form(1),
-        images: List[UploadFile] = File(...),  # 이미지 파일
+        negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트로 작용할 텍스트"),
+        num_inference_steps: Optional[int] = Form(50, ge=1, le=100, description="추론 단계 수"),
+        guidance_scale: Optional[float] = Form(7.5, ge=1.0, le=20.0,
+                                               description="모델이 텍스트 프롬프트에 얼마나 충실하게 이미지를 생성할지에 대한 수치 (0.0=프롬프트 벗어남, 10.0=프롬프트를 강하게 따름)"),
+        strength: Optional[float] = Form(0.5, ge=0.0, le=1.0,
+                                         description="초기 이미지와 얼마나 다르게 생성할지에 대한 수치 (0.0=초기 이미지 유지, 1.0=초기 이미지 무관)"),
+        num_images_per_prompt: Optional[int] = Form(1, description="각 프롬프트 당 생성할 이미지 수"),
+        batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
+        batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
+        images: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
         input_path: Optional[str] = Form(None, description="이미지를 가져올 로컬 경로"),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
 ):
@@ -48,11 +50,6 @@ async def image_to_image(
         "batch_size": batch_size,
     }
 
-    try:
-        validated_form_data= ITIRequest(**form_data)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=e.errors())
-
     files = []
     for file in images:
         file_data = await file.read()
@@ -60,7 +57,7 @@ async def image_to_image(
         image_bytes_io.seek(0)
         files.append(('images', (file.filename, image_bytes_io, file.content_type)))
 
-    response = requests.post(settings.AI_SERVER_URL + "/img-to-img", files=files, data=validated_form_data.model_dump())
+    response = requests.post(settings.AI_SERVER_URL + "/img-to-img", files=files, data=form_data)
 
     if response.status_code != 200:
         return Response(status_code=response.status_code, content=response.content)

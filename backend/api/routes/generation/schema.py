@@ -71,6 +71,6 @@ class InpaintingRequest(BaseModel):
     batch_size: Optional[int] = Field(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수")
 
     # 경로
-    init_input_path: str = Field(..., description="초기 이미지를 가져올 로컬 경로")
-    mask_input_path: str = Field(..., description="마스킹 이미지를 가져올 로컬 경로")
+    init_input_path: str = Field(None, description="초기 이미지를 가져올 로컬 경로")
+    mask_input_path: str = Field(None, description="마스킹 이미지를 가져올 로컬 경로")
     output_path: Optional[str] = Field(None, description="이미지를 저장할 로컬 경로")

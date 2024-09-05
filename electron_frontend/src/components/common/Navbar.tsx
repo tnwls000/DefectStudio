@@ -7,7 +7,7 @@ import logo from "../../assets/logo.png";
 import token from "../../assets/token.png";
 import { Dropdown, Button, Switch } from "antd";
 import type { MenuProps } from "antd";
-import MiniProfile from "../profile/MiniProfile";
+import MiniProfileLogin from "../profile/MiniProfileLogin";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -125,7 +125,7 @@ const Navbar = () => {
           <p className="ml-2 text-base font-bold">300</p>
         </div>
 
-        <Dropdown overlay={<MiniProfile />} trigger={["hover"]}>
+        <Dropdown overlay={<MiniProfileLogin />} trigger={["hover"]}>
           <a onClick={(e) => e.preventDefault()}>
             이름{" "}
             {/* 여기에 사용자의 이름 또는 사용자를 나타내는 아이콘을 넣으세요 */}

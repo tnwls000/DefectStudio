@@ -4,11 +4,11 @@ import { signupHTTP } from "../util/signupHTTP";
 import { useNavigate } from "react-router-dom";
 
 const initialValues: signUpFormType = {
-  login_id: "defaultLoginID",
+  login_id: "",
   password: "",
-  name: "defaultName",
-  nickname: "defaultNickname",
-  email: "default@example.com",
+  name: "",
+  nickname: "",
+  email: "",
   role: "department_member",
   department_id: 0,
 };
@@ -48,7 +48,7 @@ const Signup = () => {
             rules={[
               { required: true, message: "Login ID is required" },
               { min: 3, message: "Login ID must be at least 3 characters" },
-              { max: 16, message: "Login ID must be at most 16 characters" },
+              { max: 30, message: "Login ID must be at most 16 characters" },
               {
                 pattern: /^[a-zA-Z0-9]+$/,
                 message: "Login ID can only contain letters and numbers",
@@ -78,9 +78,9 @@ const Signup = () => {
             rules={[
               { required: true, message: "Name is required" },
               { min: 3, message: "Name must be at least 3 characters" },
-              { max: 15, message: "Name must be at most 50 characters" },
+              { max: 50, message: "Name must be at most 50 characters" },
               {
-                pattern: /^[a-zA-Z0-9가-힣]+$/,
+                pattern: /^[a-zA-Z0-9가-힣\s]+$/,
                 message:
                   "Name can only contain letters, numbers, and Korean characters",
               },
@@ -94,9 +94,9 @@ const Signup = () => {
             rules={[
               { required: true, message: "Nickname is required" },
               { min: 3, message: "Nickname must be at least 3 characters" },
-              { max: 15, message: "Nickname must be at most 50 characters" },
+              { max: 50, message: "Nickname must be at most 50 characters" },
               {
-                pattern: /^[a-zA-Z0-9가-힣]+$/,
+                pattern: /^[a-zA-Z0-9가-힣\s]+$/,
                 message:
                   "Nickname can only contain letters, numbers, and Korean characters",
               },

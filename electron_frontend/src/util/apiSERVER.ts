@@ -1,2 +1,2 @@
-const apiServer: string = "http://13.125.235.189:8000/";
+const apiServer: string = "http://j11s001.p.ssafy.io:8000/";
 export default apiServer;

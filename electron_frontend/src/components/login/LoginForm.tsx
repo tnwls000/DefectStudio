@@ -12,9 +12,8 @@ const onSubmit = async (
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>
 ) => {
   try {
-    await loginRequest(data.username, data.password).then((res) => {
-      console.log(res.headers);
-    });
+    const response = await loginRequest(data.username, data.password);
+    console.log(response.headers["authorization"]);
     setErrorMessage("");
   } catch (error) {
     message.error("Login failed Try again later");

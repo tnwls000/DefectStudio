@@ -4,6 +4,11 @@ from enums import UseType, LogType
 from models import Token, TokenUsage
 from typing import Optional, List
 
+class TokenCreates(BaseModel):
+    end_date: datetime = Field(...)
+    quantity: int = Field(..., gt=0)
+    department_ids: List[int] = Field(...)
+
 class TokenCreate(BaseModel):
     end_date: datetime = Field(...)
     quantity: int = Field(..., gt=0)

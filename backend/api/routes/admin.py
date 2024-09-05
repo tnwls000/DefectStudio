@@ -4,7 +4,7 @@ from fastapi.params import Depends
 from sqlalchemy.orm import Session
 
 from models import Member
-from schema.tokens import TokenCreate, TokenUsageCreate, TokenReadByDepartment, TokenLogCreate
+from schema.tokens import TokenCreate, TokenCreates, TokenUsageCreate, TokenReadByDepartment, TokenLogCreate
 from enums import Role, LogType
 from crud import members as members_crud, tokens as tokens_crud
 import crud
@@ -32,22 +32,29 @@ def role_required(allowed_roles: List[Role]):
 # 토큰 발급
 @router.post("/tokens")
 @role_required([Role.super_admin]) # only super_admin can issue token
-async def issue_token(token: TokenCreate,
+async def issue_token(token_creates: TokenCreates,
                       session: Session = Depends(get_db),
                       current_user: Member = Depends(get_current_user)
                       ):
-    members = members_crud.get_members_by_department_id(session, token.department_id)
-    member_count = len(members)
-    if token.quantity < member_count:
-        raise HTTPException(status_code=400, detail="발급 토큰 수는 해당 부서의 회원 수보다 많아야 합니다.")
+    for department_id in token_creates.department_ids:
+        members = members_crud.get_members_by_department_id(session, department_id)
+        member_count = len(members)
+        if token_creates.quantity < member_count:
+            raise HTTPException(status_code=400, detail="발급 토큰 수는 해당 부서의 회원 수보다 많아야 합니다.")
 
-    tokens_crud.create_token(session, token)
+    for department_id in token_creates.department_ids:
+        token = TokenCreate(
+            end_date=token_creates.end_date,
+            quantity=token_creates.quantity,
+            department_id=department_id  # 각 부서에 대해 발급
+        )
+        tokens_crud.create_token(session, token)
 
-    token_log_create = TokenLogCreate(
-        log_type=LogType.issue,
-        member_id=current_user.member_id
-    )
-    tokens_crud.create_token_log(session, token_log_create)
+        token_log_create = TokenLogCreate(
+            log_type=LogType.issue,
+            member_id=current_user.member_id
+        )
+        tokens_crud.create_token_log(session, token_log_create)
 
     return Response(status_code=201, content="토큰이 발급되었습니다.")
 

@@ -12,8 +12,7 @@ router = APIRouter(
 )
 
 @router.get("")
-async def get_departments(session: Session = Depends(get_db),
-                          member: Member = Depends(get_current_user)):
+async def get_departments(session: Session = Depends(get_db)):
     return departments_crud.get_departments(session)
 
 @router.get("/{department_id}/members")

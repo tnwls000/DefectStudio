@@ -15,20 +15,24 @@ class MemberCreate(BaseModel):
 
 
 class MemberRead(BaseModel):
+    member_pk: int
     login_id: str
     nickname: str
     email: EmailStr
     role: Role
+    department_id: int
     department_name: str
     token_quantity: int
 
     @classmethod
     def from_orm(cls, member: 'Member') -> 'MemberRead':
         return cls(
+            member_pk=member.member_id,
             login_id=member.login_id,
             nickname=member.nickname,
             email=member.email,
             role=member.role,
+            department_id=member.department_id,
             department_name=member.department.name if member.department else "null",
             token_quantity=member.token_quantity
         )

@@ -79,6 +79,16 @@ def read_member_by_id(member_id: int, session: Session = Depends(get_db)):
     response = MemberRead.from_orm(member)
     return response
 
+@router.get("", response_model=MemberRead)
+def read_member_me(session: Session = Depends(get_db), member: Member = Depends(get_current_user)):
+    member = session.query(Member).options(joinedload(Member.department)).filter(
+        Member.member_id == member.member_id).one_or_none()
+
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자를 찾을 수 없습니다.")
+
+    response = MemberRead.from_orm(member)
+    return response
 
 @router.patch("", response_model=MemberRead)
 def update_member_me(request: MemberUpdate, member: Member = Depends(get_current_user),

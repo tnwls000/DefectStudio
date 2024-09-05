@@ -74,13 +74,9 @@ def create_response_with_tokens(login_id: str, session: Session):
     access_token = create_access_token(login_id)
     refresh_token = create_refresh_token(login_id)
 
-    member = members_crud.get_member_by_login_id(session, login_id)
     headers = {"Authorization": f"Bearer {access_token}"}
-    content = {
-        'member_role': member.role.value
-    }
 
-    response = Response(status_code=status.HTTP_200_OK, headers=headers, content=json.dumps(content))
+    response = Response(status_code=status.HTTP_200_OK, headers=headers)
 
     expiration_time = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_REFRESH_TOKEN_EXPIRE_MINUTES)
     response.set_cookie(

@@ -1,6 +1,5 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from enums import UseType, LogType
 from models import Token, TokenUsage
 from typing import Optional, List
 
@@ -65,8 +64,3 @@ class TokenUsageRead(BaseModel):
             start_date=token_usage.start_date,
             end_date=token_usage.end_date
         )
-
-class TokenLogCreate(BaseModel):
-    log_type: LogType
-    use_type: Optional[UseType] = None
-    member_id: int

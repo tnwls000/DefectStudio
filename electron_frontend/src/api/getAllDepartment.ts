@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 
 type departmentType = {
   department_id: number;
@@ -10,7 +10,6 @@ export const getAllDepartments = async () => {
     const response = await axios.get<departmentType[]>(
       "http://j11s001.p.ssafy.io:8000/api/departments"
     );
-    console.log(response);
     return response;
   } catch (error) {
     throw new Error("Failed to get all departments");

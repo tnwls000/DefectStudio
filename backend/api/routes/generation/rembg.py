@@ -2,12 +2,11 @@ from typing import List
 from typing import Optional
 
 import requests
-from fastapi import APIRouter, status, Response, Form, UploadFile, File
+from fastapi import APIRouter, status, Response, Form, UploadFile, File, HTTPException
 from starlette.responses import JSONResponse
 
 from core.config import settings
 from enums import GPUEnvironment
-from utils.local_io import save_file_list_to_path
 from utils.s3 import upload_files
 
 router = APIRouter(
@@ -24,6 +23,9 @@ async def remove_background(
         input_path: Optional[str] = Form(None, description="이미지를 가져올 로컬 경로"),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
 ):
+    if gpu_env == GPUEnvironment.local:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
+
     # TODO: 로그인 유저 확인
 
     files = [('images', (image.filename, await image.read(), image.content_type)) for image in images]
@@ -35,11 +37,5 @@ async def remove_background(
     response_data = response.json()
 
     image_list = response_data.get("image_list")
-
-    if gpu_env == GPUEnvironment.local:
-        if save_file_list_to_path(output_path, image_list):
-            return Response(status_code=status.HTTP_201_CREATED)
-
-    elif gpu_env == GPUEnvironment.remote:
-        image_url_list = upload_files(image_list)
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content={"image_list": image_url_list})
+    image_url_list = upload_files(image_list)
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"image_list": image_url_list})

@@ -1,7 +1,7 @@
 from typing import Optional, List
 
 import requests
-from fastapi import APIRouter, status, Response, Form, UploadFile, File
+from fastapi import APIRouter, status, Response, Form, UploadFile, File, HTTPException
 from starlette.responses import JSONResponse
 
 from core.config import settings
@@ -32,6 +32,8 @@ async def image_to_image(
         input_path: Optional[str] = Form(None, description="이미지를 가져올 로컬 경로"),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
 ):
+    if gpu_env == GPUEnvironment.local:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
 
     # TODO : 유저 인증 확인 후 토큰 사용
     form_data = {
@@ -54,14 +56,9 @@ async def image_to_image(
 
     response_data = response.json()
     image_list = response_data.get("image_list")
+    image_url_list = upload_files(image_list)
 
-    # 로컬 GPU 사용 시 지정된 로컬 경로로 이미지 저장
-    if gpu_env == GPUEnvironment.local:
-        if save_file_list_to_path(output_path, image_list):
-            return Response(status_code=status.HTTP_201_CREATED)
-
-    # GPU 서버 사용 시 S3로 이미지 저장
-    elif gpu_env == GPUEnvironment.remote:
-        image_url_list = upload_files(image_list)
-        return JSONResponse(status_code=status.HTTP_201_CREATED,
-                            content={"image_list": image_url_list})
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content={"image_list": image_url_list}
+    )

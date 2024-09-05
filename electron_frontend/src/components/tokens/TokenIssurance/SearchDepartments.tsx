@@ -2,7 +2,8 @@ import "./SearchDepartments.css";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "antd";
 import { useEffect, useState } from "react";
-import { getAllDepartments } from "./../../../util/getAllDepartment";
+import { getAllDepartments } from "../../../api/getAllDepartment";
+import { AxiosError, AxiosResponse } from "axios";
 
 type departmentType = {
   department_id: number;
@@ -11,7 +12,12 @@ type departmentType = {
 
 const SearchDepartments = () => {
   const [searchDepartmentName, setSearchDepartmentName] = useState("");
-  const { data, isPending, isError, error } = useQuery({
+  const { data, isPending, isError, error } = useQuery<
+    AxiosResponse<departmentType[]>,
+    AxiosError,
+    AxiosResponse<departmentType[]>,
+    string[]
+  >({
     queryKey: ["departments"],
     queryFn: getAllDepartments,
   });

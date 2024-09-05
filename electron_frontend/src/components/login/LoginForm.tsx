@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { loginRequest } from "../../util/loginHTTP";
+import { loginRequest } from "../../api/loginHTTP";
 import { useState } from "react";
 import { message } from "antd";
 interface loginForm {

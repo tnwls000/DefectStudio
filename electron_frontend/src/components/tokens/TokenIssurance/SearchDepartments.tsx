@@ -18,8 +18,13 @@ type TableDepartmentType = {
 };
 
 const SearchDepartments = () => {
+  // 검색이름
   const [searchDepartmentName, setSearchDepartmentName] = useState("");
+
+  // 검색 할 경우 보여줄 데이터
   const [filteredData, setFilteredData] = useState<TableDepartmentType[]>([]);
+
+  //부서 불러오기
   const { data, isPending, isError, error } = useQuery<
     AxiosResponse<departmentType[]>,
     AxiosError,
@@ -38,6 +43,7 @@ const SearchDepartments = () => {
       }),
   });
 
+  // 검색어에 따라 필터링 되는 코드 작성
   useEffect(() => {
     if (data) {
       setFilteredData(
@@ -50,6 +56,7 @@ const SearchDepartments = () => {
     }
   }, [searchDepartmentName, data]);
 
+  // 테이블 필드명
   const columns = [
     {
       title: "Department ID",
@@ -62,6 +69,8 @@ const SearchDepartments = () => {
       key: "department_name",
     },
   ];
+
+  //컴포넌트 출력
   return (
     <section className="token-issurance-department-container">
       <div>

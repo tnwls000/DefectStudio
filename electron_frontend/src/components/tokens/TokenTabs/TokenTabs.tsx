@@ -1,19 +1,23 @@
+import { memo } from "react";
 import "./TokenTabs.css";
 
-interface TabItem {
+export interface TabItemType {
   id: string;
   name: string;
   value: number | string;
-  onChange?: React.Dispatch<React.SetStateAction<string | number>>;
 }
 
-const tabItems: TabItem[] = [
-  { id: "TokenIssurance", name: "Token Issurance", value: 1 },
-  { id: "TokenDistribution", name: "Token Distribution", value: 2 },
-  { id: "TokenStatistics", name: "Token Statistics", value: 3 },
-];
+interface TokenTabsProps {
+  activeTab: string | number;
+  setActiveTab: React.Dispatch<React.SetStateAction<string | number>>;
+  tabItems: TabItemType[];
+}
 
-const TokenTabs = ({ activeTab }: { activeTab: string }) => {
+// activeTab : 현재 선택된 탭의 value
+// setActiveTab : 현재 선택된 탭의 value를 변경하는 함수 - useState or useReducer
+// tabItems : 탭의 정보를 담은 배열 : TabItemType[]
+
+const TokenTabs = ({ activeTab, setActiveTab, tabItems }: TokenTabsProps) => {
   return (
     <div className="mb-4 border-gray-200 dark:border-gray-700">
       <ul
@@ -23,8 +27,9 @@ const TokenTabs = ({ activeTab }: { activeTab: string }) => {
         {tabItems.map((item) => (
           <li key={item.id}>
             <button
+              onClick={() => setActiveTab(item.value)}
               className={`token-tab-default ${
-                activeTab === item.id
+                activeTab === item.value
                   ? "token-tab-active"
                   : "token-tab-inactive"
               } `}
@@ -38,4 +43,4 @@ const TokenTabs = ({ activeTab }: { activeTab: string }) => {
   );
 };
 
-export default TokenTabs;
+export default memo(TokenTabs);

@@ -7,7 +7,7 @@
 }
 
 .token-tab-inactive {
-  @apply text-[#222222] dark:text-gray-300;
+  @apply text-[#b2b2b2] dark:text-gray-300;
 }
 
 .token-tab-inactive:hover {

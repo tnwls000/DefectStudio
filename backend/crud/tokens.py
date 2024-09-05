@@ -4,8 +4,8 @@ from typing import List
 from fastapi import Depends
 from dependencies import get_db
 from models import Member, Token, TokenUsage, Department, TokenLog
-from schema.tokens import TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead, \
-    TokenLogCreate
+from schema.tokens import TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead
+from schema.token_logs import TokenLogCreate
 
 def create_token(session: Depends(get_db), token: TokenCreate):
     db_token = Token(
@@ -102,7 +102,9 @@ def create_token_log(session: Depends(get_db), token_log: TokenLogCreate):
         create_date=datetime.today(),
         log_type=token_log.log_type,
         use_type=token_log.use_type,
-        member_id=token_log.member_id
+        member_id=token_log.member_id,
+        quantity=token_log.quantity,
+        department_id=token_log.department_id
     )
     session.add(db_token_log)
     session.commit()

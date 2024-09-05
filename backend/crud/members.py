@@ -4,12 +4,16 @@ from core.security import hash_password
 from dependencies import get_db
 from models import Member
 from schema.members import MemberCreate
+from typing import List
 
 def get_member_by_login_id(session: Depends(get_db), login_id: str):
     return session.query(Member).filter(Member.login_id == login_id).first()
 
 def get_members_by_department_id(session: Depends(get_db), department_id: int):
     return session.query(Member).filter(Member.department_id == department_id).all()
+
+def get_members_by_member_ids(session: Depends(get_db), member_ids: List[int]):
+    return session.query(Member).filter(Member.member_id.in_(member_ids)).all()
 
 def create_member(session: Depends(get_db), member: MemberCreate):
     hashed_password = hash_password(member.password)

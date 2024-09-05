@@ -12,6 +12,7 @@ class Department(Base):
     name = Column(String(255), nullable=False)
     members = relationship("Member", back_populates="department")
     tokens = relationship("Token", back_populates="department")
+    token_logs = relationship("TokenLog", back_populates="department")
 
 class Member(Base):
     __tablename__ = 'member'
@@ -63,5 +64,8 @@ class TokenLog(Base):
     create_date = Column(DateTime, nullable=False)
     log_type = Column(Enum(LogType), nullable=False)
     use_type = Column(Enum(UseType), nullable=True)
+    quantity = Column(Integer, nullable=True)
     member_id = Column(Integer, ForeignKey('member.member_id'))
     member = relationship("Member", back_populates="token_logs")
+    department_id = Column(Integer, ForeignKey('department.department_id'))
+    department = relationship("Department", back_populates="token_logs")

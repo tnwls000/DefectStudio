@@ -70,3 +70,5 @@ class TokenLogCreate(BaseModel):
     log_type: LogType
     use_type: Optional[UseType] = None
     member_id: int
+    quantity: int
+    department_id: int

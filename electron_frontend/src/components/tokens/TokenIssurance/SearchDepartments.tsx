@@ -20,7 +20,7 @@ const SearchDepartments = () => {
   return (
     <section className="token-issurance-department-container">
       <div>
-        <p className="">
+        <p className="text-[20px] font-bold">
           Please select the departments you wish to grant the token to
         </p>
         <Input

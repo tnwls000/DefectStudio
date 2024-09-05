@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.token-issurance-input-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  margin-top: 20px;
+
+  @apply border-2 border-gray-300 rounded-lg w-full h-[360px] text-[222222] dark:text-white font-samsung;
+}

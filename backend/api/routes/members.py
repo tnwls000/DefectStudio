@@ -66,7 +66,9 @@ def use_tokens(cost: int, use_type: UseType,
     token_log_create = TokenLogCreate(
         log_type=LogType.use,
         use_type=use_type,
-        member_id=member.member_id
+        member_id=member.member_id,
+        quantity=cost,
+        department_id=member.department_id
     )
     tokens_crud.create_token_log(session, token_log_create)
 

@@ -51,7 +51,9 @@ async def issue_token(token_creates: TokenCreates,
 
         token_log_create = TokenLogCreate(
             log_type=LogType.issue,
-            member_id=current_user.member_id
+            member_id=current_user.member_id,
+            quantity=token_creates.quantity,
+            department_id=department_id
         )
         tokens_crud.create_token_log(session, token_log_create)
 
@@ -125,7 +127,9 @@ async def distribute_token(
 
     token_log_create = TokenLogCreate(
         log_type=LogType.distribute,
-        member_id=current_user.member_id
+        member_id=current_user.member_id,
+        quantity=token_distribute.quantity*member_count,
+        department_id=token.department_id
     )
     tokens_crud.create_token_log(session, token_log_create)
 

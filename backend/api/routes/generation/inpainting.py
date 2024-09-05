@@ -63,7 +63,7 @@ def inpainting(gpu_env: GPUEnvironment, request: InpaintingRequest):
     if gpu_env == GPUEnvironment.local:
         output_path = payload_dict.get("output_path")
         if save_image_files(output_path, image_list):
-            return JSONResponse(status_code=status.HTTP_201_CREATED)
+            return Response(status_code=status.HTTP_201_CREATED)
 
     # GPU 서버 사용 시 S3로 이미지 저장
     elif gpu_env == GPUEnvironment.remote:

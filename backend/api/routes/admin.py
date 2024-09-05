@@ -71,7 +71,10 @@ async def get_tokens(department_id: Optional[int] = None,
     # 총관리자는 특정 부서의 토큰 조회 가능, 부서 ID가 없으면 전체 조회
     if current_user.role == Role.super_admin:
         if department_id:
-            return tokens_crud.get_tokens_by_department_id(session, department_id)
+            tokens = tokens_crud.get_tokens_by_department_id(session, department_id)
+            if not tokens:
+                raise HTTPException(status_code=400, detail="해당 부서는 없는 부서입니다")
+            return tokens
         else:
             return tokens_crud.get_tokens(session)
 

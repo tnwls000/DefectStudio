@@ -4,8 +4,8 @@ from typing import List
 from fastapi import Depends
 from dependencies import get_db
 from models import Member, Token, TokenUsage, Department, TokenLog
-from schema.tokens import TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead, \
-    TokenLogCreate
+from schema.tokens import TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead
+from schema.token_logs import TokenLogCreate
 
 def create_token(session: Depends(get_db), token: TokenCreate):
     db_token = Token(

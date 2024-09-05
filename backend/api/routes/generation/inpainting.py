@@ -9,7 +9,7 @@ from starlette.responses import JSONResponse
 from api.routes.generation.schema import InpaintingRequest
 from core.config import settings
 from enums import GPUEnvironment
-from utils.local_io import save_image_files
+from utils.local_io import save_file_list_to_path
 from utils.s3 import upload_files
 
 router = APIRouter(
@@ -62,7 +62,7 @@ def inpainting(gpu_env: GPUEnvironment, request: InpaintingRequest):
     # 로컬 GPU 사용 시 지정된 로컬 경로로 이미지 저장
     if gpu_env == GPUEnvironment.local:
         output_path = payload_dict.get("output_path")
-        if save_image_files(output_path, image_list):
+        if save_file_list_to_path(output_path, image_list):
             return Response(status_code=status.HTTP_201_CREATED)
 
     # GPU 서버 사용 시 S3로 이미지 저장

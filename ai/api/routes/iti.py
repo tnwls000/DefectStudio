@@ -22,17 +22,16 @@ async def image_to_image(
         request: Request
 ):
     form = await request.form()
-    print(form)
 
     model=form.get("model", "CompVis/stable-diffusion-v1-4")
     prompt=form.get("prompt")
     negative_prompt=form.get("negative_prompt")
-    num_inference_steps=int(form.get("num_inference_steps", 50))
-    guidance_scale=float(form.get("guidance_scale", 7.5))
-    strength=float(form.get("strength", 0.5))
-    num_images_per_prompt=int(form.get("num_images_per_prompt", 1))
-    batch_count=int(form.get("batch_count", 1))
-    batch_size=int(form.get("batch_size", 1))
+    num_inference_steps=int(form.get("num_inference_steps"))
+    guidance_scale=float(form.get("guidance_scale"))
+    strength=float(form.get("strength"))
+    num_images_per_prompt=int(form.get("num_images_per_prompt"))
+    batch_count=int(form.get("batch_count"))
+    batch_size=int(form.get("batch_size"))
 
     # 파일 추출
     images = form.getlist("images")

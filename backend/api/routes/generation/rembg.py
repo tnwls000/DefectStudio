@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 
 from core.config import settings
 from enums import GPUEnvironment
-from utils.local_io import save_image_files
+from utils.local_io import save_file_list_to_path
 from utils.s3 import upload_files
 from typing import Optional
 
@@ -50,7 +50,7 @@ async def remove_background(gpu_env: GPUEnvironment,
     image_list = response_data.get("image_list")
 
     if gpu_env == GPUEnvironment.local:
-        if save_image_files(output_path, image_list):
+        if save_file_list_to_path(output_path, image_list):
             return Response(status_code=status.HTTP_201_CREATED)
 
     elif gpu_env == GPUEnvironment.remote:

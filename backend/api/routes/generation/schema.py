@@ -45,7 +45,7 @@ class ITIRequest(BaseModel):
     batch_size: Optional[int] = Field(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수")
 
     # 경로
-    input_path: str = Field(..., description="이미지를 가져올 로컬 경로")
+    input_path: Optional[str] = Field(None, description="이미지를 가져올 로컬 경로")
     output_path: Optional[str] = Field(None, description="이미지를 저장할 로컬 경로")
 
 

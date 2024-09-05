@@ -26,12 +26,12 @@ def get_token_by_token_id(session: Depends(get_db), token_id: int):
     return session.query(Token).filter(Token.token_id == token_id).first()
 
 
-def get_tokens_for_super_admin(session: Depends(get_db)):
+def get_tokens(session: Depends(get_db)):
     tokens = session.query(Token).all()
     return convert_to_token_read_by_department(session, tokens)
 
 
-def get_tokens_for_department_admin(session: Depends(get_db), department_id: int):
+def get_tokens_by_department_id(session: Depends(get_db), department_id: int):
     tokens = session.query(Token).filter(Token.department_id == department_id).all()
     return convert_to_token_read_by_department(session, tokens)
 

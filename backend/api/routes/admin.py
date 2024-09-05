@@ -7,10 +7,9 @@ from models import Member
 from schema.tokens import TokenCreate, TokenCreates, TokenUsageCreate, TokenReadByDepartment, TokenLogCreate
 from enums import Role, LogType
 from crud import members as members_crud, tokens as tokens_crud
-import crud
 from dependencies import get_db, get_current_user
 
-from typing import List
+from typing import List, Optional
 from functools import wraps
 
 router = APIRouter(
@@ -62,14 +61,20 @@ async def issue_token(token_creates: TokenCreates,
 # 관리자 토큰 조회
 @router.get("/tokens", response_model=List[TokenReadByDepartment])
 @role_required([Role.super_admin, Role.department_admin])
-async def get_tokens(session: Session = Depends(get_db),
+async def get_tokens(department_id: Optional[int] = None,
+                     session: Session = Depends(get_db),
                       current_user: Member = Depends(get_current_user)):
-    # 총관리자는 모든 토큰을 조회
-    if current_user.role == Role.super_admin:
-        return tokens_crud.get_tokens_for_super_admin(session)
-    # 부서별 관리자는 해당 부서의 토큰만을 조회
+    # 부서별 관리자는 자기 부서의 토큰만 조회
     if current_user.role == Role.department_admin:
-        return tokens_crud.get_tokens_for_department_admin(session, current_user.department_id)
+        return tokens_crud.get_tokens_by_department_id(session, current_user.department_id)
+
+    # 총관리자는 특정 부서의 토큰 조회 가능, 부서 ID가 없으면 전체 조회
+    if current_user.role == Role.super_admin:
+        if department_id:
+            return tokens_crud.get_tokens_by_department_id(session, department_id)
+        else:
+            return tokens_crud.get_tokens(session)
+
 
 # 토큰 분배
 @router.post("/tokens/{token_id}")

@@ -85,7 +85,7 @@ def create_response_with_tokens(login_id: str, session: Session):
         expires=expiration_time,
         httponly=True,
         secure=True,  # HTTPS
-        samesite="Lax"
+        samesite="None"
     )
 
     return response

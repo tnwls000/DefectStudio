@@ -1,6 +1,5 @@
 import "./SearchDepartments.css";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import { getAllDepartments } from "../../../api/getAllDepartment";
 import { AxiosError, AxiosResponse } from "axios";
 import { Select, Space } from "antd";
@@ -15,7 +14,12 @@ type AntdSelectOptionType = {
   label: string;
 };
 
-const SearchDepartments = () => {
+type PropsType = {
+  departmentsId: number[];
+  setDepartmentsId: (departmentsId: number[]) => void;
+};
+
+const SearchDepartments = ({ departmentsId, setDepartmentsId }: PropsType) => {
   //부서 불러오기
   const {
     data = [],
@@ -35,15 +39,9 @@ const SearchDepartments = () => {
         return {
           value: department.department_id,
           label: department.department_name,
-          key: department.department_id,
         };
       }),
   });
-
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const filteredOptions = data.filter(
-    (item) => !selectedItems.includes(item.value)
-  );
   //컴포넌트 출력
   return (
     <section className="token-issurance-department-container">
@@ -58,15 +56,21 @@ const SearchDepartments = () => {
         {isError && <p>{error.message}</p>}
         {data && (
           <Select
+            showSearch
             mode="multiple"
-            value={selectedItems}
-            onChange={setSelectedItems}
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
+            value={departmentsId}
+            onChange={setDepartmentsId}
+            notFoundContent={isPending ? "Loading..." : "Not Found"}
             style={{ width: "100%" }}
-            options={filteredOptions.map((item) => ({
-              value: item.value,
-              label: item.label,
-            }))}
-            optionRender={(option) => <Space>{option.data.label}</Space>}
+            options={data}
+            optionRender={(option) => (
+              <Space>
+                <span>{option.label}</span>
+              </Space>
+            )}
           />
         )}
       </div>

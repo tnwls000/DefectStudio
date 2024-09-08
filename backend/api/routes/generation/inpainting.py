@@ -28,6 +28,7 @@ async def inpainting(
         strength: Optional[float] = Form(0.5, ge=0.0, le=1.0,
                                          description="초기 이미지와 얼마나 다르게 생성할지에 대한 수치 (0.0=초기 이미지 유지, 1.0=초기 이미지 무관)"),
         num_images_per_prompt: Optional[int] = Form(1, description="각 프롬프트 당 생성할 이미지 수"),
+        seed: Optional[int] = Form(-1, description="이미지 생성 시 사용할 시드 값 (랜덤 시드: -1)"),
         batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
         init_image_list: List[UploadFile] = File(..., description="초기 이미지 파일들, 페어인 마스킹 이미지의 업로드 순서와 동일해야합니다."),
@@ -51,6 +52,7 @@ async def inpainting(
         "guidance_scale": guidance_scale,
         "strength": strength,
         "num_images_per_prompt": num_images_per_prompt,
+        "seed": seed,
         "batch_count": batch_count,
         "batch_size": batch_size,
     }

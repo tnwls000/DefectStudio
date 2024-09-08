@@ -35,22 +35,22 @@ async def image_to_image(
     images = form.getlist("images")
     image_list = [PIL.Image.open(BytesIO(await file.read())) for file in images]
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    i2i_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
-
     if seed == -1:
         seed = random.randint(0, 2 ** 32 - 1)
 
     total_images = batch_size * batch_count
     seeds = [seed + i for i in range(total_images)]
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    i2i_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
+
     generated_image_list = []
 
     for image in image_list:
-        current_seeds = seeds[i * batch_size: (i + 1) * batch_size]
-        generators = [torch.Generator(device=device).manual_seed(s) for s in current_seeds]
-
         for i in range(batch_count):
+            current_seeds = seeds[i * batch_size: (i + 1) * batch_size]
+            generators = [torch.Generator(device=device).manual_seed(s) for s in current_seeds]
+
             images = i2i_pipe(
                 image=image,
                 prompt=prompt,

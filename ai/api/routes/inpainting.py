@@ -1,5 +1,6 @@
 import base64
 from io import BytesIO
+from random import random
 
 import PIL.Image
 import torch
@@ -21,31 +22,51 @@ async def inpainting(
     model = form.get("model")
     prompt = form.get("prompt")
     negative_prompt = form.get("negative_prompt")
+    width = int(form.get("width"))
+    height = int(form.get("height"))
     num_inference_steps = int(form.get("num_inference_steps"))
     guidance_scale = float(form.get("guidance_scale"))
     strength = float(form.get("strength"))
     num_images_per_prompt = int(form.get("num_images_per_prompt"))
     init_image_files = form.getlist("init_image")
     mask_image_files = form.getlist("mask_image")
+    seed = int(form.get("seed"))
     batch_count = int(form.get("batch_count"))
     batch_size = int(form.get("batch_size"))
 
     init_image_list = [PIL.Image.open(BytesIO(await file.read())) for file in init_image_files]
     mask_image_list = [PIL.Image.open(BytesIO(await file.read())) for file in mask_image_files]
 
+    if seed == -1:
+        seed = random.randint(0, 2 ** 32 - 1)
+
+    total_images = batch_size * batch_count
+    seeds = [seed + i for i in range(total_images)]
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     inpaint_pipe = AutoPipelineForInpainting.from_pretrained(model, torch_dtype=torch.float16).to(device)
 
-    generated_image_list = inpaint_pipe(
-        image=init_image_list,
-        mask_image=mask_image_list,
-        prompt=prompt,
-        negative_prompt=negative_prompt,
-        num_inference_steps=num_inference_steps,
-        guidance_scale=guidance_scale,
-        strength=strength,
-        num_images_per_prompt=num_images_per_prompt,
-    ).images
+    generated_image_list = []
+
+    for i in range(len(init_image_list)):
+        for j in range(batch_count):
+            current_seeds = seeds[j * batch_size: (j + 1) * batch_size]
+            generators = [torch.Generator(device=device).manual_seed(s) for s in current_seeds]
+
+            images = inpaint_pipe(
+                image=init_image_list[i],
+                mask_image=mask_image_list[i],
+                prompt=prompt,
+                width=width,
+                height=height,
+                negative_prompt=negative_prompt,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                strength=strength,
+                num_images_per_prompt=num_images_per_prompt,
+            ).images
+
+            generated_image_list.extend(images)
 
     encoded_images = []
 

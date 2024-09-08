@@ -37,5 +37,5 @@ async def remove_background(
     response_data = response.json()
 
     image_list = response_data.get("image_list")
-    image_url_list = upload_files(image_list)
+    image_url_list = upload_files(image_list, "rembg")
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"image_list": image_url_list})

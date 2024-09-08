@@ -41,5 +41,5 @@ async def cleanup(
     response_data = response.json()
     final_image = response_data.get("final_image")
     image_list = [final_image]
-    image_url_list = upload_files(image_list)
+    image_url_list = upload_files(image_list, "cleanup")
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"image_list": image_url_list})

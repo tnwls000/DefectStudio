@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 import requests
 from fastapi import APIRouter, Response, status, HTTPException
@@ -34,7 +35,7 @@ def text_to_image(gpu_env: GPUEnvironment, request: TTIRequest):
 
     image_list = response_data.get("image_list")
     metadata = response_data.get("metadata")
-    image_url_list = upload_files(image_list)
+    image_url_list = upload_files(image_list, "tti")
 
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,

@@ -72,7 +72,7 @@ async def inpainting(
 
     response_data = response.json()
     image_list = response_data.get("image_list")
-    image_url_list = upload_files(image_list)
+    image_url_list = upload_files(image_list, "inpaint")
 
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,

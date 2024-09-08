@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, List
 
 import requests
@@ -56,7 +57,7 @@ async def image_to_image(
 
     response_data = response.json()
     image_list = response_data.get("image_list")
-    image_url_list = upload_files(image_list)
+    image_url_list = upload_files(image_list, "iti")
 
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,

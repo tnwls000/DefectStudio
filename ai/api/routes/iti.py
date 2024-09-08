@@ -1,5 +1,6 @@
 import base64
 from io import BytesIO
+from random import random
 
 import PIL.Image
 import torch
@@ -21,10 +22,13 @@ async def image_to_image(
     model = form.get("model", "CompVis/stable-diffusion-v1-4")
     prompt = form.get("prompt")
     negative_prompt = form.get("negative_prompt")
+    width = int(form.get("width"))
+    height = int(form.get("height"))
     num_inference_steps = int(form.get("num_inference_steps"))
     guidance_scale = float(form.get("guidance_scale"))
     strength = float(form.get("strength"))
     num_images_per_prompt = int(form.get("num_images_per_prompt"))
+    seed = int(form.get("seed"))
     batch_count = int(form.get("batch_count"))
     batch_size = int(form.get("batch_size"))
 
@@ -34,15 +38,33 @@ async def image_to_image(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     i2i_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
 
-    generated_image_list = i2i_pipe(
-        image=image_list,
-        prompt=prompt,
-        negative_prompt=negative_prompt,
-        num_inference_steps=num_inference_steps,
-        guidance_scale=guidance_scale,
-        strength=strength,
-        num_images_per_prompt=num_images_per_prompt,
-    ).images
+    if seed == -1:
+        seed = random.randint(0, 2 ** 32 - 1)
+
+    total_images = batch_size * batch_count
+    seeds = [seed + i for i in range(total_images)]
+
+    generated_image_list = []
+
+    for image in image_list:
+        current_seeds = seeds[i * batch_size: (i + 1) * batch_size]
+        generators = [torch.Generator(device=device).manual_seed(s) for s in current_seeds]
+
+        for i in range(batch_count):
+            images = i2i_pipe(
+                image=image,
+                prompt=prompt,
+                width=width,
+                height=height,
+                negative_prompt=negative_prompt,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                strength=strength,
+                generators=generators,
+                num_images_per_prompt=num_images_per_prompt,
+            ).images
+
+            generated_image_list.extend(images)
 
     encoded_images = []
 

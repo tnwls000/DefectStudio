@@ -13,19 +13,20 @@ router = APIRouter(
 
 @router.post("")
 async def text_to_image(request: Request):
-    request_body = await request.json()
+    form = await request.form()
+    print(form)
 
-    model = request_body.get("model")
-    prompt = request_body.get("prompt")
-    negative_prompt = request_body.get("negative_prompt")
-    width = request_body.get("width")
-    height = request_body.get("height")
-    num_inference_steps = request_body.get("num_inference_steps")
-    guidance_scale = request_body.get("guidance_scale")
-    seed = request_body.get("seed")
-    batch_count = request_body.get("batch_count")
-    batch_size = request_body.get("batch_size")
-    num_images_per_prompt = request_body.get("num_images_per_prompt")
+    model = form.get("model")
+    prompt = form.get("prompt")
+    negative_prompt = form.get("negative_prompt")
+    width = int(form.get("width"))
+    height = int(form.get("height"))
+    num_inference_steps = int(form.get("num_inference_steps"))
+    guidance_scale = float(form.get("guidance_scale"))
+    seed = int(form.get("seed"))
+    batch_count = int(form.get("batch_count"))
+    batch_size = int(form.get("batch_size"))
+    num_images_per_prompt = int(form.get("num_images_per_prompt"))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     t2i_pipe = StableDiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
@@ -47,9 +48,11 @@ async def text_to_image(request: Request):
         # 생성할 이미지 개수만큼의 랜덤 생성기를 미리 준비
         generators = [torch.Generator(device=device).manual_seed(s) for s in current_seeds]
 
-        # TODO : Advanced 버전 이미지 생성 로직 추가
         images = t2i_pipe(
             prompt=prompt,
+            negative_prompt=negative_prompt,
+            width=width,
+            height=height,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
             generator=generators,

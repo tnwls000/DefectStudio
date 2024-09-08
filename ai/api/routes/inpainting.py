@@ -57,12 +57,13 @@ async def inpainting(
                 image=init_image_list[i],
                 mask_image=mask_image_list[i],
                 prompt=prompt,
+                negative_prompt=negative_prompt,
                 width=width,
                 height=height,
-                negative_prompt=negative_prompt,
                 num_inference_steps=num_inference_steps,
                 guidance_scale=guidance_scale,
                 strength=strength,
+                generators=generators,
                 num_images_per_prompt=num_images_per_prompt,
             ).images
 

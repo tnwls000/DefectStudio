@@ -54,9 +54,9 @@ async def image_to_image(
             images = i2i_pipe(
                 image=image,
                 prompt=prompt,
+                negative_prompt=negative_prompt,
                 width=width,
                 height=height,
-                negative_prompt=negative_prompt,
                 num_inference_steps=num_inference_steps,
                 guidance_scale=guidance_scale,
                 strength=strength,

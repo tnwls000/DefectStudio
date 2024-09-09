@@ -19,6 +19,7 @@ async def lifespan(app: FastAPI):
     scheduler = BackgroundScheduler()
     scheduler.add_job(expire_tokens, 'cron', hour=0, minute=0)
     scheduler.start()
+    Base.metadata.create_all(bind=engine)
     yield
     scheduler.shutdown()
 
@@ -30,8 +31,8 @@ task_queue = Queue("task_queue", connection=redis_conn)
 
 celery = Celery(
     __name__,
-    broker=f"redis://{settings.REDIS_HOST}:6379/0",
-    backend=f"redis://{settings.REDIS_HOST}:6379/0"
+    broker=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0",
+    backend=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0"
 )
 
 if settings.BACKEND_CORS_ORIGINS:
@@ -62,4 +63,3 @@ app.include_router(api_router, prefix="/api")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
-    Base.metadata.create_all(bind=engine)

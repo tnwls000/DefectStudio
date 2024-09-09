@@ -1,6 +1,6 @@
 import base64
 from io import BytesIO
-from random import random
+import random
 
 import PIL.Image
 import torch
@@ -27,7 +27,6 @@ async def image_to_image(
     num_inference_steps = int(form.get("num_inference_steps"))
     guidance_scale = float(form.get("guidance_scale"))
     strength = float(form.get("strength"))
-    num_images_per_prompt = int(form.get("num_images_per_prompt"))
     seed = int(form.get("seed"))
     batch_count = int(form.get("batch_count"))
     batch_size = int(form.get("batch_size"))
@@ -61,7 +60,7 @@ async def image_to_image(
                 guidance_scale=guidance_scale,
                 strength=strength,
                 generators=generators,
-                num_images_per_prompt=num_images_per_prompt,
+                num_images_per_prompt=len(generators),
             ).images
 
             generated_image_list.extend(images)

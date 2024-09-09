@@ -26,7 +26,6 @@ async def text_to_image(request: Request):
     seed = int(form.get("seed"))
     batch_count = int(form.get("batch_count"))
     batch_size = int(form.get("batch_size"))
-    num_images_per_prompt = int(form.get("num_images_per_prompt"))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     t2i_pipe = StableDiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
@@ -56,7 +55,7 @@ async def text_to_image(request: Request):
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
             generator=generators,
-            num_images_per_prompt=num_images_per_prompt
+            num_images_per_prompt=len(generators),
         ).images
 
         image_list.extend(images)

@@ -67,7 +67,7 @@ async def inpainting(
     files.extend(
         [('mask_image', (image.filename, await image.read(), image.content_type)) for image in mask_image_list])
 
-    response = requests.post(settings.AI_SERVER_URL + "/inpainting", files=files, data=form_data)
+    response = requests.post(settings.AI_SERVER_URL + "/generation/inpainting", files=files, data=form_data)
 
     if response.status_code != 200:
         return Response(status_code=response.status_code, content=response.content)

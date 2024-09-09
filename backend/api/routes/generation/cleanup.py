@@ -13,7 +13,7 @@ router = APIRouter(
     prefix="/cleanup",
 )
 
-CLEAN_UP_URL = "/cleanup"
+CLEAN_UP_URL = "/generation/cleanup"
 
 
 @router.post("/{gpu_env}")

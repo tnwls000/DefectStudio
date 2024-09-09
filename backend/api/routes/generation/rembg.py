@@ -13,7 +13,7 @@ router = APIRouter(
     prefix="/remove-bg",
 )
 
-REMOVE_BG_URL = "/remove-bg"
+REMOVE_BG_URL = "/generation/remove-bg"
 
 
 @router.post("/{gpu_env}")

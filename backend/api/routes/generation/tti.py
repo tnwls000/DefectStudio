@@ -27,7 +27,6 @@ def text_to_image(
         num_inference_steps: Optional[int] = Form(50, ge=1, le=100, description="추론 단계 수"),
         guidance_scale: Optional[float] = Form(7.5, ge=1.0, le=20.0, description="모델이 텍스트 프롬프트에 얼마나 충실하게 이미지를 생성할지에 대한 수치"),
         seed: Optional[int] = Form(-1, description="이미지 생성 시 사용할 시드 값 (랜덤 시드: -1)"),
-        num_images_per_prompt: Optional[int] = Form(1),
         batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
@@ -46,13 +45,12 @@ def text_to_image(
         "num_inference_steps": num_inference_steps,
         "guidance_scale": guidance_scale,
         "seed": seed,
-        "num_images_per_prompt": num_images_per_prompt,
         "batch_count": batch_count,
         "batch_size": batch_size,
         "output_path": output_path,
     }
 
-    response = requests.post(settings.AI_SERVER_URL + "/txt-to-img", data=form_data)
+    response = requests.post(settings.AI_SERVER_URL + "/generation/txt-to-img", data=form_data)
 
     if response.status_code != 200:
         return Response(status_code=response.status_code, content=response.content)

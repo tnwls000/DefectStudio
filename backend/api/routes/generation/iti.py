@@ -28,7 +28,6 @@ async def image_to_image(
                                                description="모델이 텍스트 프롬프트에 얼마나 충실하게 이미지를 생성할지에 대한 수치 (0.0=프롬프트 벗어남, 10.0=프롬프트를 강하게 따름)"),
         strength: Optional[float] = Form(0.5, ge=0.0, le=1.0,
                                          description="초기 이미지와 얼마나 다르게 생성할지에 대한 수치 (0.0=초기 이미지 유지, 1.0=초기 이미지 무관)"),
-        num_images_per_prompt: Optional[int] = Form(1, description="각 프롬프트 당 생성할 이미지 수"),
         seed: Optional[int] = Form(-1, description="이미지 생성 시 사용할 시드 값 (랜덤 시드: -1)"),
         batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
@@ -49,14 +48,13 @@ async def image_to_image(
         "num_inference_steps": num_inference_steps,
         "guidance_scale": guidance_scale,
         "strength": strength,
-        "num_images_per_prompt": num_images_per_prompt,
         "seed": seed,
         "batch_count": batch_count,
         "batch_size": batch_size,
     }
 
     files = [('images', (image.filename, await image.read(), image.content_type)) for image in images]
-    response = requests.post(settings.AI_SERVER_URL + "/img-to-img", files=files, data=form_data)
+    response = requests.post(settings.AI_SERVER_URL + "/generation/img-to-img", files=files, data=form_data)
 
     if response.status_code != 200:
         return Response(status_code=response.status_code, content=response.content)

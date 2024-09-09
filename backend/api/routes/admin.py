@@ -36,11 +36,6 @@ async def issue_token(token_creates: TokenCreates,
                       session: Session = Depends(get_db),
                       current_user: Member = Depends(get_current_user)
                       ):
-    for department_id in token_creates.department_ids:
-        members = members_crud.get_members_by_department_id(session, department_id)
-        member_count = len(members)
-        if token_creates.quantity < member_count:
-            raise HTTPException(status_code=400, detail="발급 토큰 수는 해당 부서의 회원 수보다 많아야 합니다.")
 
     for department_id in token_creates.department_ids:
         token = TokenCreate(

@@ -28,7 +28,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     if not member:
         raise HTTPException(status_code=401, detail="아이디나 비밀번호가 일치하지 않습니다.")
 
-    response = create_response_with_tokens(member.login_id, session)
+    response = create_response_with_tokens(member.login_id)
     return response
 
 
@@ -70,7 +70,7 @@ def authentication_member(login_id: str, password: str, session: Session = Depen
     return member
 
 
-def create_response_with_tokens(login_id: str, session: Session):
+def create_response_with_tokens(login_id: str):
     access_token = create_access_token(login_id)
     refresh_token = create_refresh_token(login_id)
 

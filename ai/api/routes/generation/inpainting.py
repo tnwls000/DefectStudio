@@ -1,6 +1,6 @@
 import base64
 from io import BytesIO
-from random import random
+import random
 
 import PIL.Image
 import torch
@@ -27,7 +27,6 @@ async def inpainting(
     num_inference_steps = int(form.get("num_inference_steps"))
     guidance_scale = float(form.get("guidance_scale"))
     strength = float(form.get("strength"))
-    num_images_per_prompt = int(form.get("num_images_per_prompt"))
     init_image_files = form.getlist("init_image")
     mask_image_files = form.getlist("mask_image")
     seed = int(form.get("seed"))
@@ -49,8 +48,9 @@ async def inpainting(
     generated_image_list = []
 
     for i in range(len(init_image_list)):
+        curr_image_index = i * batch_count * batch_size
         for j in range(batch_count):
-            current_seeds = seeds[j * batch_size: (j + 1) * batch_size]
+            current_seeds = seeds[curr_image_index + j * batch_size: curr_image_index + (j + 1) * batch_size]
             generators = [torch.Generator(device=device).manual_seed(s) for s in current_seeds]
 
             images = inpaint_pipe(
@@ -64,7 +64,7 @@ async def inpainting(
                 guidance_scale=guidance_scale,
                 strength=strength,
                 generators=generators,
-                num_images_per_prompt=num_images_per_prompt,
+                num_images_per_prompt=len(generators),
             ).images
 
             generated_image_list.extend(images)

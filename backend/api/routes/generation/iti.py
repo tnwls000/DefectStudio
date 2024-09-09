@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional, List
 
 import requests
@@ -7,7 +6,6 @@ from starlette.responses import JSONResponse
 
 from core.config import settings
 from enums import GPUEnvironment
-from utils.local_io import save_file_list_to_path
 from utils.s3 import upload_files
 
 router = APIRouter(
@@ -38,7 +36,6 @@ async def image_to_image(
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
 
-    # TODO : 유저 인증 확인 후 토큰 사용
     form_data = {
         "model": model,
         "prompt": prompt,

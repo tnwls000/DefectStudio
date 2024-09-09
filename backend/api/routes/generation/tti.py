@@ -1,14 +1,11 @@
-import json
-from datetime import datetime
+from typing import Optional
 
 import requests
 from fastapi import APIRouter, Response, status, HTTPException, Form
-from typing import Optional
 from starlette.responses import JSONResponse
 
 from core.config import settings
 from enums import GPUEnvironment
-from utils.local_io import save_file_list_to_path
 from utils.s3 import upload_files
 
 router = APIRouter(
@@ -31,8 +28,6 @@ def text_to_image(
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
 ):
-    # TODO : 유저 인증 확인 후 토큰 사용
-
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
 

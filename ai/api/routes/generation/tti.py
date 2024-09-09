@@ -26,7 +26,6 @@ async def text_to_image(request: Request):
     seed = int(form.get("seed"))
     batch_count = int(form.get("batch_count"))
     batch_size = int(form.get("batch_size"))
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     t2i_pipe = StableDiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
 
@@ -39,12 +38,8 @@ async def text_to_image(request: Request):
     total_images = batch_size * batch_count
     seeds = [seed + i for i in range(total_images)]
 
-    # 각 배치의 이미지 생성
     for i in range(batch_count):
-        # 현재 배치에 사용될 시드 설정
         current_seeds = seeds[i * batch_size: (i + 1) * batch_size]
-
-        # 생성할 이미지 개수만큼의 랜덤 생성기를 미리 준비
         generators = [torch.Generator(device=device).manual_seed(s) for s in current_seeds]
 
         images = t2i_pipe(
@@ -72,7 +67,6 @@ async def text_to_image(request: Request):
 
     encoded_images = []
 
-    # 바이트 형식의 이미지를 JSON 직렬화 가능하게 만들기 위해 base64 인코딩
     for image in image_list:
         buffered = BytesIO()
         image.save(buffered, format="PNG")

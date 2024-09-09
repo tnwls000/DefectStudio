@@ -6,7 +6,6 @@ from starlette.responses import JSONResponse
 
 from core.config import settings
 from enums import GPUEnvironment
-from utils.local_io import save_file_list_to_path
 from utils.s3 import upload_files
 
 router = APIRouter(
@@ -16,7 +15,7 @@ router = APIRouter(
 
 @router.post("/{gpu_env}")
 async def inpainting(
-        gpu_env: str,  # GPU 환경 정보
+        gpu_env: GPUEnvironment,
         model: str = Form("diffusers/stable-diffusion-xl-1.0-inpainting-0.1"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
         negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트"),
@@ -27,7 +26,6 @@ async def inpainting(
                                                description="모델이 텍스트 프롬프트에 얼마나 충실하게 이미지를 생성할지에 대한 수치 (0.0=프롬프트 벗어남, 10.0=프롬프트를 강하게 따름)"),
         strength: Optional[float] = Form(0.5, ge=0.0, le=1.0,
                                          description="초기 이미지와 얼마나 다르게 생성할지에 대한 수치 (0.0=초기 이미지 유지, 1.0=초기 이미지 무관)"),
-        num_images_per_prompt: Optional[int] = Form(1, description="각 프롬프트 당 생성할 이미지 수"),
         seed: Optional[int] = Form(-1, description="이미지 생성 시 사용할 시드 값 (랜덤 시드: -1)"),
         batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
@@ -40,8 +38,6 @@ async def inpainting(
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
 
-    # TODO : 유저 인증 확인 후 토큰 사용
-
     form_data = {
         "model": model,
         "prompt": prompt,
@@ -51,7 +47,6 @@ async def inpainting(
         "num_inference_steps": num_inference_steps,
         "guidance_scale": guidance_scale,
         "strength": strength,
-        "num_images_per_prompt": num_images_per_prompt,
         "seed": seed,
         "batch_count": batch_count,
         "batch_size": batch_size,

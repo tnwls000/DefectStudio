@@ -37,7 +37,7 @@ async def image_to_image(
     if seed == -1:
         seed = random.randint(0, 2 ** 32 - 1)
 
-    total_images = batch_size * batch_count
+    total_images = batch_size * batch_count * len(image_list)
     seeds = [seed + i for i in range(total_images)]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -45,13 +45,14 @@ async def image_to_image(
 
     generated_image_list = []
 
-    for image in image_list:
-        for i in range(batch_count):
-            current_seeds = seeds[i * batch_size: (i + 1) * batch_size]
+    for i in range(len(image_list)):
+        curr_image_index = i * batch_count * batch_size
+        for j in range(batch_count):
+            current_seeds = seeds[curr_image_index + j * batch_size: curr_image_index + (j + 1) * batch_size]
             generators = [torch.Generator(device=device).manual_seed(s) for s in current_seeds]
 
             images = i2i_pipe(
-                image=image,
+                image=image_list[i],
                 prompt=prompt,
                 negative_prompt=negative_prompt,
                 width=width,

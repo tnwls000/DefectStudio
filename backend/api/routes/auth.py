@@ -84,7 +84,7 @@ def create_response_with_tokens(login_id: str, session: Session):
         value=refresh_token,
         expires=expiration_time,
         httponly=True,
-        secure=False,
+        secure=True,
         samesite="None"
     )
 

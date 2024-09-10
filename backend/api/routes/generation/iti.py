@@ -17,7 +17,7 @@ router = APIRouter(
 async def image_to_image(
         gpu_env: GPUEnvironment,  # GPU 환경 정보
         model: str = Form("CompVis/stable-diffusion-v1-4"),
-        scheduler: Optional[SchedulerType] = Form(None),
+        scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
         negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트로 작용할 텍스트"),
         width: Optional[int] = Form(512),

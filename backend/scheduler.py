@@ -1,7 +1,7 @@
 from core.db import Session
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from crud import tokens as tokens_crud
+from crud import tokens as tokens_crud, members as members_crud
 
 def expire_tokens(batch_size=100):
     with Session() as session:
@@ -18,6 +18,23 @@ def expire_tokens(batch_size=100):
                 if member:
                     member.token_quantity -= usage.quantity
                 session.delete(usage)
+            session.commit()
+
+            offset += batch_size
+
+def delete_guests(batch_size=100):
+    with Session() as session:
+        three_days_ago = datetime.now() - timedelta(days=3)
+        offset = 0
+
+        while True:
+            guests = members_crud.get_expired_guests(session, three_days_ago, offset=offset, limit=batch_size)
+            if not guests:
+                break
+
+            for guest in guests:
+                session.delete(guest)
+
             session.commit()
 
             offset += batch_size

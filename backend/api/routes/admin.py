@@ -144,3 +144,30 @@ async def get_token_logs(log_type: LogType,
         raise HTTPException(status_code=422, detail="부서 아이디가 필요합니다.")
 
     return token_logs_crud.get_token_logs(session, log_type, token_logs_search)
+
+@router.get("/members/guests")
+@role_required([Role.super_admin])
+async def get_guest_members(session: Session = Depends(get_db),
+                         current_user: Member = Depends(get_current_user)):
+    return members_crud.get_guests(session)
+
+@router.patch("/members/guests/{member_id}")
+@role_required([Role.super_admin])
+async def update_guest_member_role(member_id: int,
+                                   new_role: Role,
+                                   session: Session = Depends(get_db),
+                                   current_user: Member = Depends(get_current_user)):
+    guest = members_crud.get_member_by_member_id(session, member_id)
+
+    if not guest:
+        raise HTTPException(status_code=404, detail="해당 임시 회원을 찾을 수 없습니다.")
+
+    if guest.role != Role.guest:
+        raise HTTPException(status_code=400, detail="해당 회원은 임시 회원이 아닙니다.")
+
+    if new_role == Role.super_admin:
+        raise HTTPException(status_code=400, detail="총관리자로는 권한 변경이 불가합니다.")
+
+    members_crud.update_guest_member_role(session, guest, new_role)
+
+    return Response(status_code=200, content=f"{new_role.value}로 해당 회원의 권한이 변경되었습니다.")

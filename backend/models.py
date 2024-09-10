@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean, Index
 
@@ -25,6 +27,7 @@ class Member(Base):
     email = Column(String(255), nullable=False)
     role = Column(Enum(Role), nullable=False)
     token_quantity = Column(Integer, nullable=False, default=0)
+    create_date = Column(DateTime, nullable=False, default=datetime.today())
     department_id = Column(Integer, ForeignKey('department.department_id'))
     department = relationship("Department", back_populates="members")
     token_usages = relationship("TokenUsage", back_populates="member")

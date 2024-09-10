@@ -17,9 +17,9 @@ from scheduler import expire_tokens
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     scheduler = BackgroundScheduler()
+    Base.metadata.create_all(bind=engine)
     scheduler.add_job(expire_tokens, 'cron', hour=0, minute=0)
     scheduler.start()
-    Base.metadata.create_all(bind=engine)
     yield
     scheduler.shutdown()
 

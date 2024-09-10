@@ -4,9 +4,7 @@ from starlette.responses import JSONResponse
 import torch
 import nvidia_smi
 
-router = APIRouter(
-    prefix="/device",
-)
+router = APIRouter()
 
 
 @router.get("/health")

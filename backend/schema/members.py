@@ -10,7 +10,6 @@ class MemberCreate(BaseModel):
     name: str = Field(..., min_length=3, max_length=100)
     nickname: str = Field(..., min_length=3, max_length=50, )
     email: EmailStr
-    role: Role = Field(default=Role.department_member)
     department_id: int = Field(...)
 
 

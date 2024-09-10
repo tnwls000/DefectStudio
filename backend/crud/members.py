@@ -23,7 +23,6 @@ def create_member(session: Depends(get_db), member: MemberCreate):
         name=member.name,
         nickname=member.nickname,
         email=member.email,
-        role=member.role,
         department_id=member.department_id
     )
 

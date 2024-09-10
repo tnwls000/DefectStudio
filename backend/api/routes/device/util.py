@@ -31,4 +31,12 @@ async def cuda_available():
     response_data = response.json()
     return JSONResponse(status_code=status.HTTP_200_OK, content={"data": response_data})
 
+@router.get("/cuda_usage")
+async def cuda_usage():
+    response = requests.get(f"{settings.AI_SERVER_URL}/device/cuda_usage")
 
+    if response.status_code != 200:
+        return Response(status_code=response.status_code, content=response.content)
+
+    response_data = response.json()
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"data": response_data})

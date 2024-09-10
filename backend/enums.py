@@ -22,3 +22,20 @@ class UseType(enum.Enum):
 class GPUEnvironment(enum.Enum):
     local = "local"
     remote = "remote"
+
+class SchedulerType(enum.Enum):
+    dpmpp_2m = "DPM++ 2M"
+    dpmpp_2m_karras = "DPM++ 2M Karras"
+    dpmpp_2m_sde = "DPM++ 2M SDE"
+    dpmpp_2m_sde_karras = "DPM++ 2M SDE Karras"
+    dpmpp_sde = "DPM++ SDE"
+    dpmpp_sde_karras = "DPM++ SDE Karras"
+    dpm2 = "DPM2"
+    dpm2_karras = "DPM2 Karras"
+    dpm2_a = "DPM2 a"
+    dpm2_a_karras = "DPM2 a Karras"
+    euler = "Euler"
+    euler_a = "Euler a"
+    heun = "Heun"
+    lms = "LMS"
+    lms_karras = "LMS Karras"

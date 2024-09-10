@@ -1,12 +1,14 @@
 import base64
-from io import BytesIO
 import random
+from io import BytesIO
 
 import PIL.Image
 import torch
 from diffusers import StableDiffusionImg2ImgPipeline
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+
+from utils import get_scheduler
 
 router = APIRouter(
     prefix="/img-to-img",
@@ -20,6 +22,7 @@ async def image_to_image(
     form = await request.form()
 
     model = form.get("model", "CompVis/stable-diffusion-v1-4")
+    scheduler = form.get("scheduler")
     prompt = form.get("prompt")
     negative_prompt = form.get("negative_prompt")
     width = int(form.get("width"))
@@ -42,6 +45,8 @@ async def image_to_image(
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     i2i_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
+    if scheduler:
+        i2i_pipe.scheduler = get_scheduler(scheduler, i2i_pipe.scheduler.config)
 
     generated_image_list = []
 

@@ -5,7 +5,7 @@ from fastapi import APIRouter, status, HTTPException, Response, Form, UploadFile
 from starlette.responses import JSONResponse
 
 from core.config import settings
-from enums import GPUEnvironment
+from enums import GPUEnvironment, SchedulerType
 from utils.s3 import upload_files
 
 router = APIRouter(
@@ -17,6 +17,7 @@ router = APIRouter(
 async def inpainting(
         gpu_env: GPUEnvironment,
         model: str = Form("diffusers/stable-diffusion-xl-1.0-inpainting-0.1"),
+        scheduler: Optional[SchedulerType] = Form(None),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
         negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트"),
         width: Optional[int] = Form(512, description="생성할 이미지의 너비"),
@@ -40,6 +41,7 @@ async def inpainting(
 
     form_data = {
         "model": model,
+        "scheduler": scheduler.value if scheduler else None,
         "prompt": prompt,
         "negative_prompt": negative_prompt,
         "width": width,

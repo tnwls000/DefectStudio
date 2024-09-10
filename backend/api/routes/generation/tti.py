@@ -5,7 +5,7 @@ from fastapi import APIRouter, Response, status, HTTPException, Form
 from starlette.responses import JSONResponse
 
 from core.config import settings
-from enums import GPUEnvironment
+from enums import GPUEnvironment, SchedulerType
 from utils.s3 import upload_files
 
 router = APIRouter(
@@ -17,6 +17,7 @@ router = APIRouter(
 def text_to_image(
         gpu_env: GPUEnvironment,
         model: str = Form("CompVis/stable-diffusion-v1-4"),
+        scheduler: Optional[SchedulerType] = Form(None),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
         negative_prompt: Optional[str] = Form(None),
         width: Optional[int] = Form(512),
@@ -33,6 +34,7 @@ def text_to_image(
 
     form_data = {
         "model": model,
+        "scheduler": scheduler.value if scheduler else None,
         "prompt": prompt,
         "negative_prompt": negative_prompt,
         "width": width,

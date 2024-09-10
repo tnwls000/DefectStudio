@@ -61,7 +61,13 @@ async def reissue(request: Request, redis: Redis = Depends(get_redis)):
     decoded_refresh_token = decode_refresh_token(refresh_token)
     login_id = decoded_refresh_token.get("login_id")
 
+    # 기존 토큰은 blacklist 처리
+    expiration_datetime = datetime.fromtimestamp(decoded_refresh_token.get("expiration_time"))
+    await redis.setex(refresh_token, int((expiration_datetime - datetime.utcnow()).total_seconds()), "blacklisted")
+
+    # refresh token, access token을 모두 새로 발급
     response = create_response_with_tokens(login_id)
+
     return response
 
 

@@ -16,11 +16,11 @@ from scheduler import expire_tokens, delete_guests
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
     scheduler = BackgroundScheduler()
     scheduler.add_job(expire_tokens, 'cron', hour=0, minute=0) # 만료 TokenUsage 삭제 스케줄러
     scheduler.add_job(delete_guests, 'interval', minutes=1) # 만료 Member(role.guest) 삭제 스케줄러
     scheduler.start()
-    Base.metadata.create_all(bind=engine)
     yield
     scheduler.shutdown()
 

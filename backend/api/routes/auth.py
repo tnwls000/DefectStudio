@@ -14,6 +14,7 @@ from crud import members as members_crud
 from core.config import settings
 from core.security import verify_password, create_access_token, create_refresh_token, decode_refresh_token
 from dependencies import get_db, get_redis
+from enums import Role
 
 router = APIRouter(
     prefix="/auth",
@@ -28,7 +29,10 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     if not member:
         raise HTTPException(status_code=401, detail="아이디나 비밀번호가 일치하지 않습니다.")
 
-    response = create_response_with_tokens(member.login_id, session)
+    if member.role == Role.guest:
+        raise HTTPException(status_code=403, detail="관리자 승인이 필요합니다.")
+
+    response = create_response_with_tokens(member.login_id)
     return response
 
 
@@ -70,7 +74,7 @@ def authentication_member(login_id: str, password: str, session: Session = Depen
     return member
 
 
-def create_response_with_tokens(login_id: str, session: Session):
+def create_response_with_tokens(login_id: str):
     access_token = create_access_token(login_id)
     refresh_token = create_refresh_token(login_id)
 
@@ -84,7 +88,7 @@ def create_response_with_tokens(login_id: str, session: Session):
         value=refresh_token,
         expires=expiration_time,
         httponly=True,
-        secure=False,
+        secure=True,
         samesite="None"
     )
 

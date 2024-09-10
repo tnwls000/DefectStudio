@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime
 from io import BytesIO
 from typing import List
 
@@ -9,7 +10,7 @@ from core.config import settings
 
 
 # TODO : 비동기로 변경
-def upload_files(image_list: List[str]) -> List[str]:
+def upload_files(image_list: List[str], key: str) -> List[str]:
     s3_urls = []
     s3_client = boto3.client(
         's3',
@@ -17,12 +18,12 @@ def upload_files(image_list: List[str]) -> List[str]:
         aws_secret_access_key=settings.AWS_S3_SECRET_KEY
     )
 
-    # TODO : key 지정
-    key = "temp"
+    now = datetime.now()
+    formatted_date = now.strftime("%Y%m%d")
+    formatted_time = now.strftime("%H%M%S%f")
 
     for index, encoded_image in enumerate(image_list):
-        # TODO : url 형식 지정
-        image_key = f"{key}/{index + 1}.jpeg"
+        image_key = f"{key}/{formatted_date}/{formatted_time}/{index + 1}.jpeg"
 
         image_bytes = base64.b64decode(encoded_image)
         image_stream = BytesIO(image_bytes)

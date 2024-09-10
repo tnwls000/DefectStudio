@@ -1,11 +1,9 @@
 import uvicorn
 from fastapi import FastAPI
 
-from api.main import api_router
+from api.routes.main import api_router
 
-app = FastAPI(
-    prefix="/api"
-)
+app = FastAPI()
 app.include_router(api_router)
 
 if __name__ == "__main__":

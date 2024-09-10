@@ -165,6 +165,9 @@ async def update_guest_member_role(member_id: int,
     if guest.role != Role.guest:
         raise HTTPException(status_code=400, detail="해당 회원은 임시 회원이 아닙니다.")
 
+    if new_role == Role.super_admin:
+        raise HTTPException(status_code=400, detail="총관리자로는 권한 변경이 불가합니다.")
+
     members_crud.update_guest_member_role(session, guest, new_role)
 
     return Response(status_code=200, content=f"{new_role.value}로 해당 회원의 권한이 변경되었습니다.")

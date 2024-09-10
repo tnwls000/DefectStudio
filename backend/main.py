@@ -12,13 +12,14 @@ from core.db import engine
 from api.main import api_router
 from core.config import settings
 from apscheduler.schedulers.background import BackgroundScheduler
-from scheduler import expire_tokens
+from scheduler import expire_tokens, delete_guests
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    scheduler = BackgroundScheduler()
     Base.metadata.create_all(bind=engine)
-    scheduler.add_job(expire_tokens, 'cron', hour=0, minute=0)
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(expire_tokens, 'cron', hour=0, minute=0) # 만료 TokenUsage 삭제 스케줄러
+    scheduler.add_job(delete_guests, 'interval', minutes=1) # 만료 Member(role.guest) 삭제 스케줄러
     scheduler.start()
     yield
     scheduler.shutdown()

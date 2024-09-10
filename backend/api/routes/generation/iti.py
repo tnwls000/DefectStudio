@@ -5,7 +5,7 @@ from fastapi import APIRouter, status, Response, Form, UploadFile, File, HTTPExc
 from starlette.responses import JSONResponse
 
 from core.config import settings
-from enums import GPUEnvironment
+from enums import GPUEnvironment, SchedulerType
 from utils.s3 import upload_files
 
 router = APIRouter(
@@ -17,6 +17,7 @@ router = APIRouter(
 async def image_to_image(
         gpu_env: GPUEnvironment,  # GPU 환경 정보
         model: str = Form("CompVis/stable-diffusion-v1-4"),
+        scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
         negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트로 작용할 텍스트"),
         width: Optional[int] = Form(512),
@@ -38,6 +39,7 @@ async def image_to_image(
 
     form_data = {
         "model": model,
+        "scheduler": scheduler.value if scheduler else None,
         "prompt": prompt,
         "negative_prompt": negative_prompt,
         "width": width,

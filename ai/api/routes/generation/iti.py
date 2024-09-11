@@ -35,7 +35,7 @@ async def image_to_image(
     batch_size = int(form.get("batch_size"))
 
     images = form.getlist("images")
-    image_list = [PIL.Image.open(BytesIO(await file.read())) for file in images]
+    image_list = [PIL.Image.open(BytesIO(await file.read())).convert("RGB") for file in images]
 
     if seed == -1:
         seed = random.randint(0, 2 ** 32 - 1)

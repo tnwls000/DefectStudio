@@ -54,7 +54,7 @@ async def cuda_usage():
     # JSON 응답 반환
     return JSONResponse(status_code=status.HTTP_200_OK, content={"gpu_info": gpu_info})
 
-@app.post("/set_device")
+@router.post("/set_device")
 async def set_device(device_num: int = Form(...)):  # Form 데이터로 device_num을 받음
     device_count = torch.cuda.device_count()
 

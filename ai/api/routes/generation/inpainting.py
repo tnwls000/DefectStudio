@@ -36,8 +36,8 @@ async def inpainting(
     batch_count = int(form.get("batch_count"))
     batch_size = int(form.get("batch_size"))
 
-    init_image_list = [PIL.Image.open(BytesIO(await file.read())) for file in init_image_files]
-    mask_image_list = [PIL.Image.open(BytesIO(await file.read())) for file in mask_image_files]
+    init_image_list = [PIL.Image.open(BytesIO(await file.read())).convert("RGB") for file in init_image_files]
+    mask_image_list = [PIL.Image.open(BytesIO(await file.read())).convert("RGB") for file in mask_image_files]
 
     if seed == -1:
         seed = random.randint(0, 2 ** 32 - 1)

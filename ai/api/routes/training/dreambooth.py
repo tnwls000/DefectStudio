@@ -30,82 +30,82 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
 
         # 모델 학습 파라미터
         # 모델 및 토크나이저 설정
-        pretrained_model_name_or_path = form.get("model_name")
-        revision = form.get("revision")
-        variant = form.get("variant")
-        tokenizer_name = form.get("tokenizer_name")
-        instance_data_dir = form.get("instance_data_dir")
-        class_data_dir = form.get("class_data_dir")
+        pretrained_model_name_or_path = form.get("model_name", "stable-diffusion-2")
+        revision = form.get("revision", None)
+        variant = form.get("variant", None)
+        tokenizer_name = form.get("tokenizer_name", None)
+        instance_data_dir = form.get("instance_data_dir", None)
+        class_data_dir = form.get("class_data_dir", None)
 
         # 데이터 및 프롬프트 설정
-        instance_prompt = form.get("instance_prompt")
-        class_prompt = form.get("class_prompt")
-        num_class_images = form.get("num_class_images")
-        center_crop = form.get("center_crop")
+        instance_prompt = form.get("instance_prompt", None)
+        class_prompt = form.get("class_prompt", None)
+        num_class_images = form.get("num_class_images", 100)
+        center_crop = form.get("center_crop", False)
 
         # 가중치
-        with_prior_preservation = form.get("with_prior_preservation")
+        with_prior_preservation = form.get("with_prior_preservation", False)
         prior_loss_weight = form.get("prior_loss_weight", 1.0)
 
         # 학습 설정
-        seed = form.get("seed")
+        seed = form.get("seed", None)
         resolution = form.get("resolution", 512)
-        train_text_encoder = form.get("train_text_encoder")
+        train_text_encoder = form.get("train_text_encoder", False)
         train_batch_size = form.get("train_batch_size", 2)
-        sample_batch_size = form.get("sample_batch_size")
+        sample_batch_size = form.get("sample_batch_size", 2)
         num_train_epochs = form.get("num_train_epochs")
-        max_train_steps = form.get("max_train_steps")
-        learning_rate = form.get("learning_rate", 1e-6)
-        offset_noise = form.get("offset_noise")
+        max_train_steps = form.get("max_train_steps", None)
+        learning_rate = form.get("learning_rate", 5e-6)
+        offset_noise = form.get("offset_noise", False)
 
         # 검증 및 체크포인트 설정
-        checkpointing_steps = form.get("checkpointing_steps")
-        checkpoints_total_limit = form.get("checkpoints_total_limit")
-        resume_from_checkpoint = form.get("resume_from_checkpoint")
-        validation_prompt = form.get("validation_prompt")
-        num_validation_images = form.get("num_validation_images")
-        validation_steps = form.get("validation_steps")
-        validation_images = form.get("validation_images")
-        validation_scheduler = form.get("validation_scheduler")
+        checkpointing_steps = form.get("checkpointing_steps", 500)
+        checkpoints_total_limit = form.get("checkpoints_total_limit", None)
+        resume_from_checkpoint = form.get("resume_from_checkpoint", None)
+        validation_prompt = form.get("validation_prompt", None)
+        num_validation_images = form.get("num_validation_images", 4)
+        validation_steps = form.get("validation_steps", 100)
+        validation_images = form.get("validation_images", None)
+        validation_scheduler = form.get("validation_scheduler", "DPMSolverMultistepScheduler")
 
         # 최적화 및 정밀도 설정
-        use_8bit_adam = form.get("use_8bit_adam")
-        adam_beta1 = form.get("adam_beta1")
-        adam_weight_decay = form.get("adam_weight_decay")
-        adam_beta2 = form.get("adam_beta2")
-        adam_epsilon = form.get("adam_epsilon")
-        max_grad_norm = form.get("max_grad_norm")
+        use_8bit_adam = form.get("use_8bit_adam", False)
+        adam_beta1 = form.get("adam_beta1", 0.9)
+        adam_weight_decay = form.get("adam_weight_decay", 1e-2)
+        adam_beta2 = form.get("adam_beta2", 0.999)
+        adam_epsilon = form.get("adam_epsilon", 1e-08)
+        max_grad_norm = form.get("max_grad_norm", 1.0)
 
         # 데이터 증강 및 메모리 관리
-        gradient_accumulation_steps = form.get("gradient_accumulation_steps", 2)
-        gradient_checkpointing = form.get("gradient_checkpointing")
-        enable_xformers_memory_efficient_attention = form.get("enable_xformers_memory_efficient_attention")
-        set_grads_to_none = form.get("set_grads_to_none")
+        gradient_accumulation_steps = form.get("gradient_accumulation_steps", 1)
+        gradient_checkpointing = form.get("gradient_checkpointing", False)
+        enable_xformers_memory_efficient_attention = form.get("enable_xformers_memory_efficient_attention", False)
+        set_grads_to_none = form.get("set_grads_to_none", False)
 
         # 기타 설정
         # TODO 후에 local gpu server 사용
         output_dir = form.get("output_dir")
-        scale_lr = form.get("scale_lr")
+        scale_lr = form.get("scale_lr", False)
         lr_scheduler = form.get("lr_scheduler", "constant")
-        lr_warmup_steps = form.get("lr_warmup_steps", "0")
-        lr_num_cycles = form.get("lr_num_cycles")
-        lr_power = form.get("lr_power")
-        dataloader_num_workers = form.get("dataloader_num_workers")
-        push_to_hub = form.get("push_to_hub")
-        hub_token = form.get("hub_token")
-        hub_model_id = form.get("hub_model_id")
-        logging_dir = form.get("logging_dir")
-        allow_tf32 = form.get("allow_tf32")
-        report_to = form.get("report_to")
-        mixed_precision = form.get("mixed_precision")
-        prior_generation_precision = form.get("prior_generation_precision")
-        local_rank = form.get("local_rank")
-        snr_gamma = form.get("snr_gamma")
-        pre_compute_text_embeddings = form.get("pre_compute_text_embeddings")
-        tokenizer_max_length = form.get("tokenizer_max_length")
-        text_encoder_use_attention_mask = form.get("text_encoder_use_attention_mask")
-        skip_save_text_encoder = form.get("skip_save_text_encoder")
-        class_labels_conditioning = form.get("class_labels_conditioning")
+        lr_warmup_steps = form.get("lr_warmup_steps", 500)
+        lr_num_cycles = form.get("lr_num_cycles", 1)
+        lr_power = form.get("lr_power", 1.0)
+        dataloader_num_workers = form.get("dataloader_num_workers", 0)
+        push_to_hub = form.get("push_to_hub", False)
+        hub_token = form.get("hub_token", None)
+        hub_model_id = form.get("hub_model_id", None)
+        logging_dir = form.get("logging_dir", "logs")
+        allow_tf32 = form.get("allow_tf32", False)
+        report_to = form.get("report_to", "tensorboard")
+        mixed_precision = form.get("mixed_precision", None)
+        prior_generation_precision = form.get("prior_generation_precision", None)
+        local_rank = form.get("local_rank", -1)
+        snr_gamma = form.get("snr_gamma", None)
+        pre_compute_text_embeddings = form.get("pre_compute_text_embeddings", False)
+        tokenizer_max_length = form.get("tokenizer_max_length", None)
+        text_encoder_use_attention_mask = form.get("text_encoder_use_attention_mask", False)
+        skip_save_text_encoder = form.get("skip_save_text_encoder", False)
+        class_labels_conditioning = form.get("class_labels_conditioning", None)
 
         # 이외 파라미터
         member_id = form.get("member_id")
@@ -173,120 +173,119 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         ]
 
         # 필수 파라미터?
-        if not with_prior_preservation:
-            command.extend(["--with_prior_preservation"])
+        command.extend("--with_prior_preservation")
         command.extend(["--prior_loss_weight", prior_loss_weight])
         command.extend(["--instance_prompt", instance_prompt])
         command.extend(["--class_prompt", class_prompt])
         command.extend(["--gradient_accumulation_steps", gradient_accumulation_steps])
         command.extend(["--gradient_checkpointing"])
-        command.extend(["--use_8bit_adam"])
+        command.extend("--use_8bit_adam")
         command.extend(["--lr_scheduler", lr_scheduler])
         command.extend(["--lr_warmup_steps", lr_warmup_steps])
 
         # 선택적 파라미터 추가
-        if not revision:
+        if revision is not None:
             command.extend(["--revision", revision])
-        if not variant:
+        if variant is not None:
             command.extend(["--variant", variant])
-        if not tokenizer_name:
+        if tokenizer_name is not None:
             command.extend(["--tokenizer_name", tokenizer_name])
-        if not instance_data_dir:
+        if instance_data_dir is not None:
             command.extend(["--instance_data_dir", instance_data_dir])
-        if not class_data_dir:
+        if class_data_dir is not None:
             command.extend(["--class_data_dir", class_data_dir])
-        if not center_crop:
-            command.extend(["--center_crop", center_crop])
-        if not seed:
+        if center_crop:
+            command.append("--center_crop")
+        if seed is not None:
             command.extend(["--seed", seed])
         if not train_text_encoder:
-            command.extend(["--train_text_encoder", train_text_encoder])
-        if not sample_batch_size:
+            command.append("--train_text_encoder")
+        if sample_batch_size is not None:
             command.extend(["--sample_batch_size", sample_batch_size])
-        if not max_train_steps:
+        if max_train_steps is not None:
             command.extend(["--max_train_steps", max_train_steps])
-        if not offset_noise:
-            command.extend(["--offset_noise", offset_noise])
-        if not checkpointing_steps:
+        if offset_noise:
+            command.append("--offset_noise")
+        if checkpointing_steps is not None:
             command.extend(["--checkpointing_steps", checkpointing_steps])
-        if not checkpoints_total_limit:
+        if checkpoints_total_limit is not None:
             command.extend(["--checkpoints_total_limit", checkpoints_total_limit])
-        if not resume_from_checkpoint:
+        if resume_from_checkpoint is not None:
             command.extend(["--resume_from_checkpoint", resume_from_checkpoint])
-        if not validation_prompt:
+        if validation_prompt is not None:
             command.extend(["--validation_prompt", validation_prompt])
-        if not num_validation_images:
+        if num_validation_images is not None:
             command.extend(["--num_validation_images", num_validation_images])
-        if not validation_steps:
+        if validation_steps is not None:
             command.extend(["--validation_steps", validation_steps])
-        if not validation_images:
+        if validation_images is not None:
             command.extend(["--validation_images", validation_images])
-        if not validation_scheduler:
+        if validation_scheduler is not None:
             command.extend(["--validation_scheduler", validation_scheduler])
-        if not use_8bit_adam:
-            command.extend(["--use_8bit_adam", use_8bit_adam])
-        if not adam_beta1:
+        # if not use_8bit_adam:
+        #     command.extend(["--use_8bit_adam", use_8bit_adam])
+        if adam_beta1 is not None:
             command.extend(["--adam_beta1", adam_beta1])
-        if not adam_weight_decay:
+        if adam_weight_decay is not None:
             command.extend(["--adam_weight_decay", adam_weight_decay])
-        if not adam_beta2:
+        if adam_beta2 is not None:
             command.extend(["--adam_beta2", adam_beta2])
-        if not adam_epsilon:
+        if adam_epsilon is not None:
             command.extend(["--adam_epsilon", adam_epsilon])
-        if not max_grad_norm:
+        if max_grad_norm is not None:
             command.extend(["--max_grad_norm", max_grad_norm])
-        if not gradient_checkpointing:
-            command.extend(["--gradient_checkpointing", gradient_checkpointing])
-        if not enable_xformers_memory_efficient_attention:
-            command.extend(["--enable_xformers_memory_efficient_attention", enable_xformers_memory_efficient_attention])
-        if not set_grads_to_none:
-            command.extend(["--set_grads_to_none", set_grads_to_none])
+        # if gradient_checkpointing:
+        #     command.append("--gradient_checkpointing")
+        if enable_xformers_memory_efficient_attention:
+            command.append("--enable_xformers_memory_efficient_attention")
+        if set_grads_to_none:
+            command.append("--set_grads_to_none")
         '''
         Local 사용 시 사용 고려
         if not output_dir:
             command.extend(["--output_dir", output_dir])
         '''
-        if not scale_lr:
-            command.extend(["--scale_lr", scale_lr])
-        if not lr_num_cycles:
+        if scale_lr:
+            command.append("--scale_lr")
+        if lr_num_cycles is not None:
             command.extend(["--lr_num_cycles", lr_num_cycles])
-        if not lr_power:
+        if lr_power is not None:
             command.extend(["--lr_power", lr_power])
-        if not dataloader_num_workers:
+        if dataloader_num_workers is not None:
             command.extend(["--dataloader_num_workers", dataloader_num_workers])
-        if not push_to_hub:
-            command.extend(["--push_to_hub", push_to_hub])
-        if not hub_token:
+        if push_to_hub:
+            command.append("--push_to_hub")
+        if hub_token is not None:
             command.extend(["--hub_token", hub_token])
-        if not hub_model_id:
+        if hub_model_id is not None:
             command.extend(["--hub_model_id", hub_model_id])
-        if not logging_dir:
+        if logging_dir is not None:
             command.extend(["--logging_dir", logging_dir])
-        if not allow_tf32:
-            command.extend(["--allow_tf32", allow_tf32])
-        if not report_to:
+        if allow_tf32:
+            command.append("--allow_tf32")
+        if report_to is not None:
             command.extend(["--report_to", report_to])
-        if not mixed_precision:
+        if mixed_precision is not None:
             command.extend(["--mixed_precision", mixed_precision])
-        if not prior_generation_precision:
+        if prior_generation_precision is not None:
             command.extend(["--prior_generation_precision", prior_generation_precision])
-        if not local_rank:
+        if local_rank is not None:
             command.extend(["--local_rank", local_rank])
-        if not snr_gamma:
+        if snr_gamma is not None:
             command.extend(["--snr_gamma", snr_gamma])
-        if not pre_compute_text_embeddings:
-            command.extend(["--pre_compute_text_embeddings", pre_compute_text_embeddings])
-        if not tokenizer_max_length:
+        if pre_compute_text_embeddings:
+            command.append("--pre_compute_text_embeddings")
+        if tokenizer_max_length is not None:
             command.extend(["--tokenizer_max_length", tokenizer_max_length])
-        if not text_encoder_use_attention_mask:
-            command.extend(["--text_encoder_use_attention_mask", text_encoder_use_attention_mask])
-        if not skip_save_text_encoder:
-            command.extend(["--skip_save_text_encoder", skip_save_text_encoder])
-        if not class_labels_conditioning:
+        if text_encoder_use_attention_mask:
+            command.append("--text_encoder_use_attention_mask")
+        if skip_save_text_encoder:
+            command.append("--skip_save_text_encoder")
+        if class_labels_conditioning is not None:
             command.extend(["--class_labels_conditioning", class_labels_conditioning])
 
         # Custom Command
-        if not log_epochs:
+        if log_epochs is not None:
             command.extend(["--log_epochs", log_epochs])
 
         if os.name == 'nt':

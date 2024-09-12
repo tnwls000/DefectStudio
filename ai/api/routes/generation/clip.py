@@ -13,13 +13,14 @@ router = APIRouter(
 @router.post("")
 async def clip(request: Request):
     form = await request.form()
+    model = form.get("model")
     images = form.getlist("images")
     mode = form.get("mode")
     caption = form.get("caption")
     batch_size = int(form.get("batch_size"))
 
     clip_config = Config(
-        clip_model_name="ViT-L-14/openai",
+        clip_model_name=model,
         cache_path="./cache",
         chunk_size=batch_size,
     )

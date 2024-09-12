@@ -2,8 +2,8 @@ from fastapi import APIRouter, Request, HTTPException, status
 from PIL import Image
 from io import BytesIO
 from starlette.responses import JSONResponse
-from diffusers import StableDiffusionInpaintPipeline
-import os, base64, torch, numpy as np
+from tempfile import TemporaryDirectory
+import subprocess, os, base64, torch
 
 router = APIRouter(
     prefix="/cleanup",
@@ -12,52 +12,62 @@ router = APIRouter(
 @router.post("")
 async def cleanup(request: Request):
     form = await request.form()
-    image = form.get("image")
-    mask = form.get("mask")
+    images = form.getlist("images")
+    masks = form.getlist("masks")
 
-    input_image = Image.open(image.file).convert("RGB")
-    input_mask = Image.open(mask.file).convert("RGB")
+    if len(images) != len(masks):
+        raise HTTPException(status_code=400, detail="이미지 수와 마스크 수가 일치하지 않습니다.")
 
-    input_image = input_image.resize((512, 512))
-    input_mask = input_mask.resize((512, 512))
+    with TemporaryDirectory() as temp_output_dir,\
+        TemporaryDirectory() as temp_image_dir,\
+        TemporaryDirectory() as temp_mask_dir:
 
-    print(f"Input image size: {input_image.size}")
-    print(f"Mask image size: {input_mask.size}")
+        image_paths = []
+        mask_paths = []
 
-    # Stable Diffusion 모델 초기화
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        for index, (image, mask) in enumerate(zip(images, masks)):
+            image_filename = f"image_{index}.png"
+            mask_filename = f"image_{index}.png"
 
-    # Inpaint 파이프라인
-    inpaint_pipe = StableDiffusionInpaintPipeline.from_pretrained(
-        "stabilityai/stable-diffusion-2", torch_dtype=torch.float16
-    ).to(device)
+            temp_image_path = os.path.join(temp_image_dir, image_filename)
+            temp_mask_path = os.path.join(temp_mask_dir, mask_filename)
 
+            input_image = Image.open(image.file).convert("RGBA")
+            input_mask = Image.open(mask.file).convert("RGBA")
 
-    temp_pipe_image = inpaint_pipe(
-        prompt="Seamlessly fill in the background to create a natural and coherent scene, ensuring that the area previously occupied by the removed subject blends smoothly with the surrounding environment.",
-        image=input_image,
-        mask_image=input_mask,
-        num_inference_steps=50,
-        guidance_scale=7.5
-    )
+            input_image.save(temp_image_path)
+            input_mask.save(temp_mask_path)
 
-    generated_image = temp_pipe_image.images[0]
-    generated_image = generated_image.resize((512,512))
-    # 원본 이미지와 생성된 이미지를 NumPy 배열로 변환
-    init_np = np.array(input_image)
-    generated_np = np.array(generated_image)
-    mask_np = np.array(input_mask.convert("L"))  # 마스크 이미지를 그레이스케일로 변환
+            image_paths.append(temp_image_path)
+            mask_paths.append(temp_mask_path)
 
-    # 마스크의 흰색 영역(255)은 생성된 이미지로, 검은색 영역(0)은 원본 이미지로 남김
-    combined_np = np.where(mask_np[..., None] > 127, generated_np, init_np)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # NumPy 배열을 다시 PIL 이미지로 변환
-    final_image = Image.fromarray(combined_np.astype(np.uint8))
+        cmd = [
+            "iopaint", "run",
+            "--model=lama",
+            f"--device={device}",
+            f"--image={temp_image_dir}",
+            f"--mask={temp_mask_dir}",
+            f"--output={temp_output_dir}"
+        ]
 
-    buffered = BytesIO()
-    final_image.save(buffered, format="PNG")
-    buffered.seek(0)
+        result = subprocess.run(cmd, shell=True)
 
-    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        if result.returncode == 0:
+            output_images = []
+            for filename in os.listdir(temp_output_dir):
+                output_image_path = os.path.join(temp_output_dir, filename)
+                output_image = Image.open(output_image_path)
 
-    return JSONResponse(content={"final_image": img_str})
+                buffered = BytesIO()
+                output_image.save(buffered, format="PNG")
+                buffered.seek(0)
+
+                img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                output_images.append(img_str)
+
+            return JSONResponse(content={"image_list": output_images})
+
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"cleanup 중 오류가 발생했습니다. : {result.returncode}")

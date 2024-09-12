@@ -1,5 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 import os
+from core.config import settings
 import subprocess
 
 # 필요 env
@@ -26,7 +27,7 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
 
     try:
         # remote 환경
-        base_output_dir = os.getenv("OUTPUT_DIR")  # /checkpoints
+        base_output_dir = settings.OUTPUT_DIR  # /checkpoints
 
         # 모델 학습 파라미터
         # 모델 및 토크나이저 설정
@@ -151,7 +152,7 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
             with open(os.path.join(class_dir, image.filename), "wb") as f:
                 f.write(await image.read())
 
-        project_root = os.getenv('DIFFUSERS_TRAIN_PATH')
+        project_root = settings.DIFFUSERS_TRAIN_PATH
         train_script = os.path.join(project_root, "dreambooth/train_dreambooth.py")
 
         # TODO LOG 관련 기능 미사용 중

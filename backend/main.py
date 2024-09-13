@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
     )
 
     mongo_database = client.get_database("defectstudio")
-    await init_beanie(database=mongo_database, document_models=[])
+    await init_beanie(database=mongo_database, document_models=[GenerationPreset])
 
     yield
     scheduler.shutdown()

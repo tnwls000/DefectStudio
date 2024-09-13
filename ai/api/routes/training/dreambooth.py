@@ -134,8 +134,8 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         output_dir = os.path.join(base_output_dir, f"{member_id}", f"{train_model_name}")
         os.makedirs(output_dir, exist_ok=True)
 
-        instance_dir = os.path.join(base_output_dir, f"{member_id}", "instance_image")
-        class_dir = os.path.join(base_output_dir, f"{member_id}", "class_image")
+        instance_dir = os.path.join(base_output_dir, f"{member_id}", f"{train_model_name}", "instance_image")
+        class_dir = os.path.join(base_output_dir, f"{member_id}", f"{train_model_name}", "class_image")
         os.makedirs(instance_dir, exist_ok=True)
         os.makedirs(class_dir, exist_ok=True)
 

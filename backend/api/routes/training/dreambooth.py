@@ -1,8 +1,10 @@
 from typing import Optional, List
 
 import requests
-from fastapi import APIRouter, UploadFile, File, Form, status, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, status, HTTPException, Response
+from starlette.responses import JSONResponse
 
+from core.config import settings
 from enums import GPUEnvironment
 
 router = APIRouter(
@@ -21,13 +23,13 @@ async def dreambooth(
         instance_prompt: str = Form(..., description="학습할 인스턴스를 지정하는 프롬프트."),
         class_prompt: str = Form(None, description="클래스 이미지 프롬프트."),
         with_prior_preservation: bool = Form(False, description="사전 보존 손실을 적용할지 여부."),
-        prior_loss_weight: float = Form(1.0, description="사전 보존 손실의 가중치."),
+        prior_loss_weight: float = Form(None, le=1.0, ge=0.0, description="사전 보존 손실의 가중치.", examples=[0.5]),
         num_class_images: int = Form(100, description="사전 보존 손실을 위한 최소 클래스 이미지 수."),
         seed: int = Form(None, description="재현 가능한 학습을 위한 시드."),
         resolution: int = Form(512, description="학습 및 검증 이미지 해상도."),
         center_crop: bool = Form(False, description="이미지를 중앙에서 자를지 여부."),
         train_text_encoder: bool = Form(False, description="텍스트 인코더를 학습할지 여부."),
-        train_batch_size: int = Form(2, description="학습 데이터 로더의 배치 크기."),
+        train_batch_size: int = Form(..., description="학습 데이터 로더의 배치 크기.", example=2),
         sample_batch_size: int = Form(2, description="샘플링할 이미지의 배치 크기."),
         num_train_epochs: int = Form(30, description="학습할 에폭 수."),
         max_train_steps: int = Form(None, description="학습할 최대 스텝 수."),
@@ -144,11 +146,11 @@ async def dreambooth(
     files = []
 
     files.extend(
-        [('instance_image', (image.filename, await image.read(), image.content_type)) for image in instance_image_list])
+        [('instance_image_list', (image.filename, await image.read(), image.content_type)) for image in instance_image_list])
     files.extend(
-        [('class_image', (image.filename, await image.read(), image.content_type)) for image in class_image_list])
+        [('class_image_list', (image.filename, await image.read(), image.content_type)) for image in class_image_list])
 
-    response = requests.post(settings.AI_SERVER_URL + "/training/inpainting", files=files, data=form_data)
+    response = requests.post(settings.AI_SERVER_URL + "/training/dreambooth", files=files, data=form_data)
 
     if response.status_code != 200:
         return Response(status_code=response.status_code, content=response.content)

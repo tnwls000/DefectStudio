@@ -18,8 +18,9 @@ log_file_path = None
 
 @router.post("")
 async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 
     # global training_process, log_file_path
 
@@ -32,7 +33,9 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         # 모델 학습 파라미터
         # 모델 및 토크나이저 설정
         pretrained_model_name_or_path = form.get("model_name", "stable-diffusion-2")
+        print(pretrained_model_name_or_path)
         revision = form.get("revision", None)
+        print(revision, type(revision))
         variant = form.get("variant", None)
         tokenizer_name = form.get("tokenizer_name", None)
         instance_data_dir = form.get("instance_data_dir", None)
@@ -109,14 +112,14 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         class_labels_conditioning = form.get("class_labels_conditioning", None)
 
         # 이외 파라미터
-        member_id = form.get("member_id")
-        train_model_name = form.get("train_model_name")
+        member_id = form.get("member_id", 1)
+        train_model_name = form.get("train_model_name", "train_model_name")
         log_epochs = form.get("log_epochs")
 
         # timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-        instance_images = form.getlist("instance_images")
-        class_images = form.getlist("class_images")
+        instance_images = form.getlist("instance_image_list")
+        class_images = form.getlist("class_image_list")
 
         # model_name(model_name) : Base Model(local에 stabilityai/stable-diffusion-2 Save)
         # instance_data(instance_dir) : instance image requests (!required)
@@ -132,8 +135,8 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         output_dir = os.path.join(base_output_dir, f"{member_id}", f"{train_model_name}")
         os.makedirs(output_dir, exist_ok=True)
 
-        instance_dir = os.path.join(base_output_dir, f"{member_id}", "instance_images")
-        class_dir = os.path.join(base_output_dir, f"{member_id}", "class_images")
+        instance_dir = os.path.join(base_output_dir, f"{member_id}", "instance_image")
+        class_dir = os.path.join(base_output_dir, f"{member_id}", "class_image")
         os.makedirs(instance_dir, exist_ok=True)
         os.makedirs(class_dir, exist_ok=True)
 
@@ -141,6 +144,9 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
             pretrained_model_name_or_path = os.path.join(base_output_dir, pretrained_model_name_or_path)
         else:
             pretrained_model_name_or_path = os.path.join(base_output_dir, f"{member_id}", pretrained_model_name_or_path)
+
+        print(len(instance_images))
+        print(len(class_images))
 
         # 인스턴스 이미지 저장
         for image in instance_images:
@@ -161,7 +167,7 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         # 필수 파라미터 추가
         command = [
             "accelerate", "launch", train_script,
-            "--pretrained_model_name_or_path", pretrained_model_name_or_path,
+            "--pretrained_model_name_or_path", "C:/Users/SSAFY/Downloads/stable-diffusion-2",
             "--instance_data_dir", instance_dir,
             "--class_data_dir", class_dir,
             "--output_dir", output_dir,
@@ -174,13 +180,13 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         ]
 
         # 필수 파라미터?
-        command.extend("--with_prior_preservation")
+        command.append("--with_prior_preservation")
         command.extend(["--prior_loss_weight", prior_loss_weight])
         command.extend(["--instance_prompt", instance_prompt])
         command.extend(["--class_prompt", class_prompt])
         command.extend(["--gradient_accumulation_steps", gradient_accumulation_steps])
         command.extend(["--gradient_checkpointing"])
-        command.extend("--use_8bit_adam")
+        # command.append("--use_8bit_adam")
         command.extend(["--lr_scheduler", lr_scheduler])
         command.extend(["--lr_warmup_steps", lr_warmup_steps])
 
@@ -195,17 +201,18 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
             command.extend(["--instance_data_dir", instance_data_dir])
         if class_data_dir is not None:
             command.extend(["--class_data_dir", class_data_dir])
-        if center_crop:
+        if center_crop != "False":
             command.append("--center_crop")
         if seed is not None:
             command.extend(["--seed", seed])
-        if not train_text_encoder:
+        if train_text_encoder != "False":
+            print(f"train_text_encoder {train_text_encoder}")
             command.append("--train_text_encoder")
         if sample_batch_size is not None:
             command.extend(["--sample_batch_size", sample_batch_size])
         if max_train_steps is not None:
             command.extend(["--max_train_steps", max_train_steps])
-        if offset_noise:
+        if offset_noise != "False":
             command.append("--offset_noise")
         if checkpointing_steps is not None:
             command.extend(["--checkpointing_steps", checkpointing_steps])
@@ -237,16 +244,16 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
             command.extend(["--max_grad_norm", max_grad_norm])
         # if gradient_checkpointing:
         #     command.append("--gradient_checkpointing")
-        if enable_xformers_memory_efficient_attention:
+        if enable_xformers_memory_efficient_attention != "False":
             command.append("--enable_xformers_memory_efficient_attention")
-        if set_grads_to_none:
+        if set_grads_to_none != "False":
             command.append("--set_grads_to_none")
         '''
         Local 사용 시 사용 고려
         if not output_dir:
             command.extend(["--output_dir", output_dir])
         '''
-        if scale_lr:
+        if scale_lr != "False":
             command.append("--scale_lr")
         if lr_num_cycles is not None:
             command.extend(["--lr_num_cycles", lr_num_cycles])
@@ -254,15 +261,17 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
             command.extend(["--lr_power", lr_power])
         if dataloader_num_workers is not None:
             command.extend(["--dataloader_num_workers", dataloader_num_workers])
-        if push_to_hub:
+        if push_to_hub != "False":
+            print(f"push_to_hub {push_to_hub}")
+            print(type(push_to_hub))
             command.append("--push_to_hub")
-        if hub_token is not None:
-            command.extend(["--hub_token", hub_token])
-        if hub_model_id is not None:
-            command.extend(["--hub_model_id", hub_model_id])
+            if hub_token is not None:
+                command.extend(["--hub_token", hub_token])
+            if hub_model_id is not None:
+                command.extend(["--hub_model_id", hub_model_id])
         if logging_dir is not None:
             command.extend(["--logging_dir", logging_dir])
-        if allow_tf32:
+        if allow_tf32 != "False":
             command.append("--allow_tf32")
         if report_to is not None:
             command.extend(["--report_to", report_to])
@@ -274,13 +283,14 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
             command.extend(["--local_rank", local_rank])
         if snr_gamma is not None:
             command.extend(["--snr_gamma", snr_gamma])
-        if pre_compute_text_embeddings:
+        if pre_compute_text_embeddings != "False":
+            print(f"pre_compute_text_embeddings {pre_compute_text_embeddings }")
             command.append("--pre_compute_text_embeddings")
         if tokenizer_max_length is not None:
             command.extend(["--tokenizer_max_length", tokenizer_max_length])
-        if text_encoder_use_attention_mask:
+        if text_encoder_use_attention_mask != "False":
             command.append("--text_encoder_use_attention_mask")
-        if skip_save_text_encoder:
+        if skip_save_text_encoder != "False":
             command.append("--skip_save_text_encoder")
         if class_labels_conditioning is not None:
             command.extend(["--class_labels_conditioning", class_labels_conditioning])

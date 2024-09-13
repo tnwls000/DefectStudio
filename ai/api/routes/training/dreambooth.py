@@ -19,9 +19,9 @@ log_file_path = None
 
 @router.post("")
 async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
-    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-
+    # TODO 향후 GPU 선택 시 accelerate 활용해서 GPU 변경
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
     # global training_process, log_file_path
 

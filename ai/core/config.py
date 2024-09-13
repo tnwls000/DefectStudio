@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     # ENVIRONMENT
     OUTPUT_DIR: str
     DIFFUSERS_TRAIN_PATH: str
+    BASE_MODEL_NAME: str
 
 # 환경 변수 로드 및 검증
 settings = Settings()

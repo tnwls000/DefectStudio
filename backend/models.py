@@ -78,6 +78,7 @@ class TokenLog(Base):
 # Mongo DB Schemas
 
 class GenerationPreset(Document):
+    generation_type: Optional[str] = None
     model: Optional[str] = None
     prompt: Optional[str] = None
     negative_prompt: Optional[str] = None
@@ -85,6 +86,7 @@ class GenerationPreset(Document):
     height: Optional[int] = None
     batch_count: Optional[int] = None
     batch_size: Optional[int] = None
+    strength: Optional[int] = None
     guidance_scale: Optional[float] = None
     sampling_steps: Optional[int] = None
     sampling_method: Optional[str] = None

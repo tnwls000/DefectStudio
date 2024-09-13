@@ -39,3 +39,10 @@ class SchedulerType(enum.Enum):
     heun = "Heun"
     lms = "LMS"
     lms_karras = "LMS Karras"
+
+class GenerationType(enum.Enum):
+    text_to_image = "text_to_image"
+    image_to_image = "image_to_image"
+    inpainting = "inpainting"
+    remove_background = "remove_background"
+    clean_up = "clean_up"

@@ -1,5 +1,4 @@
-from fastapi import APIRouter
-from fastapi import UploadFile, File, HTTPException, status, Response
+from fastapi import APIRouter, status, Form, HTTPException
 from starlette.responses import JSONResponse
 import torch
 import nvidia_smi
@@ -54,3 +53,34 @@ async def cuda_usage():
 
     # JSON 응답 반환
     return JSONResponse(status_code=status.HTTP_200_OK, content={"gpu_info": gpu_info})
+
+@router.post("/set_device")
+async def set_device(device_num: int = Form(...)):  # Form 데이터로 device_num을 받음
+    device_count = torch.cuda.device_count()
+
+    # GPU가 있는지 확인
+    if device_count == 0:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": "No CUDA devices available"})
+
+    # device_num 유효성 검사
+    if device_num < 0 or device_num >= device_count:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "message": f"Invalid device_num. Available GPU index range is 0 to {device_count - 1}.",
+                "device_count": device_count
+            }
+        )
+
+    # GPU 설정
+    torch.cuda.set_device(device_num)
+    current_device = torch.cuda.current_device()
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "message": "CUDA device set",
+            "current_device": current_device,
+            "device_count": device_count
+        }
+    )

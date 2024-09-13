@@ -13,14 +13,16 @@ router = APIRouter(
 @router.post("")
 async def clip(request: Request):
     form = await request.form()
-    image = form.get("image")
-
-    image_bytes = await image.read()
-    input_image = Image.open(BytesIO(image_bytes)).convert("RGB")
+    model = form.get("model")
+    images = form.getlist("images")
+    mode = form.get("mode")
+    caption = form.get("caption")
+    batch_size = int(form.get("batch_size"))
 
     clip_config = Config(
-        clip_model_name="ViT-L-14/openai",
+        clip_model_name=model,
         cache_path="./cache",
+        chunk_size=batch_size,
     )
 
     clip_config.apply_low_vram_defaults()
@@ -31,5 +33,21 @@ async def clip(request: Request):
         clip_interrogator.caption_model = clip_interrogator.caption_model.half()
     else:
         raise HTTPException(status_code=400, detail="CLIP API ERROR: GPU is not available.")
-    prompt = clip_interrogator.interrogate(input_image)
-    return JSONResponse(content={"prompt": prompt})
+
+    prompts = []
+    for image in images:
+        image_bytes = await image.read()
+        input_image = Image.open(BytesIO(image_bytes)).convert("RGB")
+
+        if mode == "classic":
+            prompt = clip_interrogator.interrogate_classic(input_image, caption=caption)
+        elif mode == "fast":
+            prompt = clip_interrogator.interrogate_fast(input_image, caption=caption)
+        elif mode == "negative":
+            prompt = clip_interrogator.interrogate_negative(input_image)
+        else:
+            prompt = clip_interrogator.interrogate(input_image, caption=caption)
+
+        prompts.append(prompt)
+
+    return JSONResponse(content={"prompts": prompts})

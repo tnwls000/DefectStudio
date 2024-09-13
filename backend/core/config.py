@@ -17,7 +17,6 @@ class Settings(BaseSettings):
     # ENVIRONMENT
     BACKEND_DOMAIN: str
     AI_SERVER_URL: str
-    ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     # JWT
     ENCODE_ALGORITHM: str
@@ -34,13 +33,6 @@ class Settings(BaseSettings):
     # REDIS
     REDIS_HOST: str
     REDIS_PORT: str
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def server_host(self) -> str:
-        if self.ENVIRONMENT == "local":
-            return f"http://{self.DOMAIN}"
-        return f"https://{self.DOMAIN}"
 
     # CORS
     BACKEND_CORS_ORIGINS: list[str] = [
@@ -68,5 +60,9 @@ class Settings(BaseSettings):
             database=self.POSTGRES_DB
         ).render_as_string(hide_password=False)
 
+    # MONGO DB
+    MONGO_DB_PORT: int
+    MONGO_DB_USERNAME: str
+    MONGO_DB_PASSWORD: str
 
 settings = Settings()  # type: ignore

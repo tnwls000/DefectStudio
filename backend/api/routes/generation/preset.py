@@ -1,19 +1,26 @@
+from beanie import PydanticObjectId
 from fastapi import APIRouter, HTTPException, status, Depends
 from starlette.responses import JSONResponse
-from dependencies import get_current_user
 
-from models import GenerationPreset, Member
+from dependencies import get_current_user
+from models import Member
+from schema.presets import *
 
 router = APIRouter(
     prefix="/presets",
 )
+
 
 @router.get("")
 async def get_presets(
         member: Member = Depends(get_current_user)
 ):
     presets = await GenerationPreset.find(GenerationPreset.member_id == member.member_id).to_list()
-    return presets
+    data = {
+        "count": len(presets),
+        "presets": presets
+    }
+    return data
 
 
 @router.post("")
@@ -23,7 +30,7 @@ async def create_presets(
 ):
     all_none = all(
         getattr(request, field) is None
-        for field in request.model_dump(exclude={"preset_title", "generation_type", "member_id", "date"})
+        for field in request.model_dump(exclude={"preset_title", "generation_type", "date"})
     )
 
     if all_none:
@@ -37,3 +44,32 @@ async def create_presets(
     data = await request.insert()
 
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=data.json())
+
+
+@router.patch("/{preset_id}")
+async def update_preset(
+        preset_id: PydanticObjectId,
+        request: GenerationPresetUpdate,
+        member: Member = Depends(get_current_user)
+):
+    preset = await GenerationPreset.get(preset_id)
+
+    if not preset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="해당 ID의 Preset을 찾을 수 없습니다."
+        )
+
+    if preset.member_id != member.member_id:
+        print(preset.member_id)
+        print(member.member_id)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="자기 자신의 Preset만 수정할 수 있습니다."
+        )
+
+    update_data = request.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(preset, key, value)
+
+    await preset.save()
+
+    return preset

@@ -39,7 +39,7 @@ async def image_to_image(
     image_list = [PIL.Image.open(BytesIO(await file.read())).convert("RGB") for file in images]
 
     total_images = batch_size * batch_count * len(image_list)
-    seeds = [seed + i for i in range(total_images)]
+    seeds = [(seed + i) % (2 ** 32) for i in range(total_images)]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     i2i_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)

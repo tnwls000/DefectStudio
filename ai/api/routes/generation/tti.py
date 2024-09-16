@@ -32,7 +32,7 @@ async def text_to_image(request: Request):
         t2i_pipe.scheduler = get_scheduler(scheduler, t2i_pipe.scheduler.config)
 
     total_images = batch_size * batch_count
-    seeds = [seed + i for i in range(total_images)]
+    seeds = [(seed + i) % (2 ** 32) for i in range(total_images)]
 
     generated_image_list = []
 

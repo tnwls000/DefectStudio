@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
 
 from api.routes.generation import tti, iti, inpainting, rembg, cleanup, clip
-from enums import SchedulerType, GenerationType
-from models import GenerationPreset
+from dependencies import get_current_user
+from enums import SchedulerType
+from models import GenerationPreset, Member
 
 router = APIRouter(
     prefix="/generation",
@@ -25,7 +26,8 @@ def get_scheduler_list():
 
 @router.post("/presets")
 async def save_presets(
-        request: GenerationPreset
+        request: GenerationPreset,
+        member: Member = Depends(get_current_user)
 ):
     all_none = all(
         getattr(request, field) is None
@@ -37,6 +39,8 @@ async def save_presets(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="최소 하나의 파라미터를 입력해야 합니다."
         )
+
+    request.member_id = member.member_id
 
     data = await request.insert()
 

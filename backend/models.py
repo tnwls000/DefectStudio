@@ -4,7 +4,7 @@ from beanie import Document
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Boolean, Index
 
-from enums import Role, LogType, UseType
+from enums import Role, LogType, UseType, GenerationType
 from core.db import Base
 from typing import Optional
 
@@ -78,7 +78,8 @@ class TokenLog(Base):
 # Mongo DB Schemas
 
 class GenerationPreset(Document):
-    generation_type: Optional[str] = None
+    preset_title: str
+    generation_type: GenerationType
     model: Optional[str] = None
     prompt: Optional[str] = None
     negative_prompt: Optional[str] = None

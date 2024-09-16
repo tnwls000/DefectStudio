@@ -1,3 +1,6 @@
+import io
+import random
+import zipfile
 from typing import Optional
 
 import requests
@@ -32,6 +35,9 @@ def text_to_image(
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
 
+    if seed == -1:
+        seed = random.randint(0, 2 ** 32 - 1)
+
     form_data = {
         "model": model,
         "scheduler": scheduler.value if scheduler else None,
@@ -50,15 +56,22 @@ def text_to_image(
     response = requests.post(settings.AI_SERVER_URL + "/generation/txt-to-img", data=form_data)
 
     if response.status_code != 200:
-        return Response(status_code=response.status_code, content=response.content)
+        raise HTTPException(status_code=response.status_code, detail=response.text)
 
-    response_data = response.json()
+    # Response 데이터를 메모리 내 ZIP 파일 형태로 처리할 수 있도록 변환
+    zip_file_bytes = io.BytesIO(response.content)
 
-    image_list = response_data.get("image_list")
-    metadata = response_data.get("metadata")
+    # ZIP 파일에서 이미지 추출하기
+    image_list = []
+    with zipfile.ZipFile(zip_file_bytes) as zip_file:
+        for name in zip_file.namelist():
+            image_data = zip_file.read(name)
+            image_stream = io.BytesIO(image_data)
+            image_list.append(image_stream)
+
     image_url_list = upload_files(image_list, "tti")
 
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
-        content={"image_list": image_url_list, "metadata": metadata}
+        content={"image_list": image_url_list}
     )

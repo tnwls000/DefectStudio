@@ -1,8 +1,10 @@
-from typing import List, Optional
+import io
+import zipfile
+from typing import List
 
 import requests
 from fastapi import APIRouter
-from fastapi import UploadFile, File, HTTPException, status, Response, Form
+from fastapi import UploadFile, File, HTTPException, status
 from starlette.responses import JSONResponse
 
 from core.config import settings
@@ -34,8 +36,18 @@ async def cleanup(
     response = requests.post(settings.AI_SERVER_URL + CLEAN_UP_URL, files=files)
 
     if response.status_code != 200:
-        return Response(status_code=response.status_code, content=response.content)
+        raise HTTPException(status_code=response.status_code, detail=response.text)
 
+    # Response 데이터를 메모리 내 ZIP 파일 형태로 처리할 수 있도록 변환
+    zip_file_bytes = io.BytesIO(response.content)
+
+    # ZIP 파일에서 이미지 추출하기
+    image_list = []
+    with zipfile.ZipFile(zip_file_bytes) as zip_file:
+        for name in zip_file.namelist():
+            image_data = zip_file.read(name)
+            image_stream = io.BytesIO(image_data)
+            image_list.append(image_stream)
     response_data = response.json()
     image_list = response_data.get("image_list")
     image_url_list = upload_files(image_list, "cleanup")

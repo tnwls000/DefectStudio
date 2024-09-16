@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
 
 from api.routes.generation import tti, iti, inpainting, rembg, cleanup, clip
-from enums import SchedulerType, GenerationType
-from models import GenerationPreset
+from dependencies import get_current_user
+from enums import SchedulerType
+from models import GenerationPreset, Member
 
 router = APIRouter(
     prefix="/generation",
@@ -23,14 +24,14 @@ def get_scheduler_list():
     return [scheduler.value for scheduler in SchedulerType]
 
 
-@router.post("/presets/{generation_type}")
+@router.post("/presets")
 async def save_presets(
-        generation_type: GenerationType,
-        request: GenerationPreset
+        request: GenerationPreset,
+        member: Member = Depends(get_current_user)
 ):
     all_none = all(
         getattr(request, field) is None
-        for field in request.model_dump(exclude={"member_id", "date"})
+        for field in request.model_dump(exclude={"preset_title", "generation_type", "member_id", "date"})
     )
 
     if all_none:
@@ -39,7 +40,7 @@ async def save_presets(
             detail="최소 하나의 파라미터를 입력해야 합니다."
         )
 
-    request.generation_type = generation_type.value
+    request.member_id = member.member_id
 
     data = await request.insert()
 

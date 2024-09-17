@@ -1,6 +1,6 @@
 from beanie import PydanticObjectId
 from fastapi import APIRouter, HTTPException, status, Depends
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
 from dependencies import get_current_user
 from models import Member
@@ -91,3 +91,25 @@ async def update_preset(
     await preset.save()
 
     return preset
+
+
+@router.delete("/{preset_id}")
+async def delete_preset(
+        preset_id: PydanticObjectId,
+        member: Member = Depends(get_current_user)
+):
+    preset = await GenerationPreset.get(preset_id)
+
+    if not preset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="해당 ID의 Preset을 찾을 수 없습니다."
+        )
+
+    if preset.member_id != member.member_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="자기 자신의 Preset만 삭제할 수 있습니다."
+        )
+
+    await preset.delete()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

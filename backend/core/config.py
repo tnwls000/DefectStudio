@@ -65,4 +65,7 @@ class Settings(BaseSettings):
     MONGO_DB_USERNAME: str
     MONGO_DB_PASSWORD: str
 
+    # LOGGER
+    SENTRY_DSN: str
+
 settings = Settings()  # type: ignore

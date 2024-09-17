@@ -15,6 +15,7 @@ from core.config import settings
 from core.db import engine
 from models import *
 from scheduler import expire_tokens, delete_guests
+from schema.presets import GenerationPreset
 
 
 @asynccontextmanager

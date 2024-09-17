@@ -12,7 +12,7 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_presets(
+async def get_preset_list(
         member: Member = Depends(get_current_user)
 ):
     presets = await GenerationPreset.find(GenerationPreset.member_id == member.member_id).to_list()
@@ -24,7 +24,7 @@ async def get_presets(
 
 
 @router.post("")
-async def create_presets(
+async def create_preset(
         request: GenerationPreset,
         member: Member = Depends(get_current_user)
 ):
@@ -46,6 +46,26 @@ async def create_presets(
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=data.json())
 
 
+@router.get("/{preset_id}")
+async def get_preset_by_id(
+        preset_id: PydanticObjectId,
+        member: Member = Depends(get_current_user)
+):
+    preset = await GenerationPreset.get(preset_id)
+
+    if not preset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="해당 ID의 Preset을 찾을 수 없습니다."
+        )
+
+    if preset.member_id != member.member_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="자기 자신의 Preset만 조회할 수 있습니다."
+        )
+
+    return preset
+
+
 @router.patch("/{preset_id}")
 async def update_preset(
         preset_id: PydanticObjectId,
@@ -60,8 +80,6 @@ async def update_preset(
         )
 
     if preset.member_id != member.member_id:
-        print(preset.member_id)
-        print(member.member_id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="자기 자신의 Preset만 수정할 수 있습니다."
         )

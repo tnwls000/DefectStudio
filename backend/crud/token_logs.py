@@ -10,8 +10,8 @@ from schema.token_logs import TokenUsageLogRead, TokenLogRead
 
 def get_token_usage_logs(session: Depends(get_db),
                          member_id: int,
-                         start_date: Optional[datetime],
-                         end_date: Optional[datetime],
+                         start_date: datetime,
+                         end_date: datetime,
                          use_type: UseType):
     query = session.query(TokenLog).filter(
                 TokenLog.log_type == LogType.use,
@@ -28,7 +28,7 @@ def get_token_usage_logs(session: Depends(get_db),
 
     return [TokenUsageLogRead.from_orm(token_log) for token_log in token_logs]
 
-def get_token_logs(session: Depends(get_db), log_type: LogType, start_date: Optional[datetime], end_date: Optional[datetime], department_id: int):
+def get_token_logs(session: Depends(get_db), log_type: LogType, start_date: datetime, end_date: datetime, department_id: int):
     query = session.query(TokenLog).filter(
         TokenLog.department_id == department_id,
         TokenLog.log_type == log_type)

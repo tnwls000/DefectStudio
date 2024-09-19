@@ -22,7 +22,7 @@ async def inpainting(
         model: str = Form("diffusers/stable-diffusion-xl-1.0-inpainting-0.1"),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
-        negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트"),
+        negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트", examples=[""]),
         width: Optional[int] = Form(512, description="생성할 이미지의 너비"),
         height: Optional[int] = Form(512, description="생성할 이미지의 높이"),
         num_inference_steps: Optional[int] = Form(50, ge=1, le=100, description="추론 단계 수"),
@@ -35,9 +35,9 @@ async def inpainting(
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
         init_image_list: List[UploadFile] = File(..., description="초기 이미지 파일들, 페어인 마스킹 이미지의 업로드 순서와 동일해야합니다."),
         mask_image_list: List[UploadFile] = File(..., description="마스킹 이미지 파일들, 페어인 초기 이미지의 업로드 순서와 동일해야합니다."),
-        init_input_path: Optional[str] = Form(None, description="초기 이미지를 가져올 로컬 경로"),
-        mask_input_path: Optional[str] = Form(None, description="마스킹 이미지를 가져올 로컬 경로"),
-        output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
+        init_input_path: Optional[str] = Form(None, description="초기 이미지를 가져올 로컬 경로", examples=[""]),
+        mask_input_path: Optional[str] = Form(None, description="마스킹 이미지를 가져올 로컬 경로", examples=[""]),
+        output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로", examples=[""])
 ):
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")

@@ -21,16 +21,16 @@ CLEAN_UP_URL = "/generation/cleanup"
 @router.post("/{gpu_env}")
 async def cleanup(
         gpu_env: GPUEnvironment,
-        images: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
-        masks: List[UploadFile] = File(..., description="업로드할 이미지 파일들의 mask 파일들"),
+        init_image_list: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
+        mask_image_list: List[UploadFile] = File(..., description="업로드할 이미지 파일들의 mask 파일들"),
 ):
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
 
     files = []
-    for image in images:
+    for image in init_image_list:
         files.append(('images', (image.filename, await image.read(), image.content_type)))
-    for mask in masks:
+    for mask in mask_image_list:
         files.append(('masks', (mask.filename, await mask.read(), mask.content_type)))
 
     response = requests.post(settings.AI_SERVER_URL + CLEAN_UP_URL, files=files)
@@ -42,13 +42,13 @@ async def cleanup(
     zip_file_bytes = io.BytesIO(response.content)
 
     # ZIP 파일에서 이미지 추출하기
-    image_list = []
+    init_image_list = []
     with zipfile.ZipFile(zip_file_bytes) as zip_file:
         for name in zip_file.namelist():
             image_data = zip_file.read(name)
             image_stream = io.BytesIO(image_data)
-            image_list.append(image_stream)
+            init_image_list.append(image_stream)
     response_data = response.json()
-    image_list = response_data.get("image_list")
-    image_url_list = upload_files(image_list, "cleanup")
+    init_image_list = response_data.get("image_list")
+    image_url_list = upload_files(init_image_list, "cleanup")
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"image_list": image_url_list})

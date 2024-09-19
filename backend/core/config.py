@@ -68,4 +68,7 @@ class Settings(BaseSettings):
     # LOGGER
     SENTRY_DSN: str
 
+    # ETC
+    BASE_MODEL_NAME: str
+
 settings = Settings()  # type: ignore

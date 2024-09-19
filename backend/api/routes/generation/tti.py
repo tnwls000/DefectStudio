@@ -4,9 +4,12 @@ import zipfile
 from typing import Optional
 
 import requests
-from fastapi import APIRouter, Response, status, HTTPException, Form
+from fastapi import APIRouter, Response, status, HTTPException, Form, Depends
 from starlette.responses import JSONResponse
+from dependencies import get_current_user
+from models import Member
 
+from pathlib import Path
 from core.config import settings
 from enums import GPUEnvironment, SchedulerType
 from utils.s3 import upload_files
@@ -19,7 +22,8 @@ router = APIRouter(
 @router.post("/{gpu_env}")
 def text_to_image(
         gpu_env: GPUEnvironment,
-        model: str = Form("CompVis/stable-diffusion-v1-4"),
+        current_user: Member = Depends(get_current_user),
+        model: str = Form(settings.BASE_MODEL_NAME),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
         negative_prompt: Optional[str] = Form(None, examples=[""]),
@@ -35,11 +39,20 @@ def text_to_image(
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
 
+    member_id = current_user.member_id
+    model_name = model
+
+    if settings.BASE_MODEL_NAME == model_name:
+        model_path = model_name
+    else:
+        model_path = Path(str(member_id)) / model_name
+
     if seed == -1:
         seed = random.randint(0, 2 ** 32 - 1)
+        
 
     form_data = {
-        "model": model,
+        "model": model_path,
         "scheduler": scheduler.value if scheduler else None,
         "prompt": prompt,
         "negative_prompt": negative_prompt,

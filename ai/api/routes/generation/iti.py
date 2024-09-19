@@ -1,6 +1,8 @@
 import base64
 import random
 from io import BytesIO
+from core.config import settings
+from pathlib import Path
 
 import PIL.Image
 import torch
@@ -42,7 +44,11 @@ async def image_to_image(
     seeds = [(seed + i) % (2 ** 32) for i in range(total_images)]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    i2i_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
+
+    model_dir = settings.OUTPUT_DIR
+    model_path = Path(model_dir) / model
+
+    i2i_pipe = StableDiffusionImg2ImgPipeline.from_pretrained(model_path, torch_dtype=torch.float16).to(device)
     if scheduler:
         i2i_pipe.scheduler = get_scheduler(scheduler, i2i_pipe.scheduler.config)
 

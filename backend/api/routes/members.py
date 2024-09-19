@@ -1,13 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from sqlalchemy.orm import Session, joinedload
-from fastapi import HTTPException, Response, status, Depends
+from fastapi import HTTPException, Response, status, Depends, Form
 from crud import members as members_crud, tokens as tokens_crud, token_logs as token_logs_crud
 from models import *
 from dependencies import get_db, get_current_user
 from schema.members import MemberCreate, MemberRead, MemberUpdate
-from schema.token_logs import TokenUsageLogSearch, TokenLogCreate
-from schema.tokens import TokenUsageRead
-from typing import List
+from schema.token_logs import TokenLogCreate
+from schema.tokens import TokenUsageRead, TokenUse
+from typing import List, Optional
+from enums import UseType
 
 router = APIRouter(
     prefix="/members",
@@ -33,13 +34,13 @@ def get_tokens_usages(session: Session = Depends(get_db),
     return token_usage_reads
 
 @router.post("/tokens")
-def use_tokens(cost: int, use_type: UseType,
+def use_tokens(token_use: TokenUse,
                session: Session = Depends(get_db),
                member: Member = Depends(get_current_user)):
-    if member.token_quantity < cost:
+    if member.token_quantity < token_use.cost:
         raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
-    remaining_cost = cost
+    remaining_cost = token_use.cost
     batch_size = 100
     offset = 0
 
@@ -61,14 +62,14 @@ def use_tokens(cost: int, use_type: UseType,
                 remaining_cost = 0
         offset += batch_size
 
-    member.token_quantity -= cost
+    member.token_quantity -= token_use.cost
     session.commit()
 
     token_log_create = TokenLogCreate(
         log_type=LogType.use,
-        use_type=use_type,
+        use_type=token_use.use_type,
         member_id=member.member_id,
-        quantity=cost,
+        quantity=token_use.cost,
         department_id=member.department_id
     )
     tokens_crud.create_token_log(session, token_log_create)
@@ -76,11 +77,14 @@ def use_tokens(cost: int, use_type: UseType,
     return Response(status_code=200, content="토큰이 사용되었습니다.")
 
 @router.get("/token-logs/use")
-def get_token_logs(token_usage_log: TokenUsageLogSearch,
+def get_token_logs(member_id: int,
+                   start_date: Optional[datetime] = Query(None),
+                   end_date: Optional[datetime] = Query(None),
+                   use_type: UseType = Query(...),
                    session: Session = Depends(get_db),
                    member: Member = Depends(get_current_user)):
 
-    return token_logs_crud.get_token_usage_logs(session, token_usage_log)
+    return token_logs_crud.get_token_usage_logs(session, member_id, start_date, end_date, use_type)
 
 @router.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):

@@ -7,7 +7,7 @@ from models import *
 from dependencies import get_db, get_current_user
 from schema.members import MemberCreate, MemberRead, MemberUpdate
 from schema.token_logs import TokenLogCreate
-from schema.tokens import TokenUsageRead
+from schema.tokens import TokenUsageRead, TokenUse
 from typing import List, Optional
 from enums import UseType
 
@@ -35,13 +35,13 @@ def get_tokens_usages(session: Session = Depends(get_db),
     return token_usage_reads
 
 @router.post("/tokens")
-def use_tokens(cost: int, use_type: UseType,
+def use_tokens(token_use: TokenUse,
                session: Session = Depends(get_db),
                member: Member = Depends(get_current_user)):
-    if member.token_quantity < cost:
+    if member.token_quantity < token_use.cost:
         raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
-    remaining_cost = cost
+    remaining_cost = token_use.cost
     batch_size = 100
     offset = 0
 
@@ -63,14 +63,14 @@ def use_tokens(cost: int, use_type: UseType,
                 remaining_cost = 0
         offset += batch_size
 
-    member.token_quantity -= cost
+    member.token_quantity -= token_use.cost
     session.commit()
 
     token_log_create = TokenLogCreate(
         log_type=LogType.use,
-        use_type=use_type,
+        use_type=token_use.use_type,
         member_id=member.member_id,
-        quantity=cost,
+        quantity=token_use.cost,
         department_id=member.department_id
     )
     tokens_crud.create_token_log(session, token_log_create)

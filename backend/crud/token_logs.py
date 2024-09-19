@@ -5,8 +5,23 @@ from fastapi import Depends
 from dependencies import get_db
 from enums import LogType, UseType
 from models import TokenLog
-from schema.token_logs import TokenUsageLogRead, TokenLogRead
+from schema.token_logs import TokenUsageLogRead, TokenLogRead, TokenLogCreate
 
+def create_token_log(session: Depends(get_db), token_log: TokenLogCreate):
+    db_token_log = TokenLog(
+        create_date=datetime.today(),
+        log_type=token_log.log_type,
+        use_type=token_log.use_type,
+        member_id=token_log.member_id,
+        quantity=token_log.quantity,
+        department_id=token_log.department_id,
+        image_quantity=token_log.image_quantity,
+        model=token_log.model
+    )
+    session.add(db_token_log)
+    session.commit()
+    session.refresh(db_token_log)
+    return db_token_log
 
 def get_token_usage_logs(session: Depends(get_db),
                          member_id: int,

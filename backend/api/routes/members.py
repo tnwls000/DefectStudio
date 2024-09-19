@@ -70,9 +70,11 @@ def use_tokens(token_use: TokenUse,
         use_type=token_use.use_type,
         member_id=member.member_id,
         quantity=token_use.cost,
-        department_id=member.department_id
+        department_id=member.department_id,
+        image_quantity=token_use.image_quantity,
+        model=token_use.model,
     )
-    tokens_crud.create_token_log(session, token_log_create)
+    token_logs_crud.create_token_log(session, token_log_create)
 
     return Response(status_code=200, content="토큰이 사용되었습니다.")
 

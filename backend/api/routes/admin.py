@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from fastapi import APIRouter
 from fastapi import HTTPException, Response
 from fastapi.params import Depends
+from pydantic import Field
 from sqlalchemy.orm import Session
 
 from models import Member
@@ -134,16 +137,18 @@ async def distribute_token(
 @router.get("/token-logs/{log_type}")
 @role_required([Role.super_admin, Role.department_admin])
 async def get_token_logs(log_type: LogType,
-                         token_logs_search: TokenLogSearch,
+                         start_date: Optional[datetime] = Field(None),
+                         end_date: Optional[datetime] = Field(None),
+                         department_id: Optional[int] = Field(None),
                          session: Session = Depends(get_db),
                          current_user: Member = Depends(get_current_user)):
     if current_user.role == Role.department_admin:
-        token_logs_search.department_id = current_user.department_id
+        department_id = current_user.department_id
 
-    if not token_logs_search.department_id:
+    if not department_id:
         raise HTTPException(status_code=422, detail="부서 아이디가 필요합니다.")
 
-    return token_logs_crud.get_token_logs(session, log_type, token_logs_search)
+    return token_logs_crud.get_token_logs(session, log_type, start_date, end_date, department_id)
 
 @router.get("/members/guests")
 @role_required([Role.super_admin])

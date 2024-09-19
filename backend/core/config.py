@@ -65,4 +65,6 @@ class Settings(BaseSettings):
     MONGO_DB_USERNAME: str
     MONGO_DB_PASSWORD: str
 
+    BASE_MODEL_NAME: str
+
 settings = Settings()  # type: ignore

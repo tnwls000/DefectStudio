@@ -13,17 +13,6 @@ class TokenLogCreate(BaseModel):
     quantity: int
     department_id: int
 
-class TokenUsageLogSearch(BaseModel):
-    member_id: int
-    start_date: Optional[datetime] = Field(None)
-    end_date: Optional[datetime] = Field(None)
-    use_type: UseType
-
-class TokenLogSearch(BaseModel):
-    start_date: Optional[datetime] = Field(None)
-    end_date: Optional[datetime] = Field(None)
-    department_id: Optional[int] = Field(None)
-
 class TokenLogRead(BaseModel):
     create_date: datetime
     log_type: LogType

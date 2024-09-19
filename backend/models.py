@@ -68,6 +68,8 @@ class TokenLog(Base):
     log_type = Column(Enum(LogType), nullable=False)
     use_type = Column(Enum(UseType), nullable=True)
     quantity = Column(Integer, nullable=True)
+    image_quantity = Column(Integer, nullable=True)
+    model = Column(String(255), nullable=True)
     member_id = Column(Integer, ForeignKey('member.member_id'))
     member = relationship("Member", back_populates="token_logs")
     department_id = Column(Integer, ForeignKey('department.department_id'))

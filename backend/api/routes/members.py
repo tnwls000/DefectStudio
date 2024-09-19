@@ -1,7 +1,6 @@
-from fastapi import APIRouter
-from pydantic import Field
+from fastapi import APIRouter, Query
 from sqlalchemy.orm import Session, joinedload
-from fastapi import HTTPException, Response, status, Depends
+from fastapi import HTTPException, Response, status, Depends, Form
 from crud import members as members_crud, tokens as tokens_crud, token_logs as token_logs_crud
 from models import *
 from dependencies import get_db, get_current_user
@@ -79,9 +78,9 @@ def use_tokens(token_use: TokenUse,
 
 @router.get("/token-logs/use")
 def get_token_logs(member_id: int,
-                   start_date: Optional[datetime] = Field(None),
-                   end_date: Optional[datetime] = Field(None),
-                   use_type: UseType = Field(...),
+                   start_date: Optional[datetime] = Query(None),
+                   end_date: Optional[datetime] = Query(None),
+                   use_type: UseType = Query(...),
                    session: Session = Depends(get_db),
                    member: Member = Depends(get_current_user)):
 

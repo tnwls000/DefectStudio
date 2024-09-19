@@ -9,8 +9,9 @@ import torch
 from diffusers import StableDiffusionImg2ImgPipeline
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from starlette.responses import StreamingResponse
 
-from utils import get_scheduler
+from utils import get_scheduler, generate_zip_from_images
 
 router = APIRouter(
     prefix="/img-to-img",
@@ -39,11 +40,8 @@ async def image_to_image(
     images = form.getlist("images")
     image_list = [PIL.Image.open(BytesIO(await file.read())).convert("RGB") for file in images]
 
-    if seed == -1:
-        seed = random.randint(0, 2 ** 32 - 1)
-
     total_images = batch_size * batch_count * len(image_list)
-    seeds = [seed + i for i in range(total_images)]
+    seeds = [(seed + i) % (2 ** 32) for i in range(total_images)]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -77,12 +75,8 @@ async def image_to_image(
 
             generated_image_list.extend(images)
 
-    encoded_images = []
+    zip_buffer = generate_zip_from_images(generated_image_list)
 
-    for image in generated_image_list:
-        image_bytes_io = BytesIO()
-        image.save(image_bytes_io, format="PNG")
-        img_str = base64.b64encode(image_bytes_io.getvalue()).decode("utf-8")
-        encoded_images.append(img_str)
-
-    return JSONResponse(content={"image_list": encoded_images})
+    return StreamingResponse(zip_buffer, media_type="application/zip", headers={
+        "Content-Disposition": "attachment; filename=images.zip"
+    })

@@ -1,3 +1,6 @@
+import io
+import random
+import zipfile
 from typing import Optional, List
 
 import requests
@@ -23,7 +26,7 @@ async def image_to_image(
         model: str = Form(settings.BASE_MODEL_NAME),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
-        negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트로 작용할 텍스트"),
+        negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트로 작용할 텍스트", examples=[""]),
         width: Optional[int] = Form(512),
         height: Optional[int] = Form(512),
         num_inference_steps: Optional[int] = Form(50, ge=1, le=100, description="추론 단계 수"),
@@ -35,8 +38,8 @@ async def image_to_image(
         batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
         images: List[UploadFile] = File(..., description="초기 이미지 파일들"),
-        input_path: Optional[str] = Form(None, description="이미지를 가져올 로컬 경로"),
-        output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
+        input_path: Optional[str] = Form(None, description="이미지를 가져올 로컬 경로", examples=[""]),
+        output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로", examples=[""])
 ):
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
@@ -48,6 +51,9 @@ async def image_to_image(
         model_path = model_name
     else:
         model_path = Path(str(member_id)) / model_name
+
+    if seed == -1:
+        seed = random.randint(0, 2 ** 32 - 1)
 
     form_data = {
         "model": model_path,
@@ -68,10 +74,19 @@ async def image_to_image(
     response = requests.post(settings.AI_SERVER_URL + "/generation/img-to-img", files=files, data=form_data)
 
     if response.status_code != 200:
-        return Response(status_code=response.status_code, content=response.content)
+        raise HTTPException(status_code=response.status_code, detail=response.text)
 
-    response_data = response.json()
-    image_list = response_data.get("image_list")
+    # Response 데이터를 메모리 내 ZIP 파일 형태로 처리할 수 있도록 변환
+    zip_file_bytes = io.BytesIO(response.content)
+
+    # ZIP 파일에서 이미지 추출하기
+    image_list = []
+    with zipfile.ZipFile(zip_file_bytes) as zip_file:
+        for name in zip_file.namelist():
+            image_data = zip_file.read(name)
+            image_stream = io.BytesIO(image_data)
+            image_list.append(image_stream)
+
     image_url_list = upload_files(image_list, "iti")
 
     return JSONResponse(

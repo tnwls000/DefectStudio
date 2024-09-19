@@ -1,3 +1,6 @@
+import io
+import random
+import zipfile
 from typing import Optional
 
 import requests
@@ -23,7 +26,7 @@ def text_to_image(
         model: str = Form(settings.BASE_MODEL_NAME),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
-        negative_prompt: Optional[str] = Form(None),
+        negative_prompt: Optional[str] = Form(None, examples=[""]),
         width: Optional[int] = Form(512),
         height: Optional[int] = Form(512),
         num_inference_steps: Optional[int] = Form(50, ge=1, le=100, description="추론 단계 수"),
@@ -31,7 +34,7 @@ def text_to_image(
         seed: Optional[int] = Form(-1, description="이미지 생성 시 사용할 시드 값 (랜덤 시드: -1)"),
         batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
-        output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로")
+        output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로", examples=[""])
 ):
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
@@ -43,6 +46,10 @@ def text_to_image(
         model_path = model_name
     else:
         model_path = Path(str(member_id)) / model_name
+
+    if seed == -1:
+        seed = random.randint(0, 2 ** 32 - 1)
+        
 
     form_data = {
         "model": model_path,
@@ -62,15 +69,22 @@ def text_to_image(
     response = requests.post(settings.AI_SERVER_URL + "/generation/txt-to-img", data=form_data)
 
     if response.status_code != 200:
-        return Response(status_code=response.status_code, content=response.content)
+        raise HTTPException(status_code=response.status_code, detail=response.text)
 
-    response_data = response.json()
+    # Response 데이터를 메모리 내 ZIP 파일 형태로 처리할 수 있도록 변환
+    zip_file_bytes = io.BytesIO(response.content)
 
-    image_list = response_data.get("image_list")
-    metadata = response_data.get("metadata")
+    # ZIP 파일에서 이미지 추출하기
+    image_list = []
+    with zipfile.ZipFile(zip_file_bytes) as zip_file:
+        for name in zip_file.namelist():
+            image_data = zip_file.read(name)
+            image_stream = io.BytesIO(image_data)
+            image_list.append(image_stream)
+
     image_url_list = upload_files(image_list, "tti")
 
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
-        content={"image_list": image_url_list, "metadata": metadata}
+        content={"image_list": image_url_list}
     )

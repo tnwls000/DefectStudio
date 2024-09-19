@@ -69,3 +69,5 @@ class TokenUsageRead(BaseModel):
 class TokenUse(BaseModel):
     cost: int
     use_type: UseType
+    image_quantity: int
+    model: str

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from models import Member
 from schema.tokens import TokenCreate, TokenCreates, TokenUsageCreate, TokenReadByDepartment, TokenDistribute
-from schema.token_logs import TokenLogCreate, TokenLogSearch
+from schema.token_logs import TokenLogCreate
 from enums import Role, LogType
 from crud import members as members_crud, tokens as tokens_crud, token_logs as token_logs_crud
 from dependencies import get_db, get_current_user

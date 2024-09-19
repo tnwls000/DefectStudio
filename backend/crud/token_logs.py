@@ -4,7 +4,7 @@ from fastapi import Depends
 from dependencies import get_db
 from enums import LogType, UseType
 from models import TokenLog
-from schema.token_logs import TokenUsageLogRead, TokenLogSearch, TokenLogRead
+from schema.token_logs import TokenUsageLogRead, TokenLogRead
 
 
 def get_token_usage_logs(session: Depends(get_db),

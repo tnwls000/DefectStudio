@@ -20,7 +20,7 @@ class GenerationPreset(Document):
     strength: Optional[int] = None
     guidance_scale: Optional[float] = None
     sampling_steps: Optional[int] = None
-    sampling_method: Optional[str] = None
+    scheduler: Optional[str] = None
     seed: Optional[int] = None
     member_id: Optional[int] = None
     date: datetime = datetime.today()
@@ -36,5 +36,5 @@ class GenerationPresetUpdate(BaseModel):
     strength: Optional[int] = None
     guidance_scale: Optional[float] = None
     sampling_steps: Optional[int] = None
-    sampling_method: Optional[str] = None
+    scheduler: Optional[str] = None
     seed: Optional[int] = None

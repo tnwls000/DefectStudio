@@ -14,7 +14,7 @@ class MemberCreate(BaseModel):
 
 
 class MemberRead(BaseModel):
-    member_pk: int
+    member_id: int
     login_id: str
     nickname: str
     email: EmailStr

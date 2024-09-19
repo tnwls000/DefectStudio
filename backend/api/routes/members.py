@@ -116,7 +116,7 @@ def update_member_me(request: MemberUpdate, member: Member = Depends(get_current
     return response
 
 
-@router.delete("", response_model=MemberRead)
+@router.delete("")
 def delete_member_me(member: Member = Depends(get_current_user), session: Session = Depends(get_db)):
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자를 찾을 수 없습니다.")

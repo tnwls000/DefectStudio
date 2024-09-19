@@ -6,6 +6,8 @@ import torch
 from diffusers import StableDiffusionPipeline
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from core.config import settings
+from pathlib import Path
 
 from utils import get_scheduler
 
@@ -31,7 +33,10 @@ async def text_to_image(request: Request):
     batch_size = int(form.get("batch_size"))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    t2i_pipe = StableDiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
+    model_dir = settings.OUTPUT_DIR
+    model_path = Path(model_dir) / model
+    
+    t2i_pipe = StableDiffusionPipeline.from_pretrained(model_path, torch_dtype=torch.float16).to(device)
 
     if scheduler:
         t2i_pipe.scheduler = get_scheduler(scheduler, t2i_pipe.scheduler.config)

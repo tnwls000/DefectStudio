@@ -174,4 +174,4 @@ async def reject_guest_member(member_id: int,
 
     session.delete(guest)
     session.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT, content="해당 임시 회원이 성공적으로 삭제되었습니다.")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

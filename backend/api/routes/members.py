@@ -121,7 +121,7 @@ def delete_member_me(member: Member = Depends(get_current_user), session: Sessio
 
     session.delete(member)
     session.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT, content="회원 정보가 삭제되었습니다.")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.get("/{member_id}/statistics/images")
 def get_statistics_daily_images(member_id: int,

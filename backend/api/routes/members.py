@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Query
 from sqlalchemy.orm import Session, joinedload
-from fastapi import HTTPException, Response, status, Depends, Form
+from fastapi import HTTPException, Response, status, Depends
+from starlette.responses import JSONResponse
+
 from crud import members as members_crud, tokens as tokens_crud, token_logs as token_logs_crud
 from models import *
 from dependencies import get_db, get_current_user
@@ -130,3 +132,45 @@ def delete_member_me(member: Member = Depends(get_current_user), session: Sessio
     session.delete(member)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT, content="회원 정보가 삭제되었습니다.")
+
+@router.get("/{member_id}/statistics/images")
+def get_statistics_daily_images(member_id: int,
+                                member: Member = Depends(get_current_user),
+                                session: Session = Depends(get_db)):
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자를 찾을 수 없습니다.")
+    if member.member_id != member_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="사용자 pk가 일치하지 않습니다.")
+
+    statistics = token_logs_crud.get_statistics_images_by_member_id(session, member.member_id)
+
+    results = [{"create_date": record[0].isoformat(), "image_quantity": record[1]} for record in statistics]
+    return JSONResponse(status_code=status.HTTP_200_OK, content=results)
+
+@router.get("/{members_id}/statistics/tools")
+def get_statistics_tools(member_id: int,
+                        member: Member = Depends(get_current_user),
+                        session: Session = Depends(get_db)):
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자를 찾을 수 없습니다.")
+    if member.member_id != member_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="사용자 pk가 일치하지 않습니다.")
+
+    statistics = token_logs_crud.get_statistics_tools_by_member_id(session, member.member_id)
+
+    results = [{"use_type": record[0].value, "usage":record[1]} for record in statistics]
+    return JSONResponse(status_code=status.HTTP_200_OK, content=results)
+
+@router.get("/{member_id}/statistics/models")
+def get_statistics_models(member_id: int,
+                        member: Member = Depends(get_current_user),
+                        session: Session = Depends(get_db)):
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자를 찾을 수 없습니다.")
+    if member.member_id != member_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="사용자 pk가 일치하지 않습니다.")
+
+    statistics = token_logs_crud.get_statistics_models_by_member_id(session, member.member_id)
+
+    results = [{"model":record[0], "usage":record[1]} for record in statistics]
+    return JSONResponse(status_code=status.HTTP_200_OK, content=results)

@@ -18,12 +18,13 @@ router = APIRouter(
     prefix="/txt-to-img",
 )
 
+base_models = settings.BASE_MODEL_NAME.split("|")
 
 @router.post("/{gpu_env}")
 def text_to_image(
         gpu_env: GPUEnvironment,
         current_user: Member = Depends(get_current_user),
-        model: str = Form(settings.BASE_MODEL_NAME),
+        model: str = Form(base_models[0]),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
         negative_prompt: Optional[str] = Form(None, examples=[""]),
@@ -42,9 +43,10 @@ def text_to_image(
     member_id = current_user.member_id
     model_name = model
 
-    if settings.BASE_MODEL_NAME == model_name:
+    if model_name in base_models:
         model_path = model_name
     else:
+        # TODO 해당 member_id에 존재하는 모델인지 검증 로직 필요
         model_path = Path(str(member_id)) / model_name
 
     if seed == -1:

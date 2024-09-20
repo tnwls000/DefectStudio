@@ -1,15 +1,15 @@
 from datetime import datetime
-from typing import Optional
 
 from fastapi import Depends
 from dependencies import get_db
 from enums import LogType, UseType
 from models import TokenLog
 from schema.token_logs import TokenUsageLogRead, TokenLogRead, TokenLogCreate
+from sqlalchemy import select, func, case
 
 def create_token_log(session: Depends(get_db), token_log: TokenLogCreate):
     db_token_log = TokenLog(
-        create_date=datetime.today(),
+        create_date=datetime.today().date(),
         log_type=token_log.log_type,
         use_type=token_log.use_type,
         member_id=token_log.member_id,
@@ -57,3 +57,24 @@ def get_token_logs(session: Depends(get_db), log_type: LogType, start_date: date
     token_logs = query.all()
 
     return [TokenLogRead.from_orm(token_log) for token_log in token_logs]
+
+def get_statistics_images_by_member_id(session: Depends(get_db), member_id: int):
+    return session.query(TokenLog.create_date, func.sum(TokenLog.image_quantity)).\
+             filter(TokenLog.member_id == member_id, TokenLog.log_type == LogType.use).\
+             group_by(TokenLog.create_date).\
+             order_by(TokenLog.create_date.asc()).\
+             all()
+
+def get_statistics_tools_by_member_id(session: Depends(get_db), member_id: int):
+    return session.query(TokenLog.use_type, func.count(TokenLog.use_type)).\
+        filter(TokenLog.member_id == member_id, TokenLog.log_type == LogType.use).\
+        group_by(TokenLog.use_type).\
+        order_by(TokenLog.use_type.asc()).\
+        all()
+
+def get_statistics_models_by_member_id(session: Depends(get_db), member_id: int):
+    return session.query(TokenLog.model, func.count(TokenLog.model)).\
+        filter(TokenLog.member_id == member_id, TokenLog.log_type == LogType.use).\
+        group_by(TokenLog.model).\
+        order_by(TokenLog.model.asc()).\
+        all()

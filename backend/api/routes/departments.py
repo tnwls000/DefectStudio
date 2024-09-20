@@ -78,7 +78,7 @@ async def get_statistics_tokens_distributions(department_id: int,
 
     statistics = token_logs_crud.get_statistics_tokens_distributions_by_department_id(session, department_id,
                                                                                       start_date, end_date)
-    results = [{"create_date": record[0].isoformat(), "token_quantity": record[1]} for record in statistics]
+    results = [{"distribute_date": record[0].isoformat(), "token_quantity": record[1]} for record in statistics]
     return JSONResponse(status_code=status.HTTP_200_OK, content=results)
 
 @router.get("/{department_id}/members/statistics/tokens/usage")

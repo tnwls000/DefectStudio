@@ -132,22 +132,6 @@ async def distribute_token(
 
     return Response(status_code=201, content="토큰이 해당 부서의 회원들에게 분배되었습니다.")
 
-@router.get("/token-logs/{log_type}")
-@role_required([Role.super_admin, Role.department_admin])
-async def get_token_logs(log_type: LogType,
-                         start_date: Optional[datetime] = Query(None),
-                         end_date: Optional[datetime] = Query(None),
-                         department_id: Optional[int] = Query(None),
-                         session: Session = Depends(get_db),
-                         current_user: Member = Depends(get_current_user)):
-    if current_user.role == Role.department_admin:
-        department_id = current_user.department_id
-
-    if not department_id:
-        raise HTTPException(status_code=422, detail="부서 아이디가 필요합니다.")
-
-    return token_logs_crud.get_token_logs(session, log_type, start_date, end_date, department_id)
-
 @router.get("/members/guests")
 @role_required([Role.super_admin])
 async def get_guest_members(session: Session = Depends(get_db),

@@ -23,41 +23,6 @@ def create_token_log(session: Depends(get_db), token_log: TokenLogCreate):
     session.refresh(db_token_log)
     return db_token_log
 
-def get_token_usage_logs(session: Depends(get_db),
-                         member_id: int,
-                         start_date: datetime,
-                         end_date: datetime,
-                         use_type: UseType):
-    query = session.query(TokenLog).filter(
-                TokenLog.log_type == LogType.use,
-                TokenLog.member_id == member_id,
-                TokenLog.use_type == use_type)
-
-    if start_date:
-        query = query.filter(TokenLog.create_date >= start_date)
-
-    if end_date:
-        query = query.filter(TokenLog.create_date <= end_date)
-
-    token_logs = query.all()
-
-    return [TokenUsageLogRead.from_orm(token_log) for token_log in token_logs]
-
-def get_token_logs(session: Depends(get_db), log_type: LogType, start_date: datetime, end_date: datetime, department_id: int):
-    query = session.query(TokenLog).filter(
-        TokenLog.department_id == department_id,
-        TokenLog.log_type == log_type)
-
-    if start_date:
-        query = query.filter(TokenLog.create_date >= start_date)
-
-    if end_date:
-        query = query.filter(TokenLog.create_date <= end_date)
-
-    token_logs = query.all()
-
-    return [TokenLogRead.from_orm(token_log) for token_log in token_logs]
-
 def get_statistics_images_by_member_id(session: Depends(get_db), member_id: int):
     return session.query(TokenLog.create_date, func.sum(TokenLog.image_quantity)).\
              filter(TokenLog.member_id == member_id, TokenLog.log_type == LogType.use).\
@@ -78,6 +43,19 @@ def get_statistics_models_by_member_id(session: Depends(get_db), member_id: int)
         group_by(TokenLog.model).\
         order_by(TokenLog.model.asc()).\
         all()
+
+def get_statistics_tokens_usage_by_member_id(session: Depends(get_db), member_id: int, start_date: datetime, end_date: datetime):
+    query = session.query(TokenLog.create_date, TokenLog.use_type, TokenLog.quantity).filter(
+        TokenLog.log_type == LogType.use,
+        TokenLog.member_id == member_id)
+
+    if start_date:
+        query = query.filter(TokenLog.create_date >= start_date)
+
+    if end_date:
+        query = query.filter(TokenLog.create_date <= end_date)
+
+    return query.all()
 
 def get_statistics_images_by_department_id(session: Depends(get_db), department_id: int):
     return session.query(TokenLog.member_id, Member.name, func.sum(TokenLog.image_quantity)).\

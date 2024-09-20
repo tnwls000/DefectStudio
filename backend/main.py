@@ -1,13 +1,11 @@
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 import uvicorn
 from apscheduler.schedulers.background import BackgroundScheduler
 from beanie import init_beanie
-from celery import Celery
 from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
-from redis import Redis
-import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 from starlette.middleware.cors import CORSMiddleware
@@ -49,18 +47,11 @@ async def lifespan(app: FastAPI):
     yield
     scheduler.shutdown()
 
+
+# FastAPI Application 생성 및 설정
+
 app = FastAPI(lifespan=lifespan)
-
-
-# Celery 설정
-
-redis_conn = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-
-celery = Celery(
-    __name__,
-    broker=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0",
-    backend=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0"
-)
+app.include_router(api_router, prefix="/api")
 
 
 # CORS 설정
@@ -102,11 +93,6 @@ sentry_sdk.init(
         ),
     ]
 )
-
-
-# Router 설정
-
-app.include_router(api_router, prefix="/api")
 
 
 # 서버 실행

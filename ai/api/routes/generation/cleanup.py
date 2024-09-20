@@ -56,7 +56,7 @@ async def cleanup(request: Request):
             f"--output={temp_output_dir}"
         ]
 
-        result = subprocess.run(cmd, shell=True)
+        result = subprocess.run(cmd, check=True)
 
         if result.returncode == 0:
             output_images = []

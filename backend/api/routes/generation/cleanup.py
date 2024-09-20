@@ -42,13 +42,13 @@ async def cleanup(
     zip_file_bytes = io.BytesIO(response.content)
 
     # ZIP 파일에서 이미지 추출하기
-    init_image_list = []
+    image_list = []
     with zipfile.ZipFile(zip_file_bytes) as zip_file:
         for name in zip_file.namelist():
             image_data = zip_file.read(name)
             image_stream = io.BytesIO(image_data)
-            init_image_list.append(image_stream)
-    response_data = response.json()
-    init_image_list = response_data.get("image_list")
-    image_url_list = upload_files(init_image_list, "cleanup")
+            image_list.append(image_stream)
+
+    image_url_list = upload_files(image_list, "cleanup")
+
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={"image_list": image_url_list})

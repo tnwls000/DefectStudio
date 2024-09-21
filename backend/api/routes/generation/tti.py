@@ -13,6 +13,7 @@ from pathlib import Path
 from core.config import settings
 from enums import GPUEnvironment, SchedulerType
 from utils.s3 import upload_files
+from utils.celery import generate_task
 
 router = APIRouter(
     prefix="/txt-to-img",
@@ -66,25 +67,11 @@ def text_to_image(
         "output_path": output_path,
     }
 
-    response = requests.post(settings.AI_SERVER_URL + "/generation/txt-to-img", data=form_data)
-
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-
-    # Response 데이터를 메모리 내 ZIP 파일 형태로 처리할 수 있도록 변환
-    zip_file_bytes = io.BytesIO(response.content)
-
-    # ZIP 파일에서 이미지 추출하기
-    image_list = []
-    with zipfile.ZipFile(zip_file_bytes) as zip_file:
-        for name in zip_file.namelist():
-            image_data = zip_file.read(name)
-            image_stream = io.BytesIO(image_data)
-            image_list.append(image_stream)
-
-    image_url_list = upload_files(image_list, "tti")
-
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED,
-        content={"image_list": image_url_list}
+    task = generate_task.apply_async(
+        args=[settings.AI_SERVER_URL + "/generation/txt-to-img"],
+        kwargs={
+            "data": form_data
+        }
     )
+
+    return {"task_id": task.id, "status": "Task sent to worker"}

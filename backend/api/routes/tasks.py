@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status
-from utils import celery
+from utils.celery import celery
 from starlette.responses import JSONResponse
 
 router = APIRouter(

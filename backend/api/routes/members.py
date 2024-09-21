@@ -80,16 +80,6 @@ def use_tokens(token_use: TokenUse,
 
     return Response(status_code=200, content="토큰이 사용되었습니다.")
 
-@router.get("/token-logs/use")
-def get_token_logs(member_id: int,
-                   start_date: Optional[datetime] = Query(None),
-                   end_date: Optional[datetime] = Query(None),
-                   use_type: UseType = Query(...),
-                   session: Session = Depends(get_db),
-                   member: Member = Depends(get_current_user)):
-
-    return token_logs_crud.get_token_usage_logs(session, member_id, start_date, end_date, use_type)
-
 @router.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):
     member = session.query(Member).options(joinedload(Member.department)).filter(
@@ -131,7 +121,7 @@ def delete_member_me(member: Member = Depends(get_current_user), session: Sessio
 
     session.delete(member)
     session.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT, content="회원 정보가 삭제되었습니다.")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.get("/{member_id}/statistics/images")
 def get_statistics_daily_images(member_id: int,
@@ -173,4 +163,19 @@ def get_statistics_models(member_id: int,
     statistics = token_logs_crud.get_statistics_models_by_member_id(session, member.member_id)
 
     results = [{"model":record[0], "usage":record[1]} for record in statistics]
+    return JSONResponse(status_code=status.HTTP_200_OK, content=results)
+
+@router.get("/{member_id}/statistics/tokens/usage")
+def get_statistics_tokens_usage(member_id: int,
+                        start_date: Optional[datetime] = Query(None),
+                        end_date: Optional[datetime] = Query(None),
+                        member: Member = Depends(get_current_user),
+                        session: Session = Depends(get_db)):
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자를 찾을 수 없습니다.")
+    if member.member_id != member_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="사용자 pk가 일치하지 않습니다.")
+
+    statistics = token_logs_crud.get_statistics_tokens_usage_by_member_id(session, member_id, start_date, end_date)
+    results = [{"usage_date": record[0].isoformat(), "use_type": record[1].value, "token_quantity": record[2]} for record in statistics]
     return JSONResponse(status_code=status.HTTP_200_OK, content=results)

@@ -24,7 +24,7 @@ async def image_to_image(
 ):
     form = await request.form()
 
-    model = form.get("model", "CompVis/stable-diffusion-v1-4")
+    model = form.get("model")
     scheduler = form.get("scheduler")
     prompt = form.get("prompt")
     negative_prompt = form.get("negative_prompt")

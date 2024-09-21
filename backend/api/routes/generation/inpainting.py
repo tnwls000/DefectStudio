@@ -4,8 +4,11 @@ import zipfile
 from typing import Optional, List
 
 import requests
-from fastapi import APIRouter, status, HTTPException, Response, Form, UploadFile, File
+from fastapi import APIRouter, status, HTTPException, Response, Form, UploadFile, File, Depends
 from starlette.responses import JSONResponse
+from dependencies import get_current_user
+from models import Member
+from pathlib import Path
 
 from core.config import settings
 from enums import GPUEnvironment, SchedulerType
@@ -15,11 +18,13 @@ router = APIRouter(
     prefix="/inpainting",
 )
 
+base_models = settings.BASE_MODEL_NAME.split("|")
 
 @router.post("/{gpu_env}")
 async def inpainting(
         gpu_env: GPUEnvironment,
-        model: str = Form("diffusers/stable-diffusion-xl-1.0-inpainting-0.1"),
+        current_user: Member = Depends(get_current_user),
+        model: str = Form(base_models[-1]),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
         prompt: str = Form(..., description="이미지를 생성할 텍스트 프롬프트"),
         negative_prompt: Optional[str] = Form(None, description="네거티브 프롬프트", examples=[""]),
@@ -45,8 +50,17 @@ async def inpainting(
     if seed == -1:
         seed = random.randint(0, 2 ** 32 - 1)
 
+    member_id = current_user.member_id
+    model_name = model
+
+    if model_name in base_models:
+        model_path = model_name
+    else:
+        # TODO 해당 member_id에 존재하는 모델인지 검증 로직 필요
+        model_path = Path(str(member_id)) / model_name
+
     form_data = {
-        "model": model,
+        "model": model_path,
         "scheduler": scheduler.value if scheduler else None,
         "prompt": prompt,
         "negative_prompt": negative_prompt,

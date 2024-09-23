@@ -12,22 +12,12 @@ from models import Member
 from typing import List, Optional
 from enums import Role
 from functools import wraps
+from api.routes.admin import role_required
 
 router = APIRouter(
     prefix="/departments",
     tags=["departments"]
 )
-
-# role decorator
-def role_required(allowed_roles: List[Role]):
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(current_user: Member =Depends(get_current_user), *args,  **kwargs):
-            if current_user.role not in allowed_roles:
-                raise HTTPException(status_code=403, detail="권한이 없습니다.")
-            return await func(current_user=current_user, *args, **kwargs)
-        return wrapper
-    return decorator
 
 @router.get("")
 async def get_departments(session: Session = Depends(get_db)):
@@ -43,7 +33,7 @@ async def get_members_by_department(department_id: int,
 
 @router.get("/{department_id}/members/statistics/images")
 @role_required([Role.super_admin, Role.department_admin])
-async def get_statistics_images(department_id: int,
+async def get_statistics_images_by_department_id(department_id: int,
                                 session: Session = Depends(get_db),
                                 current_user: Member = Depends(get_current_user)):
 
@@ -91,4 +81,20 @@ async def get_statistics_tokens_usage(department_id: int,
 
     statistics = token_logs_crud.get_statistics_tokens_usage_by_department_id(session, department_id)
     results = [{"member_id": record[0], "member_name": record[1], "token_quantity": record[2]} for record in statistics]
+    return JSONResponse(status_code=status.HTTP_200_OK, content=results)
+
+@router.get("/statistics/images")
+@role_required([Role.super_admin])
+async def get_statistics_images(session: Session = Depends(get_db),
+                                      current_user: Member = Depends(get_current_user)):
+    statistics = token_logs_crud.get_statistics_images_by_departments(session)
+    results = [{"department_id": record[0], "department_name": record[1], "image_quantity": record[2]} for record in statistics]
+    return JSONResponse(status_code=status.HTTP_200_OK, content=results)
+
+@router.get("/statistics/tools")
+@role_required([Role.super_admin])
+async def get_statistics_tools(session: Session = Depends(get_db),
+                               current_user: Member = Depends(get_current_user)):
+    statistics = token_logs_crud.get_statistics_tools(session)
+    results = [{"department_id": record[0], "department_name": record[1], "use_type": record[2].value, "usage": record[3]} for record in statistics]
     return JSONResponse(status_code=status.HTTP_200_OK, content=results)

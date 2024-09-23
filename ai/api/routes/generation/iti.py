@@ -1,17 +1,15 @@
-import base64
-import random
 from io import BytesIO
-from core.config import settings
 from pathlib import Path
 
 import PIL.Image
 import torch
 from diffusers import StableDiffusionImg2ImgPipeline
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
 from starlette.responses import StreamingResponse
 
-from utils import get_scheduler, generate_zip_from_images
+from core.config import settings
+from utils.scheduler import get_scheduler
+from utils.zip import generate_zip_from_images
 
 router = APIRouter(
     prefix="/img-to-img",

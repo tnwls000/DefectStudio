@@ -69,11 +69,5 @@ def text_to_image(
         "output_path": output_path,
     }
 
-    task = generate_task.apply_async(
-        args=[settings.AI_SERVER_URL + "/generation/txt-to-img"],
-        kwargs={
-            "data": form_data
-        }
-    )
-
-    return {"task_id": task.id, "status": "Task sent to worker"}
+    json_response = requests.post(settings.AI_SERVER_URL + "/generation/txt-to-img", data=form_data).json()
+    return {"task_id": json_response.get("task_id")}

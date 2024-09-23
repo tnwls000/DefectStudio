@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from starlette.responses import StreamingResponse
 from transformers import pipeline
 
-from utils import generate_zip_from_images
+from utils.zip import generate_zip_from_images
 
 router = APIRouter(
     prefix="/remove-bg"

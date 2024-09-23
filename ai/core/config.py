@@ -13,5 +13,9 @@ class Settings(BaseSettings):
     # LOGGER
     SENTRY_DSN: str
 
+    # REDIS
+    REDIS_HOST: str
+    REDIS_PORT: str
+
 # 환경 변수 로드 및 검증
 settings = Settings()

@@ -123,16 +123,16 @@ def delete_member_me(member: Member = Depends(get_current_user), session: Sessio
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.get("/statistics/rank")
+@router.get("/statistics/rank/{rank_criteria}")
 @role_required([Role.super_admin])
-async def get_statistics_rank(rank_criteria: str = Query(..., description="image_usage, tool_usage, model_usage, token_usage"),
+async def get_statistics_rank(rank_criteria: str,
                         session: Session = Depends(get_db),
                         current_user: Member = Depends(get_current_user)):
     results = {}
-    if rank_criteria == "image_usage":
+    if rank_criteria == "image":
         statistics = token_logs_crud.get_statistics_images_with_rank(session)
         results = [{"rank": record[0], "member_id": record[1], "member_name": record[2], "quantity": record[3]} for record in statistics]
-    elif rank_criteria == "tool_usage":
+    elif rank_criteria == "tool":
         statistics = token_logs_crud.get_statistics_tools_with_rank(session)
         results = {}
         for record in statistics:
@@ -145,7 +145,7 @@ async def get_statistics_rank(rank_criteria: str = Query(..., description="image
                 "member_name": record[3],
                 "quantity": record[4]
             })
-    elif rank_criteria == "model_usage":
+    elif rank_criteria == "model":
         statistics = token_logs_crud.get_statistics_models_with_rank(session)
         for record in statistics:
             model = record[0]
@@ -157,7 +157,7 @@ async def get_statistics_rank(rank_criteria: str = Query(..., description="image
                 "member_name": record[3],
                 "quantity": record[4]
             })
-    elif rank_criteria == "token_usage":
+    elif rank_criteria == "token":
         statistics = token_logs_crud.get_statistics_tokens_usage_with_rank(session)
         results = [{"rank": record[0], "member_id": record[1], "member_name": record[2], "quantity": record[3]} for record in statistics]
     else:

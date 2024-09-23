@@ -10,7 +10,7 @@ from schema.members import MemberCreate, MemberRead, MemberUpdate
 from schema.token_logs import TokenLogCreate
 from schema.tokens import TokenUsageRead, TokenUse
 from typing import List, Optional
-from enums import UseType
+from api.routes.admin import role_required
 
 router = APIRouter(
     prefix="/members",
@@ -122,6 +122,47 @@ def delete_member_me(member: Member = Depends(get_current_user), session: Sessio
     session.delete(member)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/statistics/rank")
+@role_required([Role.super_admin])
+async def get_statistics_rank(rank_criteria: str = Query(..., description="daily_image, tool_usage, model_usage, token_usage"),
+                        session: Session = Depends(get_db),
+                        current_user: Member = Depends(get_current_user)):
+    results = {}
+    if rank_criteria == "daily_image":
+        statistics = token_logs_crud.get_statistics_images_with_rank(session)
+        results = [{"rank": record[0], "member_id": record[1], "member_name": record[2], "quantity": record[3]} for record in statistics]
+    elif rank_criteria == "tool_usage":
+        statistics = token_logs_crud.get_statistics_tools_with_rank(session)
+        results = {}
+        for record in statistics:
+            use_type = record[0].value
+            if use_type not in results:
+                results[use_type] = []
+            results[use_type].append({
+                "rank": record[1],
+                "member_id": record[2],
+                "member_name": record[3],
+                "quantity": record[4]
+            })
+    elif rank_criteria == "model_usage":
+        statistics = token_logs_crud.get_statistics_models_with_rank(session)
+        for record in statistics:
+            model = record[0]
+            if model not in results:
+                results[model] = []
+            results[model].append({
+                "rank": record[1],
+                "member_id": record[2],
+                "member_name": record[3],
+                "quantity": record[4]
+            })
+    elif rank_criteria == "token_usage":
+        statistics = token_logs_crud.get_statistics_tokens_usage_with_rank(session)
+        results = [{"rank": record[0], "member_id": record[1], "member_name": record[2], "quantity": record[3]} for record in statistics]
+    else:
+        raise HTTPException(status_code=400, detail="해당하는 ranking criteria가 없습니다.")
+    return JSONResponse(status_code=status.HTTP_200_OK, content=results)
 
 @router.get("/{member_id}/statistics/images")
 def get_statistics_daily_images(member_id: int,

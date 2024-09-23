@@ -125,11 +125,11 @@ def delete_member_me(member: Member = Depends(get_current_user), session: Sessio
 
 @router.get("/statistics/rank")
 @role_required([Role.super_admin])
-async def get_statistics_rank(rank_criteria: str = Query(..., description="daily_image, tool_usage, model_usage, token_usage"),
+async def get_statistics_rank(rank_criteria: str = Query(..., description="image_usage, tool_usage, model_usage, token_usage"),
                         session: Session = Depends(get_db),
                         current_user: Member = Depends(get_current_user)):
     results = {}
-    if rank_criteria == "daily_image":
+    if rank_criteria == "image_usage":
         statistics = token_logs_crud.get_statistics_images_with_rank(session)
         results = [{"rank": record[0], "member_id": record[1], "member_name": record[2], "quantity": record[3]} for record in statistics]
     elif rank_criteria == "tool_usage":

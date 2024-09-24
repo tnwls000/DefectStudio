@@ -87,6 +87,9 @@ async def distribute_token(
        current_user : Member = Depends(get_current_user)):
     token = tokens_crud.get_token_by_token_id(session, token_id)
 
+    if not token:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="없는 token_id입니다.")
+
     # member_ids가 없으면 부서의 모든 회원 조회, 있으면 해당 회원들 조회
     if token_distribute.member_ids:
         members = members_crud.get_members_by_member_ids(session, token_distribute.member_ids)

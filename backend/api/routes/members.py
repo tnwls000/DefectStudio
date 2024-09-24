@@ -1,16 +1,24 @@
+import random
+import string
+
 from fastapi import APIRouter, Query
+from fastapi_mail import MessageSchema, MessageType, FastMail, ConnectionConfig
+from aioredis import Redis
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException, Response, status, Depends
 from starlette.responses import JSONResponse
 
+from core.config import settings
 from crud import members as members_crud, tokens as tokens_crud, token_logs as token_logs_crud
 from models import *
-from dependencies import get_db, get_current_user
-from schema.members import MemberCreate, MemberRead, MemberUpdate
+from dependencies import get_db, get_current_user, get_redis
+from schema.members import MemberCreate, MemberRead, MemberUpdate, EmailVerificationRequest, EmailVerificationCheck
 from schema.token_logs import TokenLogCreate
 from schema.tokens import TokenUsageRead, TokenUse
 from typing import List, Optional
-from enums import UseType
+from api.routes.admin import role_required
+
+from core.security import hash_password
 
 router = APIRouter(
     prefix="/members",
@@ -80,6 +88,53 @@ def use_tokens(token_use: TokenUse,
 
     return Response(status_code=200, content="토큰이 사용되었습니다.")
 
+@router.post("/email")
+async def send_verification_email(email_request: EmailVerificationRequest, redis: Redis = Depends(get_redis)):
+    conf = ConnectionConfig(
+        MAIL_USERNAME=settings.MAIL_USERNAME,
+        MAIL_PASSWORD=settings.MAIL_PASSWORD,
+        MAIL_FROM=settings.MAIL_FROM,
+        MAIL_PORT=settings.MAIL_PORT,
+        MAIL_SERVER=settings.MAIL_SERVER,
+        MAIL_STARTTLS=settings.MAIL_STARTTLS,
+        MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
+    )
+
+    verification_code = generate_verification_code(8)
+    html = f"""<p>Hi, {email_request.name}.</p>
+                <p>We are sending you an authentication code to sign up for a defect studio membership.</p>
+                <p>Please enter this authentication code within 3 minutes.</p>
+                <h3>{verification_code}</h3> """
+
+    message = MessageSchema(
+        subject="Defect Studio Email Verification",
+        recipients=[email_request.email],
+        body=html,
+        subtype=MessageType.html)
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+    await redis.setex(email_request.email, 180, verification_code) # redis에 인증 코드 3분 유효 기간으로 저장
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content="이메일이 정상적으로 전송되었습니다.")
+
+def generate_verification_code(length: int):
+    characters = string.ascii_letters + string.digits
+    verification_code = ''.join(random.choice(characters) for _ in range(length))
+    return verification_code
+
+@router.post("/email/verification")
+async def verify_email(email_check: EmailVerificationCheck, redis: Redis = Depends(get_redis)):
+    verification_code = await redis.get(email_check.email)
+    if not verification_code:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="해당 이메일에 대한 인증 코드가 만료되었거나 아직 전송되지 않았습니다.")
+
+    if verification_code == email_check.verification_code:
+        return Response(status_code=status.HTTP_200_OK, content="이메일 인증이 확인되었습니다.")
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="인증 코드가 일치하지 않습니다.")
+
 @router.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):
     member = session.query(Member).options(joinedload(Member.department)).filter(
@@ -106,7 +161,7 @@ def update_member_me(request: MemberUpdate, member: Member = Depends(get_current
 
     update_data = request.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(member, key, value)
+        setattr(member, key, value if key != "password" else hash_password(value))
 
     session.commit()
     session.refresh(member)
@@ -122,6 +177,47 @@ def delete_member_me(member: Member = Depends(get_current_user), session: Sessio
     session.delete(member)
     session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.get("/statistics/rank/{rank_criteria}")
+@role_required([Role.super_admin])
+async def get_statistics_rank(rank_criteria: str,
+                        session: Session = Depends(get_db),
+                        current_user: Member = Depends(get_current_user)):
+    results = {}
+    if rank_criteria == "image":
+        statistics = token_logs_crud.get_statistics_images_with_rank(session)
+        results = [{"rank": record[0], "member_id": record[1], "member_name": record[2], "quantity": record[3]} for record in statistics]
+    elif rank_criteria == "tool":
+        statistics = token_logs_crud.get_statistics_tools_with_rank(session)
+        results = {}
+        for record in statistics:
+            use_type = record[0].value
+            if use_type not in results:
+                results[use_type] = []
+            results[use_type].append({
+                "rank": record[1],
+                "member_id": record[2],
+                "member_name": record[3],
+                "quantity": record[4]
+            })
+    elif rank_criteria == "model":
+        statistics = token_logs_crud.get_statistics_models_with_rank(session)
+        for record in statistics:
+            model = record[0]
+            if model not in results:
+                results[model] = []
+            results[model].append({
+                "rank": record[1],
+                "member_id": record[2],
+                "member_name": record[3],
+                "quantity": record[4]
+            })
+    elif rank_criteria == "token":
+        statistics = token_logs_crud.get_statistics_tokens_usage_with_rank(session)
+        results = [{"rank": record[0], "member_id": record[1], "member_name": record[2], "quantity": record[3]} for record in statistics]
+    else:
+        raise HTTPException(status_code=400, detail="해당하는 ranking criteria가 없습니다.")
+    return JSONResponse(status_code=status.HTTP_200_OK, content=results)
 
 @router.get("/{member_id}/statistics/images")
 def get_statistics_daily_images(member_id: int,

@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
     # Scheduler 설정
     scheduler = BackgroundScheduler()
     scheduler.add_job(expire_tokens, 'cron', hour=0, minute=0)  # 만료 TokenUsage 삭제 스케줄러
-    scheduler.add_job(delete_guests, 'interval', minutes=1)  # 만료 Member(role.guest) 삭제 스케줄러
+    scheduler.add_job(delete_guests, 'cron', hour=0, minute=0)  # 만료 Member(role.guest) 삭제 스케줄러
     scheduler.start()
 
     # Mongo DB 연결

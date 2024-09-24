@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from fastapi import Depends, HTTPException
+from sqlalchemy import cast, Date
 from sqlalchemy.exc import SQLAlchemyError
 from core.security import hash_password
 from dependencies import get_db
@@ -56,7 +57,7 @@ def get_expired_guests(session: Depends(get_db),
                        offset: int,
                        limit: int):
     return (session.query(Member)
-            .filter(Member.role == Role.guest, Member.create_date < three_days_ago)
+            .filter(Member.role == Role.guest, cast(Member.create_date, Date) < cast(three_days_ago, Date))
             .offset(offset)
             .limit(limit)
             .all())

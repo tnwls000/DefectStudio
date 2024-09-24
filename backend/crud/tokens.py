@@ -5,6 +5,7 @@ from fastapi import Depends
 from dependencies import get_db
 from models import Member, Token, TokenUsage, Department
 from schema.tokens import TokenCreate, TokenUsageCreate, TokenRead, TokenReadByDepartment, TokenUsageRead
+from sqlalchemy import Date, cast
 
 def create_token(session: Depends(get_db), token: TokenCreate):
     db_token = Token(
@@ -58,7 +59,7 @@ def get_expired_active_tokens_with_usages_and_members(
     return (session.query(Token, TokenUsage, Member)
             .join(TokenUsage, Token.token_id == TokenUsage.token_id)
             .join(Member, TokenUsage.member_id == Member.member_id)
-            .filter(Token.end_date < current_date, Token.is_active == True)
+            .filter(cast(Token.end_date, Date) < cast(current_date, Date), Token.is_active == True)
             .offset(offset)
             .limit(limit)
             .all())

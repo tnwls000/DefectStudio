@@ -56,3 +56,11 @@ class MemberUpdate(BaseModel):
     password: Optional[str] = Field(None, pattern=re.compile(r"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,20}$"))
     nickname: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
+
+class EmailVerificationRequest(BaseModel):
+    name: str
+    email: EmailStr
+
+class EmailVerificationCheck(BaseModel):
+    email: EmailStr
+    verification_code: str

@@ -5,6 +5,8 @@ import torch
 from diffusers import AutoPipelineForInpainting
 from fastapi import APIRouter, Request
 from starlette.responses import StreamingResponse
+from core.config import settings
+from pathlib import Path
 
 from utils.scheduler import get_scheduler
 from utils.zip import generate_zip_from_images
@@ -42,7 +44,11 @@ async def inpainting(
     seeds = [(seed + i) % (2 ** 32) for i in range(total_images)]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    inpaint_pipe = AutoPipelineForInpainting.from_pretrained(model, torch_dtype=torch.float16).to(device)
+
+    model_dir = settings.OUTPUT_DIR
+    model_path = Path(model_dir) / model
+
+    inpaint_pipe = AutoPipelineForInpainting.from_pretrained(model_path, torch_dtype=torch.float16).to(device)
     if scheduler:
         inpaint_pipe.scheduler = get_scheduler(scheduler, inpaint_pipe.scheduler.config)
 

@@ -36,7 +36,7 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
 
         # 모델 학습 파라미터
         # 모델 및 토크나이저 설정
-        pretrained_model_name_or_path = form.get("model_name")
+        pretrained_model_name_or_path = form.get("model")
         revision = form.get("revision", None)
         variant = form.get("variant", None)
         tokenizer_name = form.get("tokenizer_name", None)

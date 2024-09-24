@@ -38,7 +38,7 @@ async def image_to_image(
         seed: Optional[int] = Form(-1, description="이미지 생성 시 사용할 시드 값 (랜덤 시드: -1)"),
         batch_count: Optional[int] = Form(1, ge=1, le=10, description="호출할 횟수"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번의 호출에서 생성할 이미지 수"),
-        images: List[UploadFile] = File(..., description="초기 이미지 파일들"),
+        image_list: List[UploadFile] = File(..., description="초기 이미지 파일들"),
         input_path: Optional[str] = Form(None, description="이미지를 가져올 로컬 경로", examples=[""]),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로", examples=[""])
 ):
@@ -72,7 +72,7 @@ async def image_to_image(
         "batch_size": batch_size,
     }
 
-    files = [('images', (image.filename, await image.read(), image.content_type)) for image in images]
+    files = [('images', (image.filename, await image.read(), image.content_type)) for image in image_list]
     response = requests.post(settings.AI_SERVER_URL + "/generation/img-to-img", files=files, data=form_data)
 
     if response.status_code != 200:

@@ -71,4 +71,13 @@ class Settings(BaseSettings):
     # ETC
     BASE_MODEL_NAME: str
 
+    # SMTP
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_FROM: str
+    MAIL_PORT: int
+    MAIL_SERVER: str
+    MAIL_STARTTLS: bool
+    MAIL_SSL_TLS: bool
+
 settings = Settings()  # type: ignore

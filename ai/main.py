@@ -67,6 +67,8 @@ sentry_sdk.init(
     ]
 )
 
+torch.cuda.set_device(1)
+
 app.include_router(api_router)
 
 if __name__ == "__main__":

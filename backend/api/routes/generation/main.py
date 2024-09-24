@@ -80,7 +80,7 @@ async def get_task_status(task_id: str, redis: Redis = Depends(get_redis)):
             image_url_list = task_result.get("result")
 
         return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
+            status_code=status.HTTP_200_OK,
             content={
                 "status": task_result.get("status"),
                 "message": "Task가 완료되었습니다.",

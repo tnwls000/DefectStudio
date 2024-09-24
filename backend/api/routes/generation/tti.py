@@ -1,19 +1,14 @@
-import io
 import random
-import zipfile
+from pathlib import Path
 from typing import Optional
 
 import requests
-from fastapi import APIRouter, Response, status, HTTPException, Form, Depends
-from starlette.responses import JSONResponse
-from dependencies import get_current_user
-from models import Member
+from fastapi import APIRouter, status, HTTPException, Form, Depends
 
-from pathlib import Path
 from core.config import settings
+from dependencies import get_current_user
 from enums import GPUEnvironment, SchedulerType
-from utils.s3 import upload_files
-from utils.celery import generate_task
+from models import Member
 
 router = APIRouter(
     prefix="/txt-to-img",

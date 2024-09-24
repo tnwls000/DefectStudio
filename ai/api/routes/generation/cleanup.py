@@ -1,13 +1,13 @@
 import os
 import subprocess
-import torch
 from tempfile import TemporaryDirectory
 
+import torch
 from PIL import Image
 from fastapi import APIRouter, Request, HTTPException, status
 from starlette.responses import StreamingResponse
 
-from utils import generate_zip_from_images
+from utils.zip import generate_zip_from_images
 
 router = APIRouter(
     prefix="/cleanup",

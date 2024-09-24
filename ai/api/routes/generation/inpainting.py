@@ -1,17 +1,15 @@
-import base64
-import random
 from io import BytesIO
 
 import PIL.Image
 import torch
 from diffusers import AutoPipelineForInpainting
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
 from starlette.responses import StreamingResponse
 from core.config import settings
 from pathlib import Path
 
-from utils import get_scheduler, generate_zip_from_images
+from utils.scheduler import get_scheduler
+from utils.zip import generate_zip_from_images
 
 router = APIRouter(
     prefix="/inpainting",

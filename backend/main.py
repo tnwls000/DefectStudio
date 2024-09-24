@@ -1,14 +1,11 @@
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 import uvicorn
 from apscheduler.schedulers.background import BackgroundScheduler
 from beanie import init_beanie
-from celery import Celery
 from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
-from redis import Redis
-from rq import Queue
-import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 from starlette.middleware.cors import CORSMiddleware
@@ -20,6 +17,8 @@ from models import *
 from scheduler import expire_tokens, delete_guests
 from schema.presets import GenerationPreset
 
+
+# 생명주기 설정
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -48,17 +47,14 @@ async def lifespan(app: FastAPI):
     yield
     scheduler.shutdown()
 
+
+# FastAPI Application 생성 및 설정
+
 app = FastAPI(lifespan=lifespan)
+app.include_router(api_router, prefix="/api")
 
-# Managing Redis queues directly with rq
-redis_conn = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-task_queue = Queue("task_queue", connection=redis_conn)
 
-celery = Celery(
-    __name__,
-    broker=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0",
-    backend=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0"
-)
+# CORS 설정
 
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
@@ -70,6 +66,8 @@ if settings.BACKEND_CORS_ORIGINS:
         expose_headers=["Authorization", "Content-Length", "Set-Cookie"],
     )
 
+
+# Sentry 설정
 
 def before_send(event, hint):
     # 이벤트에 태그를 추가
@@ -96,14 +94,8 @@ sentry_sdk.init(
     ]
 )
 
-@celery.task
-def test_function(x, y):
-    import time
-    time.sleep(5)
-    return x / y
 
-
-app.include_router(api_router, prefix="/api")
+# 서버 실행
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

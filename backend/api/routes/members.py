@@ -124,6 +124,17 @@ def generate_verification_code(length: int):
     verification_code = ''.join(random.choice(characters) for _ in range(length))
     return verification_code
 
+@router.post("/email/verification")
+async def verify_email(email_check: EmailVerificationCheck, redis: Redis = Depends(get_redis)):
+    verification_code = await redis.get(email_check.email)
+    if not verification_code:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="해당 이메일에 대한 인증 코드가 만료되었거나 아직 전송되지 않았습니다.")
+
+    if verification_code == email_check.verification_code:
+        return Response(status_code=status.HTTP_200_OK, content="이메일 인증이 확인되었습니다.")
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="인증 코드가 일치하지 않습니다.")
+
 @router.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):
     member = session.query(Member).options(joinedload(Member.department)).filter(

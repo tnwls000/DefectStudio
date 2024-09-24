@@ -12,6 +12,8 @@ from schema.tokens import TokenUsageRead, TokenUse
 from typing import List, Optional
 from api.routes.admin import role_required
 
+from core.security import hash_password
+
 router = APIRouter(
     prefix="/members",
     tags=["members"]
@@ -106,7 +108,7 @@ def update_member_me(request: MemberUpdate, member: Member = Depends(get_current
 
     update_data = request.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(member, key, value)
+        setattr(member, key, value if key != "password" else hash_password(value))
 
     session.commit()
     session.refresh(member)

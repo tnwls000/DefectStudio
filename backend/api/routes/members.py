@@ -1,12 +1,18 @@
+import random
+import string
+
 from fastapi import APIRouter, Query
+from fastapi_mail import MessageSchema, MessageType, FastMail, ConnectionConfig
+from aioredis import Redis
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException, Response, status, Depends
 from starlette.responses import JSONResponse
 
+from core.config import settings
 from crud import members as members_crud, tokens as tokens_crud, token_logs as token_logs_crud
 from models import *
-from dependencies import get_db, get_current_user
-from schema.members import MemberCreate, MemberRead, MemberUpdate
+from dependencies import get_db, get_current_user, get_redis
+from schema.members import MemberCreate, MemberRead, MemberUpdate, EmailVerificationRequest, EmailVerificationCheck
 from schema.token_logs import TokenLogCreate
 from schema.tokens import TokenUsageRead, TokenUse
 from typing import List, Optional
@@ -81,6 +87,53 @@ def use_tokens(token_use: TokenUse,
     token_logs_crud.create_token_log(session, token_log_create)
 
     return Response(status_code=200, content="토큰이 사용되었습니다.")
+
+@router.post("/email")
+async def send_verification_email(email_request: EmailVerificationRequest, redis: Redis = Depends(get_redis)):
+    conf = ConnectionConfig(
+        MAIL_USERNAME=settings.MAIL_USERNAME,
+        MAIL_PASSWORD=settings.MAIL_PASSWORD,
+        MAIL_FROM=settings.MAIL_FROM,
+        MAIL_PORT=settings.MAIL_PORT,
+        MAIL_SERVER=settings.MAIL_SERVER,
+        MAIL_STARTTLS=settings.MAIL_STARTTLS,
+        MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
+    )
+
+    verification_code = generate_verification_code(8)
+    html = f"""<p>Hi, {email_request.name}.</p>
+                <p>We are sending you an authentication code to sign up for a defect studio membership.</p>
+                <p>Please enter this authentication code within 3 minutes.</p>
+                <h3>{verification_code}</h3> """
+
+    message = MessageSchema(
+        subject="Defect Studio Email Verification",
+        recipients=[email_request.email],
+        body=html,
+        subtype=MessageType.html)
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+    await redis.setex(email_request.email, 180, verification_code) # redis에 인증 코드 3분 유효 기간으로 저장
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content="이메일이 정상적으로 전송되었습니다.")
+
+def generate_verification_code(length: int):
+    characters = string.ascii_letters + string.digits
+    verification_code = ''.join(random.choice(characters) for _ in range(length))
+    return verification_code
+
+@router.post("/email/verification")
+async def verify_email(email_check: EmailVerificationCheck, redis: Redis = Depends(get_redis)):
+    verification_code = await redis.get(email_check.email)
+    if not verification_code:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="해당 이메일에 대한 인증 코드가 만료되었거나 아직 전송되지 않았습니다.")
+
+    if verification_code == email_check.verification_code:
+        return Response(status_code=status.HTTP_200_OK, content="이메일 인증이 확인되었습니다.")
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="인증 코드가 일치하지 않습니다.")
 
 @router.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):

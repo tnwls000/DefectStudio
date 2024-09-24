@@ -25,7 +25,7 @@ def get_db():
 async def get_redis() -> Redis:
     redis = await aioredis.from_url(
     f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
-        decode_responses=True
+        decode_responses=False
     )
     try:
         yield redis

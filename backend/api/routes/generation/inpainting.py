@@ -100,7 +100,7 @@ async def inpainting(
             image_stream = io.BytesIO(image_data)
             image_list.append(image_stream)
 
-    image_url_list = upload_files(image_list, "inpaint")
+    image_url_list = upload_files(image_list)
 
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,

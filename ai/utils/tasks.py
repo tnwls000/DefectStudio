@@ -11,7 +11,6 @@ from utils.zip import generate_zip_from_images
 
 @celery_app.task(name="generate", queue="gen_queue")
 def text_to_image_task(**kwargs):
-    # kwargs에서 필요한 값 추출
     model = kwargs["model"]
     scheduler = kwargs.get("scheduler")
     prompt = kwargs["prompt"]

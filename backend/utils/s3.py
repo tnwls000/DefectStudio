@@ -11,7 +11,7 @@ from core.config import settings
 
 
 # TODO : 비동기로 변경
-def upload_files(image_list: List[BytesIO], key: str) -> List[str]:
+def upload_files(image_list: List[BytesIO]) -> List[str]:
     s3_urls = []
     s3_client = boto3.client(
         's3',
@@ -24,7 +24,7 @@ def upload_files(image_list: List[BytesIO], key: str) -> List[str]:
     formatted_time = now.strftime("%H%M%S%f")
 
     for index, image_stream in enumerate(image_list):
-        image_key = f"{key}/{formatted_date}/{formatted_time}/{index + 1}"
+        image_key = f"{formatted_date}/{formatted_time}/{index + 1}"
         image_stream.seek(0)
 
         url = upload_file(s3_client, image_stream, image_key)

@@ -22,7 +22,7 @@ celery_app.conf.task_queues = {
 }
 
 celery_app.conf.update(
-    task_serializer='json',  # 작업 직렬화 방법
-    result_serializer='json',  # 결과 직렬화 방법
-    accept_content=['json'],  # 수락할 직렬화 형식
+    task_serializer='pickle',  # 작업 직렬화 방법
+    result_serializer='pickle',  # 결과 직렬화 방법
+    accept_content=['pickle', 'json'],  # 수락할 직렬화 형식
 )

@@ -27,6 +27,6 @@ def generate_zip_from_images(image_list: list[Image.Image]):
             zipf.writestr(file_name, img_buffer.read())
 
     zip_buffer.seek(0)
-    return zip_buffer.getvalue()  # 바이너리 데이터로 반환
+    return zip_buffer
 
 

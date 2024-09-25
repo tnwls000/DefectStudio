@@ -1,11 +1,16 @@
 from typing import Optional, List
 
 import requests
-from fastapi import APIRouter, UploadFile, File, Form, status, HTTPException, Response
+from fastapi import APIRouter, UploadFile, File, Form, status, HTTPException, Response, Depends
+from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
+from api.routes.members import use_tokens
 from core.config import settings
-from enums import GPUEnvironment
+from dependencies import get_db, get_current_user
+from enums import GPUEnvironment, UseType
+from models import Member
+from schema.tokens import TokenUse
 
 router = APIRouter(
     prefix="/dreambooth",
@@ -77,10 +82,20 @@ async def dreambooth(
         class_labels_conditioning: str = Form(None, description="U-Net에 전달할 클래스 레이블 조건.", examples=[""]),
         validation_scheduler: str = Form(None, description="검증에 사용할 스케줄러.", examples=["DPMSolverMultistepScheduler", "DDPMScheduler"]),
         instance_image_list: List[UploadFile] = File(..., description="학습 이미지 파일"),
-        class_image_list: List[UploadFile] = File(..., description="학습 범주 이미지 파일")
+        class_image_list: List[UploadFile] = File(..., description="학습 범주 이미지 파일"),
+        # 수진
+        session: Session = Depends(get_db),
+        current_user: Member = Depends(get_current_user),
+        # end
                ):
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
+    # 수진
+    # cost = 1000  # 토큰 차감 수(training은 일단 1000으로 고정)
+    # # 토큰 개수 모자랄 경우 먼저 에러 처리
+    # if current_user.token_quantity < cost:
+    #     raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
+    # end
 
     num_class_images = len(class_image_list)
 
@@ -161,6 +176,17 @@ async def dreambooth(
 
     response_data = response.json()
     train_status = response_data.get("status")
+
+    # 수진
+    # 토큰 개수 차감
+    # token_use = TokenUse(
+    #     cost=cost,
+    #     use_type=UseType.training,
+    #     image_quantity=cost,
+    #     model=model
+    # )
+    # use_tokens(token_use, session, current_user)
+    # end
 
     return JSONResponse(
         status_code=status.HTTP_200_OK,

@@ -55,3 +55,5 @@ async def get_task_status(task_id: str):
                     "data": str(task_result)
                 }
             )
+    else:
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"status": result.status})

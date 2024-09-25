@@ -233,7 +233,7 @@ def get_statistics_daily_images(member_id: int,
     results = [{"create_date": record[0].isoformat(), "image_quantity": record[1]} for record in statistics]
     return JSONResponse(status_code=status.HTTP_200_OK, content=results)
 
-@router.get("/{members_id}/statistics/tools")
+@router.get("/{member_id}/statistics/tools")
 def get_statistics_tools(member_id: int,
                         member: Member = Depends(get_current_user),
                         session: Session = Depends(get_db)):

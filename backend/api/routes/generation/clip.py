@@ -27,12 +27,6 @@ async def clip(model: str = Form("ViT-L-14/openai", description="사용할 모�
     }
 
     files = [('images', (image.filename, await image.read(), image.content_type)) for image in image_list]
-    response = requests.post(settings.AI_SERVER_URL + CLIP_URL, files=files, data=form_data)
 
-    if response.status_code != 200:
-        return Response(status_code=response.status_code, content=response.content)
-
-    response_data = response.json()
-
-    prompts = response_data.get("prompts")
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"generated_prompts": prompts})
+    json_response = requests.post(settings.AI_SERVER_URL + CLIP_URL, files=files, data=form_data).json()
+    return {"task_id": json_response.get("task_id")}

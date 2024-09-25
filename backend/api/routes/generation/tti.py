@@ -4,11 +4,14 @@ from typing import Optional
 
 import requests
 from fastapi import APIRouter, status, HTTPException, Form, Depends
+from sqlalchemy.orm import Session
 
+from api.routes.members import use_tokens
 from core.config import settings
-from dependencies import get_current_user
-from enums import GPUEnvironment, SchedulerType
+from dependencies import get_db, get_current_user
+from enums import GPUEnvironment, SchedulerType, UseType
 from models import Member
+from schema.tokens import TokenUse
 
 router = APIRouter(
     prefix="/txt-to-img",
@@ -19,6 +22,7 @@ base_models = settings.BASE_MODEL_NAME.split("|")
 @router.post("/{gpu_env}")
 def text_to_image(
         gpu_env: GPUEnvironment,
+        session: Session = Depends(get_db),
         current_user: Member = Depends(get_current_user),
         model: str = Form(base_models[0]),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
@@ -35,6 +39,11 @@ def text_to_image(
 ):
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
+
+    cost = batch_count * batch_size
+    # 토큰 개수 모자랄 경우 먼저 에러 처리
+    if current_user.token_quantity < cost:
+        raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
     member_id = current_user.member_id
     model_name = model
@@ -65,4 +74,14 @@ def text_to_image(
     }
 
     json_response = requests.post(settings.AI_SERVER_URL + "/generation/txt-to-img", data=form_data).json()
+
+    # 토큰 개수 차감
+    token_use = TokenUse(
+        cost=cost,
+        use_type=UseType.text_to_image,
+        image_quantity=cost,
+        model=model
+    )
+    use_tokens(token_use, session, current_user)
+
     return {"task_id": json_response.get("task_id")}

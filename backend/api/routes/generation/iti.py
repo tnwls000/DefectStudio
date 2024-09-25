@@ -5,13 +5,17 @@ from typing import Optional, List
 
 import requests
 from fastapi import APIRouter, status, Response, Form, UploadFile, File, HTTPException, Depends
+from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
-from dependencies import get_current_user
+
+from api.routes.members import use_tokens
+from dependencies import get_db, get_current_user
 from models import Member
 
 from pathlib import Path
 from core.config import settings
-from enums import GPUEnvironment, SchedulerType
+from enums import GPUEnvironment, SchedulerType, UseType
+from schema.tokens import TokenUse
 from utils.s3 import upload_files
 
 router = APIRouter(
@@ -23,6 +27,7 @@ base_models = settings.BASE_MODEL_NAME.split("|")
 @router.post("/{gpu_env}")
 async def image_to_image(
         gpu_env: GPUEnvironment,  # GPU 환경 정보
+        session: Session = Depends(get_db),
         current_user: Member = Depends(get_current_user),
         model: str = Form(base_models[0]),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
@@ -44,6 +49,11 @@ async def image_to_image(
 ):
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
+
+    cost = len(image_list) * batch_size * batch_count  # 토큰 차감 수
+    # 토큰 개수 모자랄 경우 먼저 에러 처리
+    if current_user.token_quantity < cost:
+        raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
     member_id = current_user.member_id
     model_name = model

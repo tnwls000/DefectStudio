@@ -23,6 +23,20 @@ def create_token_log(session: Depends(get_db), token_log: TokenLogCreate):
     session.refresh(db_token_log)
     return db_token_log
 
+def get_token_log_by_same_criteria(use_type: UseType, member_id: int, model: str, session: Depends(get_db)):
+    today = datetime.today().date()
+    start_of_day = datetime.combine(today, datetime.min.time())
+    end_of_day = datetime.combine(today, datetime.max.time())
+
+    return session.query(TokenLog).\
+        filter(TokenLog.member_id == member_id,
+               TokenLog.create_date >= start_of_day,
+               TokenLog.create_date <= end_of_day,
+               TokenLog.log_type == LogType.use,
+               TokenLog.use_type == use_type,
+               TokenLog.model == model).\
+        first()
+
 def get_statistics_images_by_member_id(session: Depends(get_db), member_id: int):
     return session.query(cast(TokenLog.create_date, Date).label("use_date"), func.sum(TokenLog.image_quantity)).\
              filter(TokenLog.member_id == member_id, TokenLog.log_type == LogType.use).\

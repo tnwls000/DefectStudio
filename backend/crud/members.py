@@ -10,6 +10,9 @@ from schema.members import MemberCreate, MemberRead
 from typing import List
 from enums import Role
 
+def get_all_members(session: Depends(get_db)):
+    return session.query(Member).all()
+
 def get_member_by_login_id(session: Depends(get_db), login_id: str):
     return session.query(Member).filter(Member.login_id == login_id).first()
 

@@ -75,16 +75,24 @@ def use_tokens(token_use: TokenUse,
     member.token_quantity -= token_use.cost
     session.commit()
 
-    token_log_create = TokenLogCreate(
-        log_type=LogType.use,
-        use_type=token_use.use_type,
-        member_id=member.member_id,
-        quantity=token_use.cost,
-        department_id=member.department_id,
-        image_quantity=token_use.image_quantity,
-        model=token_use.model,
-    )
-    token_logs_crud.create_token_log(session, token_log_create)
+    # 이미 같은 타입 & 같은 날짜 token_log 있으면 quantity만 추가
+    token_log = token_logs_crud.get_token_log_by_same_criteria(token_use.use_type, member.member_id, token_use.model,
+                                                               session)
+    if token_log:
+        token_log.quantity += token_use.cost
+        token_log.image_quantity += token_use.image_quantity
+        session.commit()
+    else:
+        token_log_create = TokenLogCreate(
+            log_type=LogType.use,
+            use_type=token_use.use_type,
+            member_id=member.member_id,
+            quantity=token_use.cost,
+            department_id=member.department_id,
+            image_quantity=token_use.image_quantity,
+            model=token_use.model,
+        )
+        token_logs_crud.create_token_log(session, token_log_create)
 
     return Response(status_code=200, content="토큰이 사용되었습니다.")
 

@@ -25,6 +25,12 @@ router = APIRouter(
     tags=["members"]
 )
 
+@router.get("/all", response_model=List[MemberRead])
+@role_required([Role.super_admin])
+async def get_all_members(session: Session = Depends(get_db), current_user: Member = Depends(get_current_user)):
+    members = members_crud.get_all_members(session)
+    members_read = [MemberRead.from_orm(member) for member in members]
+    return members_read
 
 @router.post("/signup")
 async def signup(member: MemberCreate, session: Session = Depends(get_db)):

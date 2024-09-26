@@ -47,10 +47,10 @@ def get_guests(session: Depends(get_db)):
     guests = session.query(Member).filter(Member.role == Role.guest).all()
     return [MemberRead.from_orm(guest) for guest in guests]
 
-def update_guest_member_role(session: Depends(get_db), guest: Member, role: Role):
-    guest.role = role
+def update_member_role(session: Depends(get_db), member: Member, role: Role):
+    member.role = role
     session.commit()
-    session.refresh(guest)
+    session.refresh(member)
 
 def get_expired_guests(session: Depends(get_db),
                        three_days_ago: datetime,

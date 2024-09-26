@@ -135,12 +135,50 @@ async def verify_email(email_check: EmailVerificationCheck, redis: Redis = Depen
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="인증 코드가 일치하지 않습니다.")
 
+@router.get("/guests")
+@role_required([Role.super_admin])
+async def get_guest_members(session: Session = Depends(get_db),
+                         current_user: Member = Depends(get_current_user)):
+    return members_crud.get_guests(session)
+
 @router.get("/{member_id}", response_model=MemberRead)
 def read_member_by_id(member_id: int, session: Session = Depends(get_db)):
     member = session.query(Member).options(joinedload(Member.department)).filter(
         Member.member_id == member_id).one_or_none()
     response = MemberRead.from_orm(member)
     return response
+
+@router.delete("/{member_id}")
+@role_required([Role.super_admin])
+async def reject_guest_member(member_id: int,
+                              session: Session = Depends(get_db),
+                              current_user: Member = Depends(get_current_user)):
+    member = members_crud.get_member_by_member_id(session, member_id)
+
+    if not member:
+        raise HTTPException(status_code=404, detail="해당 회원을 찾을 수 없습니다.")
+
+    session.delete(member)
+    session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.patch("/{member_id}/role")
+@role_required([Role.super_admin])
+async def update_guest_member_role(member_id: int,
+                                   new_role: Role,
+                                   session: Session = Depends(get_db),
+                                   current_user: Member = Depends(get_current_user)):
+    member = members_crud.get_member_by_member_id(session, member_id)
+
+    if not member:
+        raise HTTPException(status_code=404, detail="해당 회원을 찾을 수 없습니다.")
+
+    if new_role == Role.super_admin:
+        raise HTTPException(status_code=400, detail="총관리자로는 권한 변경이 불가합니다.")
+
+    members_crud.update_member_role(session, member, new_role)
+
+    return Response(status_code=200, content=f"{new_role.value}로 해당 회원의 권한이 변경되었습니다.")
 
 @router.get("", response_model=MemberRead)
 def read_member_me(session: Session = Depends(get_db), member: Member = Depends(get_current_user)):

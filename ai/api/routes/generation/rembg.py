@@ -1,43 +1,31 @@
-import torch
-from PIL import Image
-from fastapi import APIRouter, HTTPException, Request, status
-from starlette.responses import StreamingResponse
-from transformers import pipeline
+from fastapi import APIRouter, Request
 
-from utils.zip import generate_zip_from_images
+from utils.tasks import remove_bg_task
 
 router = APIRouter(
     prefix="/remove-bg"
 )
 
+
 @router.post("")
 async def remove_bg(request: Request):
     form = await request.form()
 
-    model = form.get("model", "briaai/RMBG-1.4")
-    batch_size = int(form.get("batch_size"))
     images = form.getlist("images")
 
-    if not images:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미지를 첨부해주세요.")
+    bytes_image_list = []
+    for image in images:
+        contents = image.file.read()
+        bytes_image_list.append(contents)
+        image.file.close()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    form_data = {
+        "model": form.get("model", "briaai/RMBG-1.4"),
+        "gpu_device": int(form.get("gpu_device")),
+        "batch_size": int(form.get("batch_size")),
+        "images": bytes_image_list
+    }
 
-    rmbg_pipeline = pipeline("image-segmentation",
-                             model=model,
-                             trust_remote_code=True,
-                             device=device)
+    task = remove_bg_task.apply_async(kwargs=form_data)
 
-    generated_image_list = []
-
-    for i in range(0, len(images), batch_size):
-        batch_images = images[i:i+batch_size]
-        input_images = [Image.open(image.file).convert("RGBA") for image in batch_images]
-        output_images = rmbg_pipeline(input_images)
-        generated_image_list.extend(output_images)
-
-    zip_buffer = generate_zip_from_images(generated_image_list)
-
-    return StreamingResponse(zip_buffer, media_type="application/zip", headers={
-        "Content-Disposition": "attachment; filename=images.zip"
-    })
+    return {"task_id": task.id}

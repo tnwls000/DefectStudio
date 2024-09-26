@@ -67,7 +67,7 @@ sentry_sdk.init(
     ]
 )
 
-torch.cuda.set_device(1)
+# torch.cuda.set_device(1)
 
 app.include_router(api_router)
 

@@ -26,7 +26,8 @@ base_models = settings.BASE_MODEL_NAME.split("|")
 
 @router.post("/{gpu_env}")
 async def image_to_image(
-        gpu_env: GPUEnvironment,  # GPU 환경 정보
+        gpu_env: GPUEnvironment,
+        gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
         session: Session = Depends(get_db),
         current_user: Member = Depends(get_current_user),
         model: str = Form(base_models[0]),
@@ -69,6 +70,7 @@ async def image_to_image(
 
     form_data = {
         "model": model_path,
+        "gpu_device": gpu_device,
         "scheduler": scheduler.value if scheduler else None,
         "prompt": prompt,
         "negative_prompt": negative_prompt,
@@ -83,34 +85,6 @@ async def image_to_image(
     }
 
     files = [('images', (image.filename, await image.read(), image.content_type)) for image in image_list]
-    response = requests.post(settings.AI_SERVER_URL + "/generation/img-to-img", files=files, data=form_data)
 
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-
-    # Response 데이터를 메모리 내 ZIP 파일 형태로 처리할 수 있도록 변환
-    zip_file_bytes = io.BytesIO(response.content)
-
-    # ZIP 파일에서 이미지 추출하기
-    image_list = []
-    with zipfile.ZipFile(zip_file_bytes) as zip_file:
-        for name in zip_file.namelist():
-            image_data = zip_file.read(name)
-            image_stream = io.BytesIO(image_data)
-            image_list.append(image_stream)
-
-    image_url_list = upload_files(image_list)
-
-    # 토큰 개수 차감
-    token_use = TokenUse(
-        cost=cost,
-        use_type=UseType.image_to_image,
-        image_quantity=cost,
-        model=model
-    )
-    use_tokens(token_use, session, current_user)
-
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED,
-        content={"image_list": image_url_list}
-    )
+    json_response = requests.post(settings.AI_SERVER_URL + "/generation/img-to-img", files=files, data=form_data).json()
+    return {"task_id": json_response.get("task_id")}

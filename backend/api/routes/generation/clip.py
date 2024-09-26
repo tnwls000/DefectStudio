@@ -22,6 +22,7 @@ CLIP_URL = "/generation/clip"
 
 @router.post("")
 async def clip(model: str = Form("ViT-L-14/openai", description="사용할 모델"),
+               gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
                image_list: List[UploadFile] = File(None, description="업로드할 이미지 파일들"),
                mode: Optional[str] = Form(None, description="interrogate 모드 설정. fast/classic/negative", examples=[""]),
                caption: Optional[str] = Form(None, description="이미지 caption을 직접 설정할 경우 적는 prompt", examples=[""]),
@@ -36,28 +37,13 @@ async def clip(model: str = Form("ViT-L-14/openai", description="사용할 모�
 
     form_data = {
         "model": model,
+        "gpu_device": gpu_device,
         "mode": mode,
         "caption": caption,
         "batch_size":batch_size
     }
 
     files = [('images', (image.filename, await image.read(), image.content_type)) for image in image_list]
-    response = requests.post(settings.AI_SERVER_URL + CLIP_URL, files=files, data=form_data)
 
-    if response.status_code != 200:
-        return Response(status_code=response.status_code, content=response.content)
-
-    response_data = response.json()
-
-    prompts = response_data.get("prompts")
-
-    # 토큰 개수 차감
-    token_use = TokenUse(
-        cost=cost,
-        use_type=UseType.clip,
-        image_quantity=cost,
-        model=model
-    )
-    use_tokens(token_use, session, current_user)
-
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"generated_prompts": prompts})
+    json_response = requests.post(settings.AI_SERVER_URL + CLIP_URL, files=files, data=form_data).json()
+    return {"task_id": json_response.get("task_id")}

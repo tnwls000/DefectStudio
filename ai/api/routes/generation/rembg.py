@@ -21,6 +21,7 @@ async def remove_bg(request: Request):
 
     form_data = {
         "model": form.get("model", "briaai/RMBG-1.4"),
+        "gpu_device": int(form.get("gpu_device")),
         "batch_size": int(form.get("batch_size")),
         "images": bytes_image_list
     }

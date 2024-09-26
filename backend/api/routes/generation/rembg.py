@@ -27,6 +27,7 @@ REMOVE_BG_URL = "/generation/remove-bg"
 @router.post("/{gpu_env}")
 async def remove_background(
         gpu_env: GPUEnvironment,
+        gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
         model: str = Form("briaai/RMBG-1.4", description="사용할 모델"),
         batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번에 처리할 수 있는 데이터의 양"),
         image_list: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
@@ -44,8 +45,9 @@ async def remove_background(
         raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
     form_data = {
-        "model":model,
-        "batch_size":batch_size,
+        "model": model,
+        "gpu_device": gpu_device,
+        "batch_size": batch_size,
     }
 
     files = [('images', (image.filename, await image.read(), image.content_type)) for image in image_list]

@@ -1,17 +1,14 @@
 import io
-import pickle
 import zipfile
 
 import requests
-from aioredis import Redis
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status
 from starlette.responses import JSONResponse
 
 from api.routes.generation import tti, iti, inpainting, rembg, cleanup, clip, preset
-from dependencies import get_redis
+from core.config import settings
 from enums import SchedulerType
 from utils.s3 import upload_files
-from core.config import settings
 
 router = APIRouter(
     prefix="/generation",

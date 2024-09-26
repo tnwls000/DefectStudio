@@ -21,10 +21,10 @@ from utils.zip import generate_zip_from_images
 
 @celery_app.task(name="text_to_image", queue="gen_queue")
 def text_to_image_task(
-        model, scheduler, prompt, negative_prompt, width, height,
+        model, gpu_device, scheduler, prompt, negative_prompt, width, height,
         num_inference_steps, guidance_scale, seed, batch_count, batch_size
 ):
-    torch.cuda.set_device(1)
+    torch.cuda.set_device(gpu_device)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_dir = settings.OUTPUT_DIR
@@ -64,11 +64,11 @@ def text_to_image_task(
 
 @celery_app.task(name="image_to_image", queue="gen_queue")
 def image_to_image_task(
-        model, scheduler, prompt, negative_prompt, width, height,
+        model, gpu_device, scheduler, prompt, negative_prompt, width, height,
         num_inference_steps, guidance_scale, strength, seed,
         batch_count, batch_size, images
 ):
-    torch.cuda.set_device(1)
+    torch.cuda.set_device(gpu_device)
 
     image_list = [PIL.Image.open(BytesIO(image_bytes)).convert("RGB") for image_bytes in images]
 
@@ -114,11 +114,11 @@ def image_to_image_task(
 
 @celery_app.task(name="inpainting", queue="gen_queue")
 def inpainting_task(
-        model, scheduler, prompt, negative_prompt, width, height,
+        model, gpu_device, scheduler, prompt, negative_prompt, width, height,
         num_inference_steps, guidance_scale, strength, seed,
         batch_count, batch_size, init_image_files, mask_image_files
 ):
-    torch.cuda.set_device(1)
+    torch.cuda.set_device(gpu_device)
 
     init_image_list = [PIL.Image.open(BytesIO(image_bytes)).convert("RGB") for image_bytes in init_image_files]
     mask_image_list = [PIL.Image.open(BytesIO(image_bytes)).convert("RGB") for image_bytes in mask_image_files]
@@ -165,8 +165,8 @@ def inpainting_task(
 
 
 @celery_app.task(name="cleanup", queue="gen_queue")
-def cleanup_task(images, masks):
-    torch.cuda.set_device(1)
+def cleanup_task(gpu_device, images, masks):
+    torch.cuda.set_device(gpu_device)
 
     if len(images) != len(masks):
         raise HTTPException(status_code=400, detail="이미지 수와 마스크 수가 일치하지 않습니다.")
@@ -224,8 +224,8 @@ def cleanup_task(images, masks):
 
 
 @celery_app.task(name="remove_background", queue="gen_queue")
-def remove_bg_task(model, batch_size, images):
-    torch.cuda.set_device(1)
+def remove_bg_task(gpu_device, model, batch_size, images):
+    torch.cuda.set_device(gpu_device)
 
     if not images:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미지를 첨부해주세요.")
@@ -251,8 +251,8 @@ def remove_bg_task(model, batch_size, images):
 
 
 @celery_app.task(name="clip", queue="gen_queue")
-def clip_task(model, batch_size, images, mode, caption):
-    torch.cuda.set_device(1)
+def clip_task(model, gpu_device, batch_size, images, mode, caption):
+    torch.cuda.set_device(gpu_device)
 
     clip_config = Config(
         clip_model_name=model,

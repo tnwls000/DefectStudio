@@ -30,6 +30,7 @@ async def inpainting(
 
     form_data = {
         "model": form.get("model"),
+        "gpu_device": int(form.get("gpu_device")),
         "scheduler": form.get("scheduler"),
         "prompt": form.get("prompt"),
         "negative_prompt": form.get("negative_prompt"),

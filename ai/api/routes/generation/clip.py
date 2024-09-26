@@ -21,6 +21,7 @@ async def clip(request: Request):
 
     form_data = {
         "model": form.get("model"),
+        "gpu_device": int(form.get("gpu_device")),
         "mode": form.get("mode"),
         "caption": form.get("caption"),
         "images": bytes_image_list,

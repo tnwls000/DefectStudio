@@ -22,6 +22,7 @@ CLIP_URL = "/generation/clip"
 
 @router.post("")
 async def clip(model: str = Form("ViT-L-14/openai", description="사용할 모델"),
+               gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
                image_list: List[UploadFile] = File(None, description="업로드할 이미지 파일들"),
                mode: Optional[str] = Form(None, description="interrogate 모드 설정. fast/classic/negative", examples=[""]),
                caption: Optional[str] = Form(None, description="이미지 caption을 직접 설정할 경우 적는 prompt", examples=[""]),
@@ -36,6 +37,7 @@ async def clip(model: str = Form("ViT-L-14/openai", description="사용할 모�
 
     form_data = {
         "model": model,
+        "gpu_device": gpu_device,
         "mode": mode,
         "caption": caption,
         "batch_size":batch_size

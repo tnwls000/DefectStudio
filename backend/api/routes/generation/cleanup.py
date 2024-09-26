@@ -25,6 +25,7 @@ CLEAN_UP_URL = "/generation/cleanup"
 @router.post("/{gpu_env}")
 async def cleanup(
         gpu_env: GPUEnvironment,
+        gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
         init_image_list: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
         mask_image_list: List[UploadFile] = File(..., description="업로드할 이미지 파일들의 mask 파일들"),
         session: Session = Depends(get_db),
@@ -47,5 +48,9 @@ async def cleanup(
     for mask in mask_image_list:
         files.append(('masks', (mask.filename, await mask.read(), mask.content_type)))
 
-    json_response = requests.post(settings.AI_SERVER_URL + CLEAN_UP_URL, files=files).json()
+    form_data = {
+        "gpu_device": gpu_device
+    }
+
+    json_response = requests.post(settings.AI_SERVER_URL + CLEAN_UP_URL, data=form_data, files=files).json()
     return {"task_id": json_response.get("task_id")}

@@ -26,7 +26,8 @@ base_models = settings.BASE_MODEL_NAME.split("|")
 
 @router.post("/{gpu_env}")
 async def image_to_image(
-        gpu_env: GPUEnvironment,  # GPU 환경 정보
+        gpu_env: GPUEnvironment,
+        gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
         session: Session = Depends(get_db),
         current_user: Member = Depends(get_current_user),
         model: str = Form(base_models[0]),
@@ -69,6 +70,7 @@ async def image_to_image(
 
     form_data = {
         "model": model_path,
+        "gpu_device": gpu_device,
         "scheduler": scheduler.value if scheduler else None,
         "prompt": prompt,
         "negative_prompt": negative_prompt,

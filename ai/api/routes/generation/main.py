@@ -25,14 +25,9 @@ router.include_router(clip.router)
 async def get_task_status(task_id: str):
     result = AsyncResult(task_id)
 
-    if not result.name:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Task를 찾을 수 없습니다.")
-
-    elif result.status == "PENDING":
+    if result.status == "PENDING":
         response = CeleryTaskResponse(
-            task_name=result.name,
-            task_status=result.status,
-            task_arguments=result.kwargs,
+            task_status="PENDING",
             message="Task가 실행을 대기하고 있습니다."
         ).model_dump(exclude_none=True)
         return JSONResponse(status_code=status.HTTP_200_OK, content=response)
@@ -87,8 +82,6 @@ async def get_task_status(task_id: str):
             return JSONResponse(status_code=status.HTTP_201_CREATED, content=response)
     else:
         response = CeleryTaskResponse(
-            task_name=result.name,
             task_status=result.status,
-            task_arguments=result.kwargs,
         ).model_dump(exclude_none=True)
         return JSONResponse(status_code=status.HTTP_200_OK, content=response)

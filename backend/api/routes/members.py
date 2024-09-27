@@ -145,6 +145,7 @@ async def verify_email(email_check: EmailVerificationCheck, redis: Redis = Depen
     if not verification_code:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="해당 이메일에 대한 인증 코드가 만료되었거나 아직 전송되지 않았습니다.")
 
+    verification_code = verification_code.decode('utf-8')
     if verification_code == email_check.verification_code:
         return Response(status_code=status.HTTP_200_OK, content="이메일 인증이 확인되었습니다.")
     else:

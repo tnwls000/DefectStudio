@@ -60,7 +60,7 @@ async def get_task_status(
         formatted_time = now.strftime("%H%M%S%f")
 
         # S3에 이미지 업로드
-        image_url_list = await upload_files_async(image_list)
+        image_url_list = await upload_files_async(image_list, formatted_date, formatted_time)
 
         task_name = response.headers['Task-Name']
         task_args = json.loads(response.headers['Task-Arguments'])

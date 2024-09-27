@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse
 from api.routes.generation import tti, iti, inpainting, rembg, cleanup, clip, preset
 from core.config import settings
 from enums import SchedulerType
-from utils.s3 import upload_files, upload_files_async
+from utils.s3 import upload_files
 
 router = APIRouter(
     prefix="/generation",
@@ -46,7 +46,7 @@ async def get_task_status(task_id: str):
                 image_list.append(image_stream)
 
         # S3에 이미지 업로드
-        image_url_list = await upload_files_async(image_list)
+        image_url_list = await upload_files(image_list)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,

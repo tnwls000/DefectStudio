@@ -105,11 +105,11 @@ async def upload_file_async(s3_client, image_stream: BytesIO, key: str) -> str:
             settings.AWS_S3_BUCKET,
             f"{key}.{format}",
             ExtraArgs={
-                'ContentType': 'image/jpeg',
+                'ContentType': f'image/{format}',
                 'ContentDisposition': 'inline'
             }
         )
-        s3_url = f"https://{settings.AWS_S3_BUCKET}.s3.{settings.AWS_S3_REGION_STATIC}.amazonaws.com/{key}.jpeg"
+        s3_url = f"https://{settings.AWS_S3_BUCKET}.s3.{settings.AWS_S3_REGION_STATIC}.amazonaws.com/{key}.{format}"
         return s3_url
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"업로드 실패: {e}")

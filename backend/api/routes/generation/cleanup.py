@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 from api.routes.members import use_tokens
 from core.config import settings
 from dependencies import get_db, get_current_user
-from enums import GPUEnvironment, UseType
+from enums import GPUEnvironment, UseType, Role
 from models import Member
 from schema.tokens import TokenUse
 from utils.s3 import upload_files
@@ -39,7 +39,7 @@ async def cleanup(
 
     cost = len(init_image_list) # 토큰 차감 수
     # 토큰 개수 모자랄 경우 먼저 에러 처리
-    if current_user.token_quantity < cost:
+    if current_user.role != Role.super_admin and current_user.token_quantity < cost:
         raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
     files = []
@@ -51,6 +51,15 @@ async def cleanup(
     form_data = {
         "gpu_device": gpu_device
     }
+
+    # 토큰 개수 차감
+    token_use = TokenUse(
+        cost=cost,
+        use_type=UseType.clean_up,
+        image_quantity=cost,
+        model="lama"
+    )
+    use_tokens(token_use, session, current_user)
 
     json_response = requests.post(settings.AI_SERVER_URL + CLEAN_UP_URL, data=form_data, files=files).json()
     return {"task_id": json_response.get("task_id")}

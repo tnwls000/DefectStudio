@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from api.routes.members import use_tokens
 from core.config import settings
 from dependencies import get_db, get_current_user
-from enums import GPUEnvironment, SchedulerType, UseType
+from enums import GPUEnvironment, SchedulerType, UseType, Role
 from models import Member
 from schema.tokens import TokenUse
 
@@ -43,7 +43,7 @@ def text_to_image(
 
     cost = batch_count * batch_size
     # 토큰 개수 모자랄 경우 먼저 에러 처리
-    if current_user.token_quantity < cost:
+    if current_user.role != Role.super_admin and current_user.token_quantity < cost:
         raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
     member_id = current_user.member_id

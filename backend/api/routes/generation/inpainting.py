@@ -14,7 +14,7 @@ from models import Member
 from pathlib import Path
 
 from core.config import settings
-from enums import GPUEnvironment, SchedulerType, UseType
+from enums import GPUEnvironment, SchedulerType, UseType, Role
 from schema.tokens import TokenUse
 from utils.s3 import upload_files
 
@@ -55,7 +55,7 @@ async def inpainting(
 
     cost = len(init_image_list) * batch_size * batch_count  # 토큰 차감 수
     # 토큰 개수 모자랄 경우 먼저 에러 처리
-    if current_user.token_quantity < cost:
+    if current_user.role != Role.super_admin and current_user.token_quantity < cost:
         raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
     if seed == -1:
@@ -97,4 +97,14 @@ async def inpainting(
         [('mask_image', (image.filename, await image.read(), image.content_type)) for image in mask_image_list])
 
     json_response = requests.post(settings.AI_SERVER_URL + "/generation/inpainting", files=files, data=form_data).json()
+
+    # 토큰 개수 차감
+    token_use = TokenUse(
+        cost=cost,
+        use_type=UseType.inpainting,
+        image_quantity=cost,
+        model=model
+    )
+    use_tokens(token_use, session, current_user)
+
     return {"task_id": json_response.get("task_id")}

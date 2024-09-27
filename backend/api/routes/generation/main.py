@@ -14,6 +14,7 @@ from enums import SchedulerType
 from models import Member
 from schema.logs import GenerationLog, SimpleGenerationLog
 from utils.s3 import upload_files
+from utils.s3 import upload_files, upload_files_async
 
 router = APIRouter(
     prefix="/generation",
@@ -59,7 +60,7 @@ async def get_task_status(
         formatted_time = now.strftime("%H%M%S%f")
 
         # S3에 이미지 업로드
-        image_url_list = upload_files(image_list, formatted_date, formatted_time)
+        image_url_list = await upload_files_async(image_list)
 
         task_name = response.headers['Task-Name']
         task_args = json.loads(response.headers['Task-Arguments'])
@@ -86,3 +87,6 @@ async def get_task_status(
                 "result_data_log": simple_saved_log.model_dump_json()
             }
         )
+
+
+

@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse
 from api.routes.members import use_tokens
 from core.config import settings
 from dependencies import get_db, get_current_user
-from enums import GPUEnvironment, UseType
+from enums import GPUEnvironment, UseType, Role
 from models import Member
 from schema.tokens import TokenUse
 
@@ -91,9 +91,9 @@ async def dreambooth(
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
     # 수진
-    # cost = 1000  # 토큰 차감 수(training은 일단 1000으로 고정)
+    # cost = 1000 + (num_train_epochs * len(instance_image_list))
     # # 토큰 개수 모자랄 경우 먼저 에러 처리
-    # if current_user.token_quantity < cost:
+    # if current_user.role != Role.super_admin and current_user.token_quantity < cost:
     #     raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
     # end
 

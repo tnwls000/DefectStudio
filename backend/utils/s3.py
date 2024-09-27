@@ -3,7 +3,6 @@ from io import BytesIO
 from typing import List
 
 import aioboto3
-import boto3
 from PIL import Image
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import HTTPException
@@ -33,7 +32,6 @@ async def upload_files(image_list: List[BytesIO]) -> List[str]:
                 s3_urls.append(url)
     return s3_urls
 
-# TODO : key 변경
 async def delete_files(num_of_images: int, key: str):
     session = aioboto3.Session()
     async with session.client(

@@ -60,6 +60,11 @@ async def get_task_status(task_id: str):
             task_name = result.name
             task_arguments = result.kwargs
 
+            # JSON 직렬화를 통해 Log에 저장될 arguments에서 Byte 파일 (이미지) 제거
+            keys_to_remove = ["images", "init_image_files", "mask_image_files", "masks"]
+            for key in keys_to_remove:
+                task_arguments['task_arguments'].pop(key, None)
+
             result.forget()
             return StreamingResponse(task_result, media_type="application/zip",
                                      # 필요한 정보는 헤더에 넣어줘서 응답

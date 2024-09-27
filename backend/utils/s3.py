@@ -1,4 +1,3 @@
-from datetime import datetime
 from io import BytesIO
 from typing import List
 
@@ -11,17 +10,13 @@ from core.config import settings
 
 
 # TODO : 비동기로 변경
-def upload_files(image_list: List[BytesIO]) -> List[str]:
+def upload_files(image_list: List[BytesIO], formatted_date: str, formatted_time: str) -> List[str]:
     s3_urls = []
     s3_client = boto3.client(
         's3',
         aws_access_key_id=settings.AWS_S3_ACCESS_KEY,
         aws_secret_access_key=settings.AWS_S3_SECRET_KEY
     )
-
-    now = datetime.now()
-    formatted_date = now.strftime("%Y%m%d")
-    formatted_time = now.strftime("%H%M%S%f")
 
     for index, image_stream in enumerate(image_list):
         image_key = f"{formatted_date}/{formatted_time}/{index + 1}"

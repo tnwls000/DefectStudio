@@ -1,3 +1,4 @@
+import gc
 import os
 import subprocess
 from io import BytesIO
@@ -30,11 +31,15 @@ def text_to_image_task(
     model_dir = settings.OUTPUT_DIR
     model_path = Path(model_dir) / model
 
-    t2i_pipe = StableDiffusionPipeline.from_pretrained(model_path, torch_dtype=torch.float16).to(device)
+    t2i_pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16).to(device)
 
     if scheduler:
         t2i_pipe.scheduler = get_scheduler(scheduler, t2i_pipe.scheduler.config)
 
+    print("After loading model:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
     total_images = batch_size * batch_count
     seeds = [(seed + i) % (2 ** 32) for i in range(total_images)]
 
@@ -57,7 +62,36 @@ def text_to_image_task(
 
         generated_image_list.extend(images)
 
+        print("After processing batch:")
+        print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+        print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+        print("-----------")
+
     zip_buffer = generate_zip_from_images(generated_image_list)
+
+    del t2i_pipe
+    print("After deleting pipe:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    gc.collect()
+    print("After garbage collection:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.empty_cache()
+    print("After empty_cache:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.ipc_collect()
+    print("After ipc_collect:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
 
     return zip_buffer
 
@@ -84,6 +118,11 @@ def image_to_image_task(
     if scheduler:
         i2i_pipe.scheduler = get_scheduler(scheduler, i2i_pipe.scheduler.config)
 
+    print("After loading model:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
     generated_image_list = []
 
     for i in range(len(image_list)):
@@ -108,6 +147,30 @@ def image_to_image_task(
             generated_image_list.extend(images)
 
     zip_buffer = generate_zip_from_images(generated_image_list)
+
+    del i2i_pipe
+    print("After deleting pipe:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    gc.collect()
+    print("After garbage collection:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.empty_cache()
+    print("After empty_cache:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.ipc_collect()
+    print("After ipc_collect:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
 
     return zip_buffer
 
@@ -135,6 +198,11 @@ def inpainting_task(
     if scheduler:
         inpaint_pipe.scheduler = get_scheduler(scheduler, inpaint_pipe.scheduler.config)
 
+    print("After loading model:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
     generated_image_list = []
 
     for i in range(len(init_image_list)):
@@ -161,12 +229,41 @@ def inpainting_task(
 
     zip_buffer = generate_zip_from_images(generated_image_list)
 
+    del inpaint_pipe
+    print("After deleting pipe:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    gc.collect()
+    print("After garbage collection:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.empty_cache()
+    print("After empty_cache:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.ipc_collect()
+    print("After ipc_collect:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
     return zip_buffer
 
 
-@celery_app.task(name="cleanup", queue="gen_queue")
+@celery_app.task(name="clean_up", queue="gen_queue")
 def cleanup_task(gpu_device, images, masks):
     torch.cuda.set_device(gpu_device)
+
+    print("Before RUN:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
 
     if len(images) != len(masks):
         raise HTTPException(status_code=400, detail="이미지 수와 마스크 수가 일치하지 않습니다.")
@@ -178,7 +275,7 @@ def cleanup_task(gpu_device, images, masks):
         image_paths = []
         mask_paths = []
 
-        for index, (image_bytes, mask_bytes)in enumerate(zip(images, masks)):
+        for index, (image_bytes, mask_bytes) in enumerate(zip(images, masks)):
             image_filename = f"image_{index}.png"
             mask_filename = f"image_{index}.png"
 
@@ -206,6 +303,11 @@ def cleanup_task(gpu_device, images, masks):
         ]
 
         result = subprocess.run(cmd, check=True)
+
+        print("After RUN:")
+        print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+        print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+        print("-----------")
 
         if result.returncode == 0:
             output_images = []
@@ -237,6 +339,11 @@ def remove_bg_task(gpu_device, model, batch_size, images):
                              trust_remote_code=True,
                              device=device)
 
+    print("After loading model:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
     generated_image_list = []
 
     for i in range(0, len(images), batch_size):
@@ -246,6 +353,30 @@ def remove_bg_task(gpu_device, model, batch_size, images):
         generated_image_list.extend(output_images)
 
     zip_buffer = generate_zip_from_images(generated_image_list)
+
+    del rmbg_pipeline
+    print("After deleting pipe:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    gc.collect()
+    print("After garbage collection:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.empty_cache()
+    print("After empty_cache:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.ipc_collect()
+    print("After ipc_collect:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
 
     return zip_buffer
 
@@ -269,6 +400,11 @@ def clip_task(model, gpu_device, batch_size, images, mode, caption):
     else:
         raise HTTPException(status_code=400, detail="CLIP API ERROR: GPU is not available.")
 
+    print("After loading model:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
     prompts = []
     for image_bytes in images:
         input_image = Image.open(BytesIO(image_bytes)).convert("RGB")
@@ -283,5 +419,29 @@ def clip_task(model, gpu_device, batch_size, images, mode, caption):
             prompt = clip_interrogator.interrogate(input_image, caption=caption)
 
         prompts.append(prompt)
+
+    del clip_interrogator
+    print("After deleting interrogator:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    gc.collect()
+    print("After garbage collection:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.empty_cache()
+    print("After empty_cache:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
+
+    torch.cuda.ipc_collect()
+    print("After ipc_collect:")
+    print(f"Allocated Memory: {torch.cuda.memory_allocated() / (1024 ** 2):.2f} MB")
+    print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
+    print("-----------")
 
     return prompts

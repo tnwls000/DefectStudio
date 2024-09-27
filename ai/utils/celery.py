@@ -25,4 +25,5 @@ celery_app.conf.update(
     task_serializer='pickle',  # 작업 직렬화 방법
     result_serializer='pickle',  # 결과 직렬화 방법
     accept_content=['pickle', 'json'],  # 수락할 직렬화 형식
+    result_extended=True,  # 더 많은 task 정보 불러오기
 )

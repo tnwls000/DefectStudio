@@ -53,33 +53,34 @@ def get_tokens_usages(session: Session = Depends(get_db),
 def use_tokens(token_use: TokenUse,
                session: Session = Depends(get_db),
                member: Member = Depends(get_current_user)):
-    if member.token_quantity < token_use.cost:
-        raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
+    if member.role != Role.super_admin:
+        if member.token_quantity < token_use.cost:
+            raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
-    remaining_cost = token_use.cost
-    batch_size = 100
-    offset = 0
+        remaining_cost = token_use.cost
+        batch_size = 100
+        offset = 0
 
-    while remaining_cost > 0:
-        token_usages = tokens_crud.get_token_usages_with_batch_size(session, member.member_id, offset, batch_size)
+        while remaining_cost > 0:
+            token_usages = tokens_crud.get_token_usages_with_batch_size(session, member.member_id, offset, batch_size)
 
-        if not token_usages:
-            break
-
-        for token_usage in token_usages:
-            if remaining_cost <= 0:
+            if not token_usages:
                 break
 
-            if token_usage.quantity <= remaining_cost:
-                remaining_cost -= token_usage.quantity
-                session.delete(token_usage)
-            else:
-                token_usage.quantity -= remaining_cost
-                remaining_cost = 0
-        offset += batch_size
+            for token_usage in token_usages:
+                if remaining_cost <= 0:
+                    break
 
-    member.token_quantity -= token_use.cost
-    session.commit()
+                if token_usage.quantity <= remaining_cost:
+                    remaining_cost -= token_usage.quantity
+                    session.delete(token_usage)
+                else:
+                    token_usage.quantity -= remaining_cost
+                    remaining_cost = 0
+            offset += batch_size
+
+        member.token_quantity -= token_use.cost
+        session.commit()
 
     # 이미 같은 타입 & 같은 날짜 token_log 있으면 quantity만 추가
     token_log = token_logs_crud.get_token_log_by_same_criteria(token_use.use_type, member.member_id, token_use.model,

@@ -29,7 +29,7 @@ async def remove_background(
         gpu_env: GPUEnvironment,
         gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
         model: str = Form("briaai/RMBG-1.4", description="사용할 모델"),
-        batch_size: Optional[int] = Form(1, ge=1, le=10, description="한 번에 처리할 수 있는 데이터의 양"),
+        batch_size: Optional[int] = Form(1, ge=1, description="한 번에 처리할 수 있는 데이터의 양"),
         image_list: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
         input_path: Optional[str] = Form(None, description="이미지를 가져올 로컬 경로", examples=[""]),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로", examples=[""]),

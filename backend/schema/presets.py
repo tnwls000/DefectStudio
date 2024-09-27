@@ -17,7 +17,7 @@ class GenerationPreset(Document):
     height: Optional[int] = None
     batch_count: Optional[int] = None
     batch_size: Optional[int] = None
-    strength: Optional[int] = None
+    strength: Optional[float] = None
     guidance_scale: Optional[float] = None
     sampling_steps: Optional[int] = None
     scheduler: Optional[str] = None
@@ -33,7 +33,7 @@ class GenerationPresetUpdate(BaseModel):
     height: Optional[int] = None
     batch_count: Optional[int] = None
     batch_size: Optional[int] = None
-    strength: Optional[int] = None
+    strength: Optional[float] = None
     guidance_scale: Optional[float] = None
     sampling_steps: Optional[int] = None
     scheduler: Optional[str] = None

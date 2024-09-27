@@ -53,4 +53,14 @@ async def remove_background(
     files = [('images', (image.filename, await image.read(), image.content_type)) for image in image_list]
 
     json_response = requests.post(settings.AI_SERVER_URL + REMOVE_BG_URL, files=files, data=form_data).json()
+
+    # 토큰 개수 차감
+    token_use = TokenUse(
+        cost=cost,
+        use_type=UseType.remove_background,
+        image_quantity=cost,
+        model=model
+    )
+    use_tokens(token_use, session, current_user)
+
     return {"task_id": json_response.get("task_id")}

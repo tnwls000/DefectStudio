@@ -1,8 +1,12 @@
+import io
+import json
+
 from celery.result import AsyncResult
 from fastapi import APIRouter, status, HTTPException
 from starlette.responses import JSONResponse, StreamingResponse
-import io
+
 from api.routes.generation import cleanup, iti, inpainting, rembg, tti, clip
+from schema import CeleryTaskResponse
 
 router = APIRouter(
     prefix="/generation",
@@ -21,39 +25,63 @@ router.include_router(clip.router)
 async def get_task_status(task_id: str):
     result = AsyncResult(task_id)
 
-    if not result:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Task를 찾을 수 없습니다.")
-    elif result.status == "PENDING":
-        return JSONResponse(status_code=status.HTTP_200_OK,
-                            content={"status": "PENDING", "message": "Task가 실행을 대기하고 있습니다."})
+    if result.status == "PENDING":
+        response = CeleryTaskResponse(
+            task_status="PENDING",
+            message="Task가 실행을 대기하고 있습니다."
+        ).model_dump(exclude_none=True)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+
     elif result.status == "STARTED":
-        return JSONResponse(status_code=status.HTTP_200_OK,
-                            content={"status": "STARTED", "message": "Task가 진행중입니다."})
+        response = CeleryTaskResponse(
+            task_name=result.name,
+            task_status=result.status,
+            task_arguments=result.kwargs,
+            message="Task가 진행중입니다."
+        ).model_dump(exclude_none=True)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+
     elif result.status == "FAILURE":
-        task_result = result.result
+        response = CeleryTaskResponse(
+            task_name=result.name,
+            task_status=result.status,
+            task_arguments=result.kwargs,
+            result_data_type=type(result.result).__name__,
+            result_data=str(result.result)
+        ).model_dump(exclude_none=True)
+
         result.forget()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "status": "FAILURE",
-                "type": type(task_result).__name__,
-                "message": str(task_result)
-            }
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=response)
+
     elif result.status == "SUCCESS":
-        task_result = result.result
-        result.forget()
-        if isinstance(task_result, io.BytesIO):
+        # 결과가 Image(ZIP FILE)일 때
+        if isinstance(result.result, io.BytesIO):
+            task_result = result.result
+            task_name = result.name
+            task_arguments = result.kwargs
+
+            result.forget()
             return StreamingResponse(task_result, media_type="application/zip",
-                                     headers={"Content-Disposition": "attachment; filename=images.zip"})
+                                     # 필요한 정보는 헤더에 넣어줘서 응답
+                                     headers={
+                                         "Content-Disposition": "attachment; filename=images.zip",
+                                         "Task-Name": task_name,
+                                         "Task-Arguments": json.dumps(task_arguments),
+                                     })
+        # 결과가 Json Serializable한 객체일 때
         else:
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content={
-                    "status": "SUCCESS",
-                    "type": type(task_result).__name__,
-                    "data": str(task_result)
-                }
-            )
+            response = CeleryTaskResponse(
+                task_name=result.name,
+                task_status=result.status,
+                task_arguments=result.kwargs,
+                result_data_type=type(result.result).__name__,
+                result_data=result.result
+            ).model_dump(exclude_none=True)
+
+            result.forget()
+            return JSONResponse(status_code=status.HTTP_201_CREATED, content=response)
     else:
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"status": result.status})
+        response = CeleryTaskResponse(
+            task_status=result.status,
+        ).model_dump(exclude_none=True)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response)

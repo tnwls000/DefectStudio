@@ -1,13 +1,19 @@
 import io
 import zipfile
+from datetime import datetime
+import json
 
 import requests
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Depends
 from starlette.responses import JSONResponse
 
-from api.routes.generation import tti, iti, inpainting, rembg, cleanup, clip, preset
+from api.routes.generation import tti, iti, inpainting, rembg, cleanup, clip, preset, log
 from core.config import settings
+from dependencies import get_current_user
 from enums import SchedulerType
+from models import Member
+from schema.logs import GenerationLog, SimpleGenerationLog
+from utils.s3 import upload_files
 from utils.s3 import upload_files, upload_files_async
 
 router = APIRouter(
@@ -22,6 +28,7 @@ router.include_router(rembg.router)
 router.include_router(cleanup.router)
 router.include_router(clip.router)
 router.include_router(preset.router)
+router.include_router(log.router)
 
 
 @router.get("/schedulers")
@@ -30,7 +37,10 @@ def get_scheduler_list():
 
 
 @router.get("/tasks/{task_id}")
-async def get_task_status(task_id: str):
+async def get_task_status(
+        task_id: str,
+        member: Member = Depends(get_current_user)
+):
     response = requests.get(settings.AI_SERVER_URL + f"/generation/tasks/{task_id}")
     if response.headers['content-type'] == "application/json":
         return response.json()
@@ -45,15 +55,36 @@ async def get_task_status(task_id: str):
                 image_stream = io.BytesIO(image_data)
                 image_list.append(image_stream)
 
+        now = datetime.now()
+        formatted_date = now.strftime("%Y%m%d")
+        formatted_time = now.strftime("%H%M%S%f")
+
         # S3에 이미지 업로드
         image_url_list = await upload_files_async(image_list)
+
+        task_name = response.headers['Task-Name']
+        task_args = json.loads(response.headers['Task-Arguments'])
+        print(task_args)
+
+        log = GenerationLog(
+            generation_type=task_name,
+            member_id=member.member_id,
+            date=now,
+            num_of_generated_images=len(image_url_list),
+            image_url_list=image_url_list,
+            **task_args
+        )
+
+        saved_log = await log.insert()
+        simple_saved_log = SimpleGenerationLog.from_orm(saved_log)
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                "status": "SUCCESS",
-                "type": "image",
-                "data": image_url_list
+                "task_name": task_name,
+                "task_status": "SUCCESS",
+                "result_data_type": "image",
+                "result_data_log": simple_saved_log.model_dump_json()
             }
         )
 

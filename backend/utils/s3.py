@@ -1,10 +1,10 @@
-from datetime import datetime
+import datetime
+import time
 from io import BytesIO
 from typing import List
 
 import aioboto3
 import boto3
-import time
 from PIL import Image
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import HTTPException
@@ -12,7 +12,7 @@ from fastapi import HTTPException
 from core.config import settings
 
 
-def upload_files(image_list: List[BytesIO]) -> List[str]:
+def upload_files(image_list: List[BytesIO], formatted_date: str, formatted_time: str) -> List[str]:
     start_time = time.time()
     print("s3 not async upload started")
     s3_urls = []
@@ -21,10 +21,6 @@ def upload_files(image_list: List[BytesIO]) -> List[str]:
         aws_access_key_id=settings.AWS_S3_ACCESS_KEY,
         aws_secret_access_key=settings.AWS_S3_SECRET_KEY
     )
-
-    now = datetime.now()
-    formatted_date = now.strftime("%Y%m%d")
-    formatted_time = now.strftime("%H%M%S%f")
 
     for index, image_stream in enumerate(image_list):
         image_key = f"{formatted_date}/{formatted_time}/{index + 1}"
@@ -77,7 +73,7 @@ def delete_file(s3_client, key: str):
     except (BotoCoreError, ClientError) as e:
         raise HTTPException(status_code=500, detail=f"삭제 실패: {e}")
 
-async def upload_files_async(image_list: List[BytesIO]) -> List[str]:
+async def upload_files_async(image_list: List[BytesIO], formatted_date: str, formatted_time: str) -> List[str]:
     start_time = time.time()
     print("s3 async upload started")
     s3_urls = []
@@ -87,10 +83,6 @@ async def upload_files_async(image_list: List[BytesIO]) -> List[str]:
         aws_access_key_id=settings.AWS_S3_ACCESS_KEY,
         aws_secret_access_key=settings.AWS_S3_SECRET_KEY
     ) as s3_client:
-
-        now = datetime.now()
-        formatted_date = now.strftime("%Y%m%d")
-        formatted_time = now.strftime("%H%M%S%f")
 
         for index, image_stream in enumerate(image_list):
             image_key = f"{formatted_date}/{formatted_time}/{index + 1}"

@@ -17,7 +17,6 @@ async def get_preset_list(
 ):
     presets = await GenerationPreset.find(GenerationPreset.member_id == member.member_id).to_list()
     data = {
-        "count": len(presets),
         "presets": presets
     }
     return data

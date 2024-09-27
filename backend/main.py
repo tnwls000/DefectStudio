@@ -16,6 +16,7 @@ from core.db import engine
 from models import *
 from scheduler import expire_tokens, delete_guests
 from schema.presets import GenerationPreset
+from schema.logs import GenerationLog
 
 
 # 생명주기 설정
@@ -42,7 +43,7 @@ async def lifespan(app: FastAPI):
     )
 
     mongo_database = client.get_database("defectstudio")
-    await init_beanie(database=mongo_database, document_models=[GenerationPreset])
+    await init_beanie(database=mongo_database, document_models=[GenerationPreset, GenerationLog])
 
     yield
     scheduler.shutdown()

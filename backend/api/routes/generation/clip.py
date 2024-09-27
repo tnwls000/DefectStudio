@@ -10,7 +10,7 @@ from core.config import settings
 from typing import List
 
 from dependencies import get_db, get_current_user
-from enums import UseType
+from enums import UseType, Role
 from models import Member
 from schema.tokens import TokenUse
 
@@ -30,9 +30,9 @@ async def clip(model: str = Form("ViT-L-14/openai", description="사용할 모�
                session: Session = Depends(get_db),
                current_user: Member = Depends(get_current_user)):
 
-    cost = len(image_list)  # 토큰 차감 수
+    cost = 1  # 토큰 차감 수
     # 토큰 개수 모자랄 경우 먼저 에러 처리
-    if current_user.token_quantity < cost:
+    if current_user.role != Role.super_admin and current_user.token_quantity < cost:
         raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
     form_data = {
@@ -46,4 +46,14 @@ async def clip(model: str = Form("ViT-L-14/openai", description="사용할 모�
     files = [('images', (image.filename, await image.read(), image.content_type)) for image in image_list]
 
     json_response = requests.post(settings.AI_SERVER_URL + CLIP_URL, files=files, data=form_data).json()
+
+    # 토큰 개수 차감
+    token_use = TokenUse(
+        cost=cost,
+        use_type=UseType.clip,
+        image_quantity=cost,
+        model=model
+    )
+    use_tokens(token_use, session, current_user)
+
     return {"task_id": json_response.get("task_id")}

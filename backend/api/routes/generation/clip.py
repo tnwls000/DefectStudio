@@ -10,7 +10,7 @@ from core.config import settings
 from typing import List
 
 from dependencies import get_db, get_current_user
-from enums import UseType
+from enums import UseType, Role
 from models import Member
 from schema.tokens import TokenUse
 
@@ -32,7 +32,7 @@ async def clip(model: str = Form("ViT-L-14/openai", description="사용할 모�
 
     cost = 1  # 토큰 차감 수
     # 토큰 개수 모자랄 경우 먼저 에러 처리
-    if current_user.token_quantity < cost:
+    if current_user.role != Role.super_admin and current_user.token_quantity < cost:
         raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
     form_data = {

@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 from api.routes.members import use_tokens
 from core.config import settings
 from dependencies import get_db, get_current_user
-from enums import GPUEnvironment, UseType
+from enums import GPUEnvironment, UseType, Role
 from models import Member
 from schema.tokens import TokenUse
 from utils.s3 import upload_files
@@ -39,7 +39,7 @@ async def cleanup(
 
     cost = len(init_image_list) # 토큰 차감 수
     # 토큰 개수 모자랄 경우 먼저 에러 처리
-    if current_user.token_quantity < cost:
+    if current_user.role != Role.super_admin and current_user.token_quantity < cost:
         raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
 
     files = []

@@ -52,5 +52,14 @@ async def cleanup(
         "gpu_device": gpu_device
     }
 
+    # 토큰 개수 차감
+    token_use = TokenUse(
+        cost=cost,
+        use_type=UseType.clean_up,
+        image_quantity=cost,
+        model="lama"
+    )
+    use_tokens(token_use, session, current_user)
+
     json_response = requests.post(settings.AI_SERVER_URL + CLEAN_UP_URL, data=form_data, files=files).json()
     return {"task_id": json_response.get("task_id")}

@@ -84,7 +84,8 @@ async def get_task_status(
                 "task_name": task_name,
                 "task_status": "SUCCESS",
                 "result_data_type": "image",
-                "result_data_log": simple_saved_log.model_dump_json().replace('"', "'")
+                "result_data_log": json.loads(simple_saved_log.model_dump_json()),
+                "result_data": image_url_list
             }
         )
 

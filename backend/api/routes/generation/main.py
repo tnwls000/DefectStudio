@@ -1,20 +1,23 @@
 import io
+import json
 import zipfile
 from datetime import datetime
-import json
 
 import requests
 from fastapi import APIRouter, status, Depends
+from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
 from api.routes.generation import tti, iti, inpainting, rembg, cleanup, clip, preset, log
+from api.routes.members import use_tokens
 from core.config import settings
-from dependencies import get_current_user
+from dependencies import get_db, get_current_user
 from enums import SchedulerType
+from enums import UseType
 from models import Member
 from schema.logs import GenerationLog, SimpleGenerationLog
-from utils.s3 import upload_files
-from utils.s3 import upload_files, upload_files_async
+from schema.tokens import TokenUse
+from utils.s3 import upload_files_async
 
 router = APIRouter(
     prefix="/generation",
@@ -39,11 +42,26 @@ def get_scheduler_list():
 @router.get("/tasks/{task_id}")
 async def get_task_status(
         task_id: str,
-        member: Member = Depends(get_current_user)
+        member: Member = Depends(get_current_user),
+        session: Session = Depends(get_db),
 ):
     response = requests.get(settings.AI_SERVER_URL + f"/generation/tasks/{task_id}")
+
     if response.headers['content-type'] == "application/json":
-        return response.json()
+        response = response.json()
+
+        if response.get("task_status") == "SUCCESS" and response.get("task_name") == "clip":
+            token_use = TokenUse(
+                cost=1,
+                use_type=UseType.clip,
+                image_quantity=1,
+                model=response.get("task_arguments").get("model")
+            )
+
+            use_tokens(token_use, session, member)
+
+        return response
+
     elif response.headers['content-type'] == "application/zip":
         zip_file_bytes = io.BytesIO(response.content)
 
@@ -62,9 +80,9 @@ async def get_task_status(
         # S3에 이미지 업로드
         image_url_list = await upload_files_async(image_list, formatted_date, formatted_time)
 
+        # Log 생성
         task_name = response.headers['Task-Name']
         task_args = json.loads(response.headers['Task-Arguments'])
-        print(task_args)
 
         log = GenerationLog(
             generation_type=task_name,
@@ -78,6 +96,16 @@ async def get_task_status(
         saved_log = await log.insert()
         simple_saved_log = SimpleGenerationLog.from_orm(saved_log)
 
+        # 토큰 차감
+        token_use = TokenUse(
+            cost=len(image_url_list),
+            use_type=UseType(task_name),
+            image_quantity=len(image_url_list),
+            model=task_args.get("model")
+        )
+
+        use_tokens(token_use, session, member)
+
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
@@ -88,6 +116,3 @@ async def get_task_status(
                 "result_data": image_url_list
             }
         )
-
-
-

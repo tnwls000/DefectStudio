@@ -43,5 +43,5 @@ class SimpleGenerationLog(BaseModel):
             date=log.date,
             prompt=log.prompt,
             num_of_generated_images=log.num_of_generated_images,
-            first_image_url=log.image_url_list[0],
+            first_image_url=log.image_url_list[0] if log.image_url_list else None,
         )

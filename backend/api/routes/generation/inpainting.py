@@ -1,22 +1,14 @@
-import io
 import random
-import zipfile
+from pathlib import Path
 from typing import Optional, List
 
 import requests
-from fastapi import APIRouter, status, HTTPException, Response, Form, UploadFile, File, Depends
-from sqlalchemy.orm import Session
-from starlette.responses import JSONResponse
-
-from api.routes.members import use_tokens
-from dependencies import get_db, get_current_user
-from models import Member
-from pathlib import Path
+from fastapi import APIRouter, status, HTTPException, Form, UploadFile, File, Depends
 
 from core.config import settings
-from enums import GPUEnvironment, SchedulerType, UseType, Role
-from schema.tokens import TokenUse
-from utils.s3 import upload_files
+from dependencies import get_current_user
+from enums import GPUEnvironment, SchedulerType, Role
+from models import Member
 
 router = APIRouter(
     prefix="/inpainting",
@@ -28,7 +20,6 @@ base_models = settings.BASE_MODEL_NAME.split("|")
 async def inpainting(
         gpu_env: GPUEnvironment,
         gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
-        session: Session = Depends(get_db),
         current_user: Member = Depends(get_current_user),
         model: str = Form(base_models[-1]),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
@@ -97,14 +88,5 @@ async def inpainting(
         [('mask_image', (image.filename, await image.read(), image.content_type)) for image in mask_image_list])
 
     json_response = requests.post(settings.AI_SERVER_URL + "/generation/inpainting", files=files, data=form_data).json()
-
-    # 토큰 개수 차감
-    token_use = TokenUse(
-        cost=cost,
-        use_type=UseType.inpainting,
-        image_quantity=cost,
-        model=model
-    )
-    use_tokens(token_use, session, current_user)
 
     return {"task_id": json_response.get("task_id")}

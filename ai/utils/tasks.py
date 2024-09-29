@@ -31,7 +31,7 @@ def text_to_image_task(
     model_dir = settings.OUTPUT_DIR
     model_path = Path(model_dir) / model
 
-    t2i_pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16).to(device)
+    t2i_pipe = StableDiffusionPipeline.from_pretrained(model_path, torch_dtype=torch.float16).to(device)
 
     if scheduler:
         t2i_pipe.scheduler = get_scheduler(scheduler, t2i_pipe.scheduler.config)

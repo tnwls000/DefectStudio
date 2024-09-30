@@ -12,6 +12,8 @@ from fastapi import HTTPException
 from core.config import settings
 
 
+# 동기 방식
+
 def upload_files(image_list: List[BytesIO], formatted_date: str, formatted_time: str) -> List[str]:
     start_time = time.time()
     print("s3 not async upload started")
@@ -31,19 +33,6 @@ def upload_files(image_list: List[BytesIO], formatted_date: str, formatted_time:
             s3_urls.append(url)
     print(f"Upload completed in {time.time() - start_time} seconds")
     return s3_urls
-
-# TODO : key 변경
-def delete_files(num_of_images: int, key: str):
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=settings.AWS_S3_ACCESS_KEY,
-        aws_secret_access_key=settings.AWS_S3_SECRET_KEY
-    )
-
-    for index in range(num_of_images):
-        key_url = f"{key}/{index + 1}.jpeg"
-        delete_file(s3_client, key_url)
-
 
 def upload_file(s3_client, image_stream: BytesIO, key: str) -> str:
     image_stream.seek(0)
@@ -66,12 +55,24 @@ def upload_file(s3_client, image_stream: BytesIO, key: str) -> str:
     except (BotoCoreError, ClientError) as e:
         raise HTTPException(status_code=500, detail=f"업로드 실패: {e}")
 
+def delete_files(num_of_images: int, image_url_list: List[str]):
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=settings.AWS_S3_ACCESS_KEY,
+        aws_secret_access_key=settings.AWS_S3_SECRET_KEY
+    )
+
+    for url in image_url_list:
+        delete_file(s3_client, url.split(".com/")[-1])
 
 def delete_file(s3_client, key: str):
     try:
         s3_client.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=key)
     except (BotoCoreError, ClientError) as e:
         raise HTTPException(status_code=500, detail=f"삭제 실패: {e}")
+
+
+# 비동기 방식
 
 async def upload_files_async(image_list: List[BytesIO], formatted_date: str, formatted_time: str) -> List[str]:
     start_time = time.time()
@@ -113,3 +114,19 @@ async def upload_file_async(s3_client, image_stream: BytesIO, key: str) -> str:
         return s3_url
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"업로드 실패: {e}")
+
+async def delete_files_async(image_url_list: List[str]):
+    session = aioboto3.Session()
+    async with session.client(
+        's3',
+        aws_access_key_id=settings.AWS_S3_ACCESS_KEY,
+        aws_secret_access_key=settings.AWS_S3_SECRET_KEY
+    ) as s3_client:
+        for url in image_url_list:
+            await delete_file_async(s3_client, url)
+
+async def delete_file_async(s3_client, url: str):
+    try:
+        await s3_client.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=url.split(".com/")[-1])
+    except (BotoCoreError, ClientError) as e:
+        raise HTTPException(status_code=500, detail=f"삭제 실패: {e}")

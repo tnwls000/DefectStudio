@@ -4,14 +4,11 @@ from typing import Optional
 
 import requests
 from fastapi import APIRouter, status, HTTPException, Form, Depends
-from sqlalchemy.orm import Session
 
-from api.routes.members import use_tokens
 from core.config import settings
-from dependencies import get_db, get_current_user
-from enums import GPUEnvironment, SchedulerType, UseType, Role
+from dependencies import get_current_user
+from enums import GPUEnvironment, SchedulerType, Role
 from models import Member
-from schema.tokens import TokenUse
 
 router = APIRouter(
     prefix="/txt-to-img",
@@ -23,7 +20,6 @@ base_models = settings.BASE_MODEL_NAME.split("|")
 def text_to_image(
         gpu_env: GPUEnvironment,
         gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
-        session: Session = Depends(get_db),
         current_user: Member = Depends(get_current_user),
         model: str = Form(base_models[0]),
         scheduler: Optional[SchedulerType] = Form(None, description="각 샘플링 단계에서의 노이즈 수준을 제어할 샘플링 메소드"),
@@ -57,7 +53,6 @@ def text_to_image(
 
     if seed == -1:
         seed = random.randint(0, 2 ** 32 - 1)
-        
 
     form_data = {
         "model": model_path,
@@ -76,14 +71,5 @@ def text_to_image(
     }
 
     json_response = requests.post(settings.AI_SERVER_URL + "/generation/txt-to-img", data=form_data).json()
-
-    # 토큰 개수 차감
-    token_use = TokenUse(
-        cost=cost,
-        use_type=UseType.text_to_image,
-        image_quantity=cost,
-        model=model
-    )
-    use_tokens(token_use, session, current_user)
 
     return {"task_id": json_response.get("task_id")}

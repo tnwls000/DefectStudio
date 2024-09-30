@@ -1,19 +1,12 @@
-import io
-import zipfile
 from typing import Optional, List
 
 import requests
 from fastapi import APIRouter, Form, UploadFile, File, HTTPException, status, Depends
-from sqlalchemy.orm import Session
-from starlette.responses import JSONResponse
 
-from api.routes.members import use_tokens
 from core.config import settings
-from dependencies import get_db, get_current_user
-from enums import GPUEnvironment, UseType, Role
+from dependencies import get_current_user
+from enums import GPUEnvironment, Role
 from models import Member
-from schema.tokens import TokenUse
-from utils.s3 import upload_files
 
 router = APIRouter(
     prefix="/cleanup",
@@ -28,7 +21,6 @@ async def cleanup(
         gpu_device: int = Form(..., description="사용할 GPU의 장치 번호"),
         init_image_list: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
         mask_image_list: List[UploadFile] = File(..., description="업로드할 이미지 파일들의 mask 파일들"),
-        session: Session = Depends(get_db),
         current_user: Member = Depends(get_current_user),
         init_input_path: Optional[str] = Form(None, description="초기 이미지를 가져올 로컬 경로", examples=[""]),
         mask_input_path: Optional[str] = Form(None, description="마스킹 이미지를 가져올 로컬 경로", examples=[""]),
@@ -52,14 +44,6 @@ async def cleanup(
         "gpu_device": gpu_device
     }
 
-    # 토큰 개수 차감
-    token_use = TokenUse(
-        cost=cost,
-        use_type=UseType.clean_up,
-        image_quantity=cost,
-        model="lama"
-    )
-    use_tokens(token_use, session, current_user)
-
     json_response = requests.post(settings.AI_SERVER_URL + CLEAN_UP_URL, data=form_data, files=files).json()
+
     return {"task_id": json_response.get("task_id")}

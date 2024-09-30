@@ -4,7 +4,7 @@ from starlette.responses import Response
 from dependencies import get_current_user
 from models import Member
 from schema.logs import *
-
+from utils.s3 import delete_files_async
 router = APIRouter(
     prefix="/log",
 )
@@ -57,6 +57,9 @@ async def delete_log(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="자기 자신의 log만 삭제할 수 있습니다."
         )
+
+    # 해당 로그에 포함된 이미지들 S3에서 삭제
+    await delete_files_async(log.image_url_list)
 
     await log.delete()
 

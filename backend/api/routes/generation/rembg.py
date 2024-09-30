@@ -1,21 +1,12 @@
-import io
-import zipfile
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 import requests
 from fastapi import APIRouter, status, Form, UploadFile, File, HTTPException, Depends
-from sqlalchemy.orm import Session
-from starlette.responses import JSONResponse
-
-from api.routes.members import use_tokens
-from dependencies import get_db, get_current_user
-from models import Member
 
 from core.config import settings
-from enums import GPUEnvironment, UseType, Role
-from schema.tokens import TokenUse
-from utils.s3 import upload_files
+from dependencies import get_current_user
+from enums import GPUEnvironment, Role
+from models import Member
 
 router = APIRouter(
     prefix="/remove-bg",
@@ -33,7 +24,6 @@ async def remove_background(
         image_list: List[UploadFile] = File(..., description="업로드할 이미지 파일들"),
         input_path: Optional[str] = Form(None, description="이미지를 가져올 로컬 경로", examples=[""]),
         output_path: Optional[str] = Form(None, description="이미지를 저장할 로컬 경로", examples=[""]),
-        session: Session = Depends(get_db),
         current_user: Member = Depends(get_current_user)
 ):
     if gpu_env == GPUEnvironment.local:
@@ -53,14 +43,5 @@ async def remove_background(
     files = [('images', (image.filename, await image.read(), image.content_type)) for image in image_list]
 
     json_response = requests.post(settings.AI_SERVER_URL + REMOVE_BG_URL, files=files, data=form_data).json()
-
-    # 토큰 개수 차감
-    token_use = TokenUse(
-        cost=cost,
-        use_type=UseType.remove_background,
-        image_quantity=cost,
-        model=model
-    )
-    use_tokens(token_use, session, current_user)
 
     return {"task_id": json_response.get("task_id")}

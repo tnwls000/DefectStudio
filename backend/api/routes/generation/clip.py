@@ -47,13 +47,4 @@ async def clip(model: str = Form("ViT-L-14/openai", description="사용할 모�
 
     json_response = requests.post(settings.AI_SERVER_URL + CLIP_URL, files=files, data=form_data).json()
 
-    # 토큰 개수 차감
-    token_use = TokenUse(
-        cost=cost,
-        use_type=UseType.clip,
-        image_quantity=cost,
-        model=model
-    )
-    use_tokens(token_use, session, current_user)
-
     return {"task_id": json_response.get("task_id")}

@@ -18,7 +18,7 @@ class GenerationLog(Document):
     batch_size: Optional[int] = None
     strength: Optional[float] = None
     guidance_scale: Optional[float] = None
-    sampling_steps: Optional[int] = None
+    num_inference_steps: Optional[int] = None
     scheduler: Optional[str] = None
     seed: Optional[int] = None
     member_id: int

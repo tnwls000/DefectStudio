@@ -186,7 +186,7 @@ def inpainting_task(
     init_image_list = [PIL.Image.open(BytesIO(image_bytes)).convert("RGB") for image_bytes in init_image_files]
     mask_image_list = [PIL.Image.open(BytesIO(image_bytes)).convert("RGB") for image_bytes in mask_image_files]
 
-    total_images = batch_size * batch_count
+    total_images = batch_size * batch_count * len(init_image_list)
     seeds = [(seed + i) % (2 ** 32) for i in range(total_images)]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

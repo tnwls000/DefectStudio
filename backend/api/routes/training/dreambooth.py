@@ -76,18 +76,16 @@ async def dreambooth(
         checkpoints_total_limit: int = Form(None, description="저장할 체크포인트의 최대 개수.", examples=["", 3]),
         resume_from_checkpoint: str = Form(None, description="이전 체크포인트에서 학습을 재개할지 여부. (True, ' ')", examples=[""]),
 
-        # 수진
         session: Session = Depends(get_db),
-        # end
                ):
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
-    # 수진
-    # cost = 1000 + (num_train_epochs * len(instance_image_list))
-    # # 토큰 개수 모자랄 경우 먼저 에러 처리
-    # if current_user.role != Role.super_admin and current_user.token_quantity < cost:
-    #     raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
-    # end
+
+    cost = 1000 + (num_train_epochs * len(instance_image_list))
+
+    if current_user.role != Role.super_admin and current_user.token_quantity < cost:
+        raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
+
     member_id = current_user.member_id
     if find_hugging_face is not None and find_hugging_face != "":
         pretrained_model_name_or_path = f"hub/{pretrained_model_name_or_path}"
@@ -102,6 +100,7 @@ async def dreambooth(
         "train_batch_size" : train_batch_size,
         "num_train_epochs" : num_train_epochs,
         "learning_rate" : learning_rate,
+        "cost": cost
     }
     if is_inpaint:
         form_data["is_inpaint"] = is_inpaint
@@ -159,26 +158,6 @@ async def dreambooth(
     files.extend(
         [('class_image_list', (image.filename, await image.read(), image.content_type)) for image in class_image_list])
 
-    response = requests.post(settings.AI_SERVER_URL + "/training/dreambooth", files=files, data=form_data)
+    json_response = requests.post(settings.AI_SERVER_URL + "/training/dreambooth", files=files, data=form_data).json()
 
-    if response.status_code != 200:
-        return Response(status_code=response.status_code, content=response.content)
-
-    response_data = response.json()
-    train_status = response_data.get("status")
-
-    # 수진
-    # 토큰 개수 차감
-    # token_use = TokenUse(
-    #     cost=cost,
-    #     use_type=UseType.training,
-    #     image_quantity=cost,
-    #     model=model
-    # )
-    # use_tokens(token_use, session, current_user)
-    # end
-
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={"content": train_status}
-    )
+    return {"task_id": json_response.get("task_id")}

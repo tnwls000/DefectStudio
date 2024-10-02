@@ -55,7 +55,7 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         num_train_epochs = form.get("num_train_epochs", 50)
         learning_rate = form.get("learning_rate", 5e-6)
         max_train_steps = form.get("max_train_steps")
-        gradient_accumulation_steps = form.get("gradient_accumulation_steps", 1)
+        gradient_accumulation_steps = form.get("gradient_accumulation_steps", '1')
 
         scale_lr = form.get("scale_lr")
         lr_scheduler = form.get("lr_scheduler")
@@ -108,10 +108,12 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         class_image_offset = 0
         prior_flag = False
         concepts_list = []
+        num_class_images = 100
 
         for i, concept in enumerate(concept_list):
             instance_count = concept["instance_image_count"]
             class_count = concept["class_image_count"]
+            num_class_images = min(num_class_images, class_count)
 
             if class_count > 0:
                 prior_flag = True
@@ -181,12 +183,13 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
             "--gradient_accumulation_steps", gradient_accumulation_steps,
             "--learning_rate", learning_rate,
             "--num_train_epochs", num_train_epochs,
-            "concept_list", concept_list_json_path
+            "--concepts_list", concept_list_json_path
         ]
 
         if is_inpaint:
             command.append("--is_inpaint")
         if with_prior_preservation:
+            command.extend(["--num_class_images", num_class_images])
             command.append("--with_prior_preservation")
             command.extend(["--prior_loss_weight", prior_loss_weight])
 
@@ -255,9 +258,13 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
 
 
 def run_training(command):
-    global training_process
-    training_process = subprocess.Popen(command)
-    training_process.wait()
+    try:
+        training_process = subprocess.Popen(command)
+        training_process.wait()
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while executing command: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
 # 향후 status 확인 필요 시 사용

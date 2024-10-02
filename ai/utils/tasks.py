@@ -445,3 +445,15 @@ def clip_task(model, gpu_device, batch_size, images, mode, caption):
     print("-----------")
 
     return prompts
+
+
+@celery_app.task(name="training", queue="tra_queue")
+def training_task(command, output_dir, gpu_device, cost, model):
+    try:
+        training_process = subprocess.Popen(command)
+        training_process.wait()
+        return "Training completed"
+    except subprocess.CalledProcessError as e:
+        return f"Error occurred while executing command: {e}"
+    except Exception as e:
+        return f"An unexpected error occurred: {e}"

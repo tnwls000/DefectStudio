@@ -29,6 +29,7 @@ async def cleanup(request: Request):
         "images": bytes_init_image_list,
         "masks": bytes_mask_image_list,
         "gpu_device": int(form.get("gpu_device")),
+        "model":"lama"
     }
 
     task = cleanup_task.apply_async(kwargs=form_data)

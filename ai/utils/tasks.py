@@ -257,7 +257,7 @@ def inpainting_task(
 
 
 @celery_app.task(name="clean_up", queue="gen_queue")
-def cleanup_task(gpu_device, images, masks):
+def cleanup_task(gpu_device, images, masks, model):
     torch.cuda.set_device(gpu_device)
 
     print("Before RUN:")

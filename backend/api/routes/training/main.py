@@ -36,12 +36,13 @@ async def get_task_status(
     if response.get("task_status") == "SUCCESS":
         task_arguments = response.get("task_arguments")
         cost = int(task_arguments.get("cost"))
+        model = task_arguments.get("model")
 
         token_use = TokenUse(
             cost=cost,
             use_type=UseType.training,
             image_quantity=cost,
-            model=response.get("task_arguments").get("model")
+            model=model
         )
 
         use_tokens(token_use, session, member)

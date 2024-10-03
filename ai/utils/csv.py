@@ -5,11 +5,11 @@ def find_and_convert_csv_to_json(output_dir):
     # output_dir에서 CSV 파일 찾기
     csv_files = [file for file in os.listdir(output_dir) if file.endswith('.csv')]
 
-    # CSV 파일이 하나만 있는지 확인
-    if len(csv_files) != 1:
-        return {"error": "There should be exactly one CSV file in the directory."}
+    # 파일이 작성된 시간순으로 정렬
+    csv_files.sort(key=lambda file: os.path.getmtime(os.path.join(output_dir, file)))
 
-    csv_file_path = os.path.join(output_dir, csv_files[0])
+    # 가장 최근에 작성된 파일을 불러옴
+    csv_file_path = os.path.join(output_dir, csv_files[-1])
 
     # CSV 파일 읽기
     try:

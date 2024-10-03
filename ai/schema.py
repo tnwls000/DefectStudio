@@ -1,4 +1,4 @@
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict
 
 from pydantic import BaseModel
 
@@ -8,7 +8,7 @@ class CeleryTaskResponse(BaseModel):
     task_status: str
     task_arguments: Optional[dict] = None
     result_data_type: Optional[str] = None
-    result_data: Optional[Union[List[str], str]] = None
+    result_data: Optional[Union[List[str], str, Dict]] = None
     message: Optional[str] = None
 
     def __init__(self, **data):

@@ -1,7 +1,11 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 import os, json
+
+from scipy.special import kwargs
+
 from core.config import settings
 import subprocess
+from utils.tasks import training_task
 
 # 필요 env
 '''
@@ -250,8 +254,18 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         if os.name == 'nt':
             command = ['cmd', '/c'] + command
 
-        background_tasks.add_task(run_training, command)
-        return {"status": "Training started successfully", "output_dir": output_dir}
+        kwargs = {
+            'model': train_model_name,
+            'command': command,
+            'output_dir': output_dir,
+            'gpu_device': gpu_device,
+            'cost': form.get("cost")
+        }
+
+        task = training_task.apply_async(kwargs=kwargs)
+
+        return {"task_id": task.id}
+
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

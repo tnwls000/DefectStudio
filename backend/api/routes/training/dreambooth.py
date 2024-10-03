@@ -17,6 +17,7 @@ router = APIRouter(
     prefix="/dreambooth",
 )
 
+
 @router.post("/{gpu_env}")
 async def dreambooth(
         gpu_env: Optional[GPUEnvironment] = GPUEnvironment.remote,
@@ -24,27 +25,28 @@ async def dreambooth(
         current_user: Member = Depends(get_current_user),
         is_inpaint: str = Form(None, description="inpainting 모델 학습 여부 (True, ' ')", examples=["True", ""]),
         find_hugging_face: str = Form(None, description="hugging face 모델 여부 (True, ' ')", examples=["", "True"]),
-        pretrained_model_name_or_path: str = Form(..., description="초기 모델입니다.", examples=["stable-diffusion-2-inpainting"]),
+        pretrained_model_name_or_path: str = Form(..., description="초기 모델입니다.",
+                                                  examples=["stable-diffusion-2-inpainting"]),
         train_model_name: str = Form(..., description="훈련된 모델의 이름을 지정합니다", examples=["custom_model"]),
         tokenizer_name: str = Form(None, description="사전 학습된 토크나이저 이름 또는 경로.", examples=[""]),
         revision: str = Form(None, description="모델의 리비전 (선택사항).", examples=[""]),
 
         concept_list: str = Form(..., description="instance, class 관련 정보", examples=[
-                '''[
-                    {
-                        "instance_prompt": "a photo of a sks cat",
-                        "class_prompt": "a photo of a cat",
-                        "instance_image_count": 2,
-                        "class_image_count": 3
-                    },
-                    {
-                        "instance_prompt": "a photo of a sks dog",
-                        "class_prompt": "a photo of a dog",
-                        "instance_image_count": 2,
-                        "class_image_count": 3
-                    }
-                ]'''
-            ]),
+            '''[
+                {
+                    "instance_prompt": "a photo of a sks cat",
+                    "class_prompt": "a photo of a cat",
+                    "instance_image_count": 2,
+                    "class_image_count": 3
+                },
+                {
+                    "instance_prompt": "a photo of a sks dog",
+                    "class_prompt": "a photo of a dog",
+                    "instance_image_count": 2,
+                    "class_image_count": 3
+                }
+            ]'''
+        ]),
         instance_image_list: List[UploadFile] = File(..., description="학습 이미지 파일"),
         class_image_list: List[UploadFile] = File(..., description="학습 범주 이미지 파일"),
         resolution: int = Form(..., description="학습 및 검증 이미지 해상도.", examples=[512]),
@@ -57,12 +59,15 @@ async def dreambooth(
         max_train_steps: int = Form(None, description="학습할 최대 스텝 수.", examples=["", 100]),
         gradient_accumulation_steps: int = Form(None, description="그래디언트 누적 스텝 수.", examples=["", 1]),
         scale_lr: str = Form(None, description="GPU 수에 따라 학습률을 스케일링할지 여부. (True, ' ')", examples=["", "True"]),
-        lr_scheduler: str = Form(None, description="학습률 스케줄러 유형.", examples=["", "constant", "linear", "cosine", "cosine_with_restarts", "polynomial", "constant_with_warmup"]),
+        lr_scheduler: str = Form(None, description="학습률 스케줄러 유형.",
+                                 examples=["", "constant", "linear", "cosine", "cosine_with_restarts", "polynomial",
+                                           "constant_with_warmup"]),
         lr_warmup_steps: int = Form(None, description="학습률 워밍업 스텝 수.", examples=["", 500]),
         lr_num_cycles: int = Form(None, description="`cosine_with_restarts` 스케줄러의 사이클 수.", examples=["", 1]),
         lr_power: float = Form(None, description="다항 스케줄러에서의 파워 팩터.", examples=["", 1.0]),
         use_8bit_adam: str = Form(None, description="8비트 Adam 옵티마이저 사용 여부. (True, ' ')", examples=["", "True"]),
-        gradient_checkpointing: str = Form(None, description="메모리 절약을 위한 그래디언트 체크포인팅. (True, ' ')", examples=["", "True"]),
+        gradient_checkpointing: str = Form(None, description="메모리 절약을 위한 그래디언트 체크포인팅. (True, ' ')",
+                                           examples=["", "True"]),
         seed: int = Form(None, description="재현 가능한 학습을 위한 시드.", examples=[""]),
         train_text_encoder: str = Form(None, description="텍스트 인코더를 학습할지 여부. (True, ' ')", examples=["", "True"]),
 
@@ -72,22 +77,20 @@ async def dreambooth(
         adam_epsilon: float = Form(None, description="Adam 옵티마이저의 epsilon 값.", examples=["", 1e-8]),
         max_grad_norm: float = Form(None, description="그래디언트 클리핑의 최대 노름.", examples=["", 1.0]),
 
-        checkpointing_steps: int = Form(None, description="체크포인트를 저장할 스텝 수. Client 입장에서 필요할지 검토 필요", examples=["", 500]),
+        checkpointing_steps: int = Form(None, description="체크포인트를 저장할 스텝 수. Client 입장에서 필요할지 검토 필요",
+                                        examples=["", 500]),
         checkpoints_total_limit: int = Form(None, description="저장할 체크포인트의 최대 개수.", examples=["", 3]),
         resume_from_checkpoint: str = Form(None, description="이전 체크포인트에서 학습을 재개할지 여부. (True, ' ')", examples=[""]),
+):
 
-        # 수진
-        session: Session = Depends(get_db),
-        # end
-               ):
     if gpu_env == GPUEnvironment.local:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="local 버전은 현재 준비중입니다.")
-    # 수진
-    # cost = 1000 + (num_train_epochs * len(instance_image_list))
-    # # 토큰 개수 모자랄 경우 먼저 에러 처리
-    # if current_user.role != Role.super_admin and current_user.token_quantity < cost:
-    #     raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
-    # end
+
+    cost = 1000 + (num_train_epochs * len(instance_image_list))
+
+    if current_user.role != Role.super_admin and current_user.token_quantity < cost:
+        raise HTTPException(status_code=400, detail="보유 토큰이 부족합니다.")
+
     member_id = current_user.member_id
     if find_hugging_face is not None and find_hugging_face != "":
         pretrained_model_name_or_path = f"hub/{pretrained_model_name_or_path}"
@@ -98,10 +101,11 @@ async def dreambooth(
         "member_id": member_id,
         "train_model_name": train_model_name,
         "concept_list": concept_list,
-        "resolution" : resolution,
-        "train_batch_size" : train_batch_size,
-        "num_train_epochs" : num_train_epochs,
-        "learning_rate" : learning_rate,
+        "resolution": resolution,
+        "train_batch_size": train_batch_size,
+        "num_train_epochs": num_train_epochs,
+        "learning_rate": learning_rate,
+        "cost": cost
     }
     if is_inpaint:
         form_data["is_inpaint"] = is_inpaint
@@ -155,30 +159,11 @@ async def dreambooth(
     files = []
 
     files.extend(
-        [('instance_image_list', (image.filename, await image.read(), image.content_type)) for image in instance_image_list])
+        [('instance_image_list', (image.filename, await image.read(), image.content_type)) for image in
+         instance_image_list])
     files.extend(
         [('class_image_list', (image.filename, await image.read(), image.content_type)) for image in class_image_list])
 
-    response = requests.post(settings.AI_SERVER_URL + "/training/dreambooth", files=files, data=form_data)
+    json_response = requests.post(settings.AI_SERVER_URL + "/training/dreambooth", files=files, data=form_data).json()
 
-    if response.status_code != 200:
-        return Response(status_code=response.status_code, content=response.content)
-
-    response_data = response.json()
-    train_status = response_data.get("status")
-
-    # 수진
-    # 토큰 개수 차감
-    # token_use = TokenUse(
-    #     cost=cost,
-    #     use_type=UseType.training,
-    #     image_quantity=cost,
-    #     model=model
-    # )
-    # use_tokens(token_use, session, current_user)
-    # end
-
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={"content": train_status}
-    )
+    return {"task_id": json_response.get("task_id")}

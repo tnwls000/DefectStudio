@@ -20,9 +20,11 @@ def find_and_convert_csv_to_json(output_dir):
         return {"error": f"Error reading CSV file: {str(e)}"}
 
     result = {
-        "global_step": df["global_step"].tolist(),
-        "loss": df["loss"].tolist(),
-        "learning_rate": df["learning_rate"].tolist()
+        "num_inference_steps": df["num_inference_steps"].tolist(),
+        "train_loss": df["train_loss"].tolist(),
+        "learning_rate": df["learning_rate"].tolist(),
+        "max_train_steps": df["max_train_steps"].tolist(),
+        "progress": df["progress"].tolist()
     }
 
     return result

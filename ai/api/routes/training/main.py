@@ -39,7 +39,7 @@ async def get_task_status(task_id: str):
             task_status=result.status,
             task_arguments=result.kwargs,
             message="Task가 진행중입니다.",
-            result_data=json.loads(cvs_result_in_json)
+            result_data=cvs_result_in_json
         ).model_dump(exclude_none=True)
 
         return JSONResponse(status_code=status.HTTP_200_OK, content=response)

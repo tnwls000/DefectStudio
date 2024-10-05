@@ -1,8 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 import os, json
 
-from scipy.special import kwargs
-
 from core.config import settings
 import subprocess
 from utils.tasks import training_task
@@ -25,14 +23,7 @@ log_file_path = None
 async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
     form = await request.form()
 
-    print(form)
-
-    gpu_device = form.get('gpu_device', 0)
-
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = f"{gpu_device}"
-
-    # global training_process, log_file_path
+    gpu_device = int(form.get('gpu_device'))
 
     try:
         # remote 환경
@@ -179,23 +170,24 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
 
         # 필수 파라미터 추가
         command = [
-            "accelerate", "launch", train_script,
-            "--pretrained_model_name_or_path", pretrained_model_name_or_path,
-            "--output_dir", output_dir,
-            "--resolution", resolution,
-            "--train_batch_size", train_batch_size,
-            "--gradient_accumulation_steps", gradient_accumulation_steps,
-            "--learning_rate", learning_rate,
-            "--num_train_epochs", num_train_epochs,
-            "--concepts_list", concept_list_json_path
+            "accelerate", "launch", "--num_processes=1", str(train_script),
+            "--pretrained_model_name_or_path", str(pretrained_model_name_or_path),
+            "--gpu_device", str(gpu_device),
+            "--output_dir", str(output_dir),
+            "--resolution", str(resolution),
+            "--train_batch_size", str(train_batch_size),
+            "--gradient_accumulation_steps", str(gradient_accumulation_steps),
+            "--learning_rate", str(learning_rate),
+            "--num_train_epochs", str(num_train_epochs),
+            "--concepts_list", str(concept_list_json_path)
         ]
 
         if is_inpaint:
             command.append("--is_inpaint")
         if with_prior_preservation:
-            command.extend(["--num_class_images", num_class_images])
+            command.extend(["--num_class_images", str(num_class_images)])
             command.append("--with_prior_preservation")
-            command.extend(["--prior_loss_weight", prior_loss_weight])
+            command.extend(["--prior_loss_weight", str(prior_loss_weight)])
 
         # 선택적 파라미터 추가
         if gradient_checkpointing:
@@ -203,37 +195,37 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         if use_8bit_adam:
             command.append("--use_8bit_adam")
         if lr_scheduler:
-            command.extend(["--lr_scheduler", lr_scheduler])
+            command.extend(["--lr_scheduler", str(lr_scheduler)])
         if lr_warmup_steps:
-            command.extend(["--lr_warmup_steps", lr_warmup_steps])
+            command.extend(["--lr_warmup_steps", str(lr_warmup_steps)])
         if revision is not None:
-            command.extend(["--revision", revision])
+            command.extend(["--revision", str(revision)])
         if tokenizer_name is not None:
-            command.extend(["--tokenizer_name", tokenizer_name])
+            command.extend(["--tokenizer_name", str(tokenizer_name)])
         if center_crop is not None:
             command.append("--center_crop")
         if seed is not None:
-            command.extend(["--seed", seed])
+            command.extend(["--seed", str(seed)])
         if train_text_encoder is not None:
             command.append("--train_text_encoder")
         if max_train_steps is not None:
-            command.extend(["--max_train_steps", max_train_steps])
+            command.extend(["--max_train_steps", str(max_train_steps)])
         if checkpointing_steps is not None:
-            command.extend(["--checkpointing_steps", checkpointing_steps])
+            command.extend(["--checkpointing_steps", str(checkpointing_steps)])
         if checkpoints_total_limit is not None:
-            command.extend(["--checkpoints_total_limit", checkpoints_total_limit])
+            command.extend(["--checkpoints_total_limit", str(checkpoints_total_limit)])
         if resume_from_checkpoint is not None:
-            command.extend(["--resume_from_checkpoint", resume_from_checkpoint])
+            command.extend(["--resume_from_checkpoint", str(resume_from_checkpoint)])
         if adam_beta1 is not None:
-            command.extend(["--adam_beta1", adam_beta1])
+            command.extend(["--adam_beta1", str(adam_beta1)])
         if adam_beta2 is not None:
-            command.extend(["--adam_beta2", adam_beta2])
+            command.extend(["--adam_beta2", str(adam_beta2)])
         if adam_weight_decay is not None:
-            command.extend(["--adam_weight_decay", adam_weight_decay])
+            command.extend(["--adam_weight_decay", str(adam_weight_decay)])
         if adam_epsilon is not None:
-            command.extend(["--adam_epsilon", adam_epsilon])
+            command.extend(["--adam_epsilon", str(adam_epsilon)])
         if max_grad_norm is not None:
-            command.extend(["--max_grad_norm", max_grad_norm])
+            command.extend(["--max_grad_norm", str(max_grad_norm)])
         '''
         Local 사용 시 사용 고려
         if not output_dir:
@@ -242,15 +234,10 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         if scale_lr and scale_lr.lower() != "false":
             command.append("--scale_lr")
         if lr_num_cycles is not None:
-            command.extend(["--lr_num_cycles", lr_num_cycles])
+            command.extend(["--lr_num_cycles", str(lr_num_cycles)])
         if lr_power is not None:
-            command.extend(["--lr_power", lr_power])
+            command.extend(["--lr_power", str(lr_power)])
 
-        # Custom Command
-        # if log_epochs is not None:
-        #     command.extend(["--log_epochs", log_epochs])
-
-        print(command)
         if os.name == 'nt':
             command = ['cmd', '/c'] + command
 
@@ -265,7 +252,6 @@ async def train_dreambooth(request: Request, background_tasks: BackgroundTasks):
         task = training_task.apply_async(kwargs=kwargs)
 
         return {"task_id": task.id}
-
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

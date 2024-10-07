@@ -78,7 +78,7 @@ async def upload_files_async(image_list: List[BytesIO], formatted_date: str, for
     start_time = time.time()
     print("s3 async upload started")
 
-    batch_size = 200 if len(image_list) > 200 else len(image_list)
+    batch_size = 500 if len(image_list) > 500 else len(image_list)
     print("Batch size:", batch_size)
 
     s3_urls = []

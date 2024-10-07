@@ -1,12 +1,9 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
-from fastapi.responses import FileResponse
-from diffusers import StableDiffusionPipeline
-import shutil
-import tempfile
+from fastapi import APIRouter, HTTPException
 import os
 from core.config import settings
 from typing import List
 from pathlib import Path
+from workers.tasks.model import download_model
 
 router = APIRouter(
     prefix="",
@@ -36,17 +33,5 @@ async def model_download(model_name: str, member_id: str):
     if not model_path.exists():
         return {"error": "Model not found"}
 
-    # 임시 디렉터리 생성
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # 모델을 임시 디렉토리에 저장할 경로
-        temp_model_path = Path(temp_dir) / model_name
-
-        # 파이프라인을 통해 모델을 불러와 임시 디렉터리에 저장
-        pipeline = StableDiffusionPipeline.from_pretrained(str(model_path))
-        pipeline.save_pretrained(temp_model_path)
-
-        # 모델을 zip 파일로 압축
-        zip_file_path = shutil.make_archive(str(temp_model_path), 'zip', root_dir=str(temp_model_path))
-
-        # 압축된 zip 파일을 클라이언트에 전송
-        return FileResponse(path=zip_file_path, filename=f"{model_name}.zip", media_type='application/zip')
+    task = download_model.apply_async(args=[model_name, str(model_path)])
+    return {"task_id": task.id}

@@ -20,5 +20,4 @@ def download_model(model_name, model_path):
         # 모델을 zip 파일로 압축
         zip_file_path = shutil.make_archive(str(temp_model_path), 'zip', root_dir=str(temp_model_path))
 
-        # 압축된 zip 파일을 클라이언트에 전송
-        return FileResponse(path=zip_file_path, filename=f"{model_name}.zip", media_type='application/zip')
+        return zip_file_path

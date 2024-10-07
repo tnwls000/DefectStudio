@@ -35,12 +35,11 @@ async def model_download(model_name: str, current_user: Member = Depends(get_cur
     member_id = current_user.member_id
     try:
         ai_server_url = f"{settings.AI_SERVER_URL}/model/{model_name}/download?member_id={member_id}"
-        response = requests.get(ai_server_url, stream=True)
+        response = requests.get(ai_server_url)
 
         if response.status_code == 200:
-            return StreamingResponse(response.iter_content(chunk_size=8192),
-                                     media_type='application/zip',
-                                     headers={"Content-Disposition": f"attachment; filename={model_name}.zip"})
+            return {"task_id": response.json().get("task_id")}
+
         elif response.status_code == 404:
             raise HTTPException(status_code=404, detail="해당 모델을 찾을 수 없습니다.")
         else:

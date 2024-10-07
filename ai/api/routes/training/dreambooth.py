@@ -3,7 +3,7 @@ import os, json
 
 from core.config import settings
 import subprocess
-from celery.tasks.training import training_task
+from workers.tasks.training import training_task
 
 # 필요 env
 '''

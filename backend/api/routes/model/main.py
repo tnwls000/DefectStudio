@@ -26,17 +26,15 @@ async def get_task_status(
 
     if response.headers['content-type'] == "application/json":
         response = response.json()
+        return response
 
-    # 파일 전송이 성공했을 때만 처리
     elif response.status_code == 200 and response.headers.get("Content-Type") == "application/zip":
-        # Content-Disposition 헤더에서 파일명을 추출
         content_disposition = response.headers.get("Content-Disposition", "")
         filename = content_disposition.split("filename=")[
             -1].strip() if "filename=" in content_disposition else "output.zip"
 
-        # 스트리밍 방식으로 클라이언트에 파일 전송
         return StreamingResponse(
-            response.raw,  # 파일 스트림을 전달
+            response.raw,
             media_type="application/zip",
             headers={
                 "Content-Disposition": f"attachment; filename={filename}"

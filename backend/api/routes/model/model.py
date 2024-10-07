@@ -43,7 +43,7 @@ async def model_download(model_name: str, current_user: Member = Depends(get_cur
         elif response.status_code == 404:
             raise HTTPException(status_code=404, detail="해당 모델을 찾을 수 없습니다.")
         else:
-            raise HTTPException(status_code=response.status_code, detail="응답 중 오류 발생.")
+            raise HTTPException(status_code=response.status_code, detail=f"응답 중 오류 발생 : {response.text}")
 
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=f"통신 중 에러 발생: {str(e)}")

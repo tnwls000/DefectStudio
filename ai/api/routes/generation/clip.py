@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 
-from utils.tasks import clip_task
+from celery.tasks.generation import clip_task
 
 router = APIRouter(
     prefix="/clip"

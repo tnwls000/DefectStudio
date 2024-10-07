@@ -15,7 +15,7 @@ from fastapi import HTTPException, status
 from transformers import pipeline
 
 from core.config import settings
-from utils.celery import celery_app
+from celery.celery import celery_app
 from utils.scheduler import get_scheduler
 from utils.zip import generate_zip_from_images
 
@@ -445,16 +445,3 @@ def clip_task(model, gpu_device, batch_size, images, mode, caption):
     print("-----------")
 
     return prompts
-
-
-@celery_app.task(name="training", queue="tra_queue")
-def training_task(command, output_dir, gpu_device, cost, model):
-    try:
-        training_process = subprocess.Popen(command)
-        training_process.wait()
-        torch.cuda.empty_cache()
-        return "Training completed"
-    except subprocess.CalledProcessError as e:
-        return f"Error occurred while executing command: {e}"
-    except Exception as e:
-        return f"An unexpected error occurred: {e}"

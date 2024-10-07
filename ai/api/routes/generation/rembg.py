@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 
-from utils.tasks import remove_bg_task
+from celery.tasks.generation import remove_bg_task
 
 router = APIRouter(
     prefix="/remove-bg"

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 
-from celery.tasks.generation import cleanup_task
+from workers.tasks.generation import cleanup_task
 
 router = APIRouter(
     prefix="/cleanup",

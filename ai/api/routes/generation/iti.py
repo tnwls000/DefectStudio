@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 
-from celery.tasks.generation import image_to_image_task
+from workers.tasks.generation import image_to_image_task
 
 router = APIRouter(
     prefix="/img-to-img",

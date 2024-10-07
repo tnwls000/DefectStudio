@@ -15,7 +15,7 @@ from fastapi import HTTPException, status
 from transformers import pipeline
 
 from core.config import settings
-from celery.celery import celery_app
+from workers.celery import celery_app
 from utils.scheduler import get_scheduler
 from utils.zip import generate_zip_from_images
 from utils.s3 import upload_files_async

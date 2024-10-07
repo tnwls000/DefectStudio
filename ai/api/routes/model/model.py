@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 import os
 from core.config import settings
 from typing import List
@@ -29,6 +29,10 @@ async def get_model_names(member_id: str):
 @router.get("/{model_name}/download")
 async def model_download(model_name: str, member_id: str):
     model_path = Path(settings.OUTPUT_DIR) / member_id / model_name
+
+    if not model_path.exists():
+        print("Model path does not exist.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="해당 모델이 없습니다.")
 
     task = download_model.apply_async(args=[model_name, str(model_path)])
     return {"task_id": task.id}

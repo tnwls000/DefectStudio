@@ -8,9 +8,6 @@ from core.config import settings
 
 @celery_app.task(name="download_model", queue="tra_queue")
 def download_model(model_name, model_path):
-    if not Path(model_path).exists():
-        return {"error": "Model not found"}
-
     permanent_dir = Path(settings.DOWNLOAD_TEMP_DIR)
     permanent_model_path = permanent_dir / model_name
 

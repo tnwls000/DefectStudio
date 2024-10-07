@@ -7,7 +7,11 @@ celery_app = Celery(
     backend=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0"
 )
 
-celery_app.autodiscover_tasks(['utils.tasks'], force=True)
+celery_app.autodiscover_tasks([
+    'workers.tasks.generation',
+    'workers.tasks.model',
+    'workers.tasks.training',
+], force=True)
 
 # 큐 설정
 celery_app.conf.task_queues = {

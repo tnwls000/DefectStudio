@@ -1,12 +1,6 @@
-import io
-import json
-import zipfile
-from datetime import datetime
-
 import requests
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from starlette.responses import JSONResponse
 
 from api.routes.members import use_tokens
 from api.routes.training import dreambooth
@@ -14,9 +8,7 @@ from core.config import settings
 from dependencies import get_db, get_current_user
 from enums import UseType
 from models import Member
-from schema.logs import GenerationLog, SimpleGenerationLog
 from schema.tokens import TokenUse
-from utils.s3 import upload_files_async
 
 router = APIRouter(
     prefix="/training",

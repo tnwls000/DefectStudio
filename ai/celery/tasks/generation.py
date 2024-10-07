@@ -18,6 +18,7 @@ from core.config import settings
 from celery.celery import celery_app
 from utils.scheduler import get_scheduler
 from utils.zip import generate_zip_from_images
+from utils.s3 import upload_files_async
 
 
 @celery_app.task(name="text_to_image", queue="gen_queue")
@@ -67,7 +68,7 @@ def text_to_image_task(
         print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
         print("-----------")
 
-    zip_buffer = generate_zip_from_images(generated_image_list)
+    image_url_list = upload_files_async(generated_image_list)
 
     del t2i_pipe
     print("After deleting pipe:")
@@ -93,7 +94,7 @@ def text_to_image_task(
     print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
     print("-----------")
 
-    return zip_buffer
+    return image_url_list
 
 
 @celery_app.task(name="image_to_image", queue="gen_queue")

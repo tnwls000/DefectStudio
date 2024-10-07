@@ -276,11 +276,10 @@ def cleanup_task(gpu_device, images, masks, model):
         mask_paths = []
 
         for index, (image_bytes, mask_bytes) in enumerate(zip(images, masks)):
-            image_filename = f"image_{index}.png"
-            mask_filename = f"image_{index}.png"
+            filename = f"image_{index}.png"
 
-            temp_image_path = os.path.join(temp_image_dir, image_filename)
-            temp_mask_path = os.path.join(temp_mask_dir, mask_filename)
+            temp_image_path = os.path.join(temp_image_dir, filename)
+            temp_mask_path = os.path.join(temp_mask_dir, filename)
 
             input_image = Image.open(BytesIO(image_bytes)).convert("RGBA")
             input_mask = Image.open(BytesIO(mask_bytes)).convert("RGBA")
@@ -296,7 +295,8 @@ def cleanup_task(gpu_device, images, masks, model):
         cmd = [
             "iopaint", "run",
             "--model=lama",
-            f"--device={device}",
+            # f"--device={device}",
+            f"--device=cpu",
             f"--image={temp_image_dir}",
             f"--mask={temp_mask_dir}",
             f"--output={temp_output_dir}"

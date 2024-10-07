@@ -1,4 +1,5 @@
 import io
+import os
 import json
 from utils.csv import find_and_convert_csv_to_json
 from celery.result import AsyncResult
@@ -56,26 +57,24 @@ async def get_task_status(task_id: str):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=response)
 
     elif result.status == "SUCCESS":
-        # 결과가 Image(ZIP FILE)일 때
         if isinstance(result.result, str) and result.result.endswith(".zip"):
             task_result = result.result
             task_name = result.name
             task_arguments = result.kwargs
 
-            # 압축된 zip 파일 경로에서 파일 내용을 읽어 스트리밍
             with open(task_result, "rb") as file:
                 zip_file = io.BytesIO(file.read())
 
-            # 파일명을 설정
-            zip_filename = f"{Path(task_result).stem}.zip"  # 파일명 추출
+            zip_filename = f"{Path(task_result).stem}.zip"
 
-            result.forget()
+            os.remove(task_result)
             return StreamingResponse(zip_file, media_type="application/zip",
-                                     headers={
-                                         "Content-Disposition": f"attachment; filename={zip_filename}",
-                                         "Task-Name": task_name,
-                                         "Task-Arguments": json.dumps(task_arguments),
-                                     })
+                                         headers={
+                                             "Content-Disposition": f"attachment; filename={zip_filename}",
+                                             "Task-Name": task_name,
+                                             "Task-Arguments": json.dumps(task_arguments),
+                                         })
+
     else:
         response = CeleryTaskResponse(
             task_status=result.status,

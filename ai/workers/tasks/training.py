@@ -3,7 +3,7 @@ import subprocess
 import torch
 import torch.cuda
 
-from celery.celery import celery_app
+from workers.celery import celery_app
 
 
 @celery_app.task(name="training", queue="tra_queue")

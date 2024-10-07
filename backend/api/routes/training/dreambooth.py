@@ -48,7 +48,7 @@ async def dreambooth(
             ]'''
         ]),
         instance_image_list: List[UploadFile] = File(..., description="학습 이미지 파일"),
-        class_image_list: List[UploadFile] = File(..., description="학습 범주 이미지 파일"),
+        class_image_list: List[UploadFile] = File(None, description="학습 범주 이미지 파일"),
         resolution: int = Form(..., description="학습 및 검증 이미지 해상도.", examples=[512]),
         prior_loss_weight: float = Form(None, ge=0.0, description="사전 보존 손실의 가중치.", examples=["", 1.0]),
         center_crop: str = Form(None, description="이미지를 중앙에서 자를지 여부. (True, ' ')", examples=["", "True"]),

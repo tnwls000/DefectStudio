@@ -1,3 +1,4 @@
+from datetime import datetime
 import gc
 import os
 import subprocess
@@ -15,10 +16,10 @@ from fastapi import HTTPException, status
 from transformers import pipeline
 
 from core.config import settings
-from workers.celery import celery_app
+from utils.s3 import upload_files_async
 from utils.scheduler import get_scheduler
 from utils.zip import generate_zip_from_images
-from utils.s3 import upload_files_async
+from workers.celery import celery_app
 
 
 @celery_app.task(name="text_to_image", queue="gen_queue")
@@ -32,7 +33,7 @@ def text_to_image_task(
     model_dir = settings.OUTPUT_DIR
     model_path = Path(model_dir) / model
 
-    t2i_pipe = StableDiffusionPipeline.from_pretrained(model_path, torch_dtype=torch.float16).to(device)
+    t2i_pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16).to(device)
 
     if scheduler:
         t2i_pipe.scheduler = get_scheduler(scheduler, t2i_pipe.scheduler.config)
@@ -68,7 +69,11 @@ def text_to_image_task(
         print(f"Reserved Memory: {torch.cuda.memory_reserved() / (1024 ** 2):.2f} MB")
         print("-----------")
 
-    image_url_list = upload_files_async(generated_image_list)
+    now = datetime.now()
+    formatted_date = now.strftime("%Y%m%d")
+    formatted_time = now.strftime("%H%M%S%f")
+
+    image_url_list = upload_files_async(generated_image_list, formatted_date, formatted_time)
 
     del t2i_pipe
     print("After deleting pipe:")

@@ -29,9 +29,6 @@ async def get_model_names(member_id: str):
 @router.get("/{model_name}/download")
 async def model_download(model_name: str, member_id: str):
     model_path = Path(settings.OUTPUT_DIR) / member_id / model_name
-    # 모델이 존재하는지 확인
-    if not model_path.exists():
-        return {"error": "Model not found"}
 
     task = download_model.apply_async(args=[model_name, str(model_path)])
     return {"task_id": task.id}

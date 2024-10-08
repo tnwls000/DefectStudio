@@ -1,5 +1,8 @@
 from fastapi import APIRouter, HTTPException, status
 import os
+
+from scipy.special import kwargs
+
 from core.config import settings
 from typing import List
 from pathlib import Path
@@ -34,5 +37,10 @@ async def model_download(model_name: str, member_id: str):
         print("Model path does not exist.")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="해당 모델이 없습니다.")
 
-    task = download_model.apply_async(args=[model_name, str(model_path)])
+    data = {
+        model_name: model_name,
+        model_path.as_posix(): str(model_path)
+    }
+
+    task = download_model.apply_async(kwargs=data)
     return {"task_id": task.id}

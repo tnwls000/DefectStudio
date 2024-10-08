@@ -2,6 +2,7 @@ from pathlib import Path
 import tempfile
 import shutil
 from diffusers import StableDiffusionPipeline
+import zipfile
 
 from workers.celery import celery_app
 from core.config import settings
@@ -17,6 +18,8 @@ def download_model(model_name, model_path):
         pipeline = StableDiffusionPipeline.from_pretrained(model_path)
         pipeline.save_pretrained(temp_model_path)
 
-        zip_file_path = shutil.make_archive(str(permanent_model_path), 'zip', root_dir=str(temp_model_path))
+        with zipfile.ZipFile(permanent_model_path, 'w', compression=zipfile.ZIP_DEFLATED) as zipf:
+            for file in temp_model_path.rglob('*'):
+                zipf.write(file, arcname=file.relative_to(temp_model_path))
 
-        return zip_file_path
+        return str(permanent_model_path)

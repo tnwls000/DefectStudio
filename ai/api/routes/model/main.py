@@ -28,20 +28,12 @@ async def get_task_status(task_id: str):
         return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
     elif result.status == "STARTED":
-        task_arguments = result.kwargs
-        output_dir = task_arguments.get("output_dir")
-
-        # csv 파일 읽어오기
-        cvs_result_in_json = find_and_convert_csv_to_json(output_dir)
-
         response = CeleryTaskResponse(
             task_name=result.name,
             task_status=result.status,
             task_arguments=result.kwargs,
             message="Task가 진행중입니다.",
-            result_data=cvs_result_in_json
         ).model_dump(exclude_none=True)
-
         return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
     elif result.status == "FAILURE":

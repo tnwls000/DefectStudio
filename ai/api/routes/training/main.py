@@ -28,10 +28,9 @@ async def get_task_status(task_id: str):
         return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
     elif result.status == "STARTED":
+        # csv 파일 읽어오기
         task_arguments = result.kwargs
         output_dir = task_arguments.get("output_dir")
-
-        # csv 파일 읽어오기
         cvs_result_in_json = find_and_convert_csv_to_json(output_dir)
 
         response = CeleryTaskResponse(
@@ -45,23 +44,35 @@ async def get_task_status(task_id: str):
         return JSONResponse(status_code=status.HTTP_200_OK, content=response)
 
     elif result.status == "FAILURE":
+        # csv 파일 읽어오기
+        task_arguments = result.kwargs
+        output_dir = task_arguments.get("output_dir")
+        cvs_result_in_json = find_and_convert_csv_to_json(output_dir)
+
         response = CeleryTaskResponse(
             task_name=result.name,
             task_status=result.status,
             task_arguments=result.kwargs,
             result_data_type=type(result.result).__name__,
-            result_data=str(result.result)
+            message=result.result,
+            result_data=cvs_result_in_json
         ).model_dump(exclude_none=True)
 
         result.forget()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=response)
 
     elif result.status == "SUCCESS":
+        # csv 파일 읽어오기
+        task_arguments = result.kwargs
+        output_dir = task_arguments.get("output_dir")
+        cvs_result_in_json = find_and_convert_csv_to_json(output_dir)
+
         response = CeleryTaskResponse(
             task_name=result.name,
             task_status=result.status,
             task_arguments=result.kwargs,
-            result_data=result.result
+            message=result.result,
+            result_data=cvs_result_in_json
         ).model_dump(exclude_none=True)
 
         result.forget()

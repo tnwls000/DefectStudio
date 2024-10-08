@@ -10,6 +10,7 @@ class CeleryTaskResponse(BaseModel):
     result_data_type: Optional[str] = None
     result_data: Optional[Union[List[str], str, Dict]] = None
     message: Optional[str] = None
+    return_code: Optional[int] = None
 
     def __init__(self, **data):
         # 불필요한 키 제거

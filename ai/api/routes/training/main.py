@@ -67,11 +67,15 @@ async def get_task_status(task_id: str):
         output_dir = task_arguments.get("output_dir")
         cvs_result_in_json = find_and_convert_csv_to_json(output_dir)
 
+        # returncode
+        return_code, message = result.result
+
         response = CeleryTaskResponse(
             task_name=result.name,
             task_status=result.status,
             task_arguments=result.kwargs,
-            message=result.result,
+            return_code=return_code,
+            message=message,
             result_data=cvs_result_in_json
         ).model_dump(exclude_none=True)
 

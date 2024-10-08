@@ -1,12 +1,14 @@
+from typing import Iterator
+
 import requests
-from fastapi import APIRouter
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from starlette.responses import StreamingResponse
+
 from api.routes.model import model
+from core.config import settings
 from dependencies import get_db, get_current_user
 from models import Member
-from core.config import settings
-from starlette.responses import JSONResponse, StreamingResponse
 
 router = APIRouter(
     prefix="/model",
@@ -16,11 +18,10 @@ router = APIRouter(
 
 router.include_router(model.router)
 
+
 @router.get("/tasks/{task_id}")
 async def get_task_status(
-        task_id: str,
-        member: Member = Depends(get_current_user),
-        session: Session = Depends(get_db),
+        task_id: str
 ):
     response = requests.get(settings.AI_SERVER_URL + f"/model/tasks/{task_id}", stream=True)
 
@@ -28,15 +29,23 @@ async def get_task_status(
         response = response.json()
         return response
 
-    elif response.status_code == 200 and response.headers.get("Content-Type") == "application/zip":
-        content_disposition = response.headers.get("Content-Disposition", "")
-        filename = content_disposition.split("filename=")[
-            -1].strip() if "filename=" in content_disposition else "output.zip"
+    elif response.headers['content-type'] == "application/zip":
+        content_disposition = response.headers["content-disposition"]
+        filename = content_disposition.split("filename=")[-1].rstrip()
 
         return StreamingResponse(
-            response.raw,
+            iter_stream(response.raw),
             media_type="application/zip",
             headers={
                 "Content-Disposition": f"attachment; filename={filename}"
             }
         )
+
+
+def iter_stream(response_raw) -> Iterator[bytes]:
+    chunk_size = 8192  # 8 KB
+    while True:
+        chunk = response_raw.read(chunk_size)
+        if not chunk:
+            break
+        yield chunk

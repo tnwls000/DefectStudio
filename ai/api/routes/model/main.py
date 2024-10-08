@@ -1,7 +1,6 @@
 import io
 import os
 import json
-from utils.csv import find_and_convert_csv_to_json
 from celery.result import AsyncResult
 from fastapi import APIRouter, status, HTTPException
 from starlette.responses import JSONResponse, StreamingResponse
@@ -58,6 +57,7 @@ async def get_task_status(task_id: str):
                 zip_file = io.BytesIO(file.read())
 
             zip_filename = f"{Path(task_result).stem}.zip"
+            print('zip_filename:', zip_filename)
 
             os.remove(task_result)
             return StreamingResponse(zip_file, media_type="application/zip",

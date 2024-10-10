@@ -13,8 +13,8 @@ def training_task(command, output_dir, gpu_device, cost, model):
         training_process.wait()
         message = "Process completed successfully" if training_process.returncode == 0 else f"Error: Process exited with code {training_process.returncode}"
         torch.cuda.empty_cache()
-        return message
+        return training_process.returncode, message
     except subprocess.CalledProcessError as e:
-        return f"Error occurred while executing command: {e}"
+        return e.returncode, f"Error: Error occurred while executing command: {e}"
     except Exception as e:
-        return f"An unexpected error occurred: {e}"
+        return -1, f"Error: An unexpected error occurred: {e}"

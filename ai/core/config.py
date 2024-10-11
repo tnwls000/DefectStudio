@@ -12,9 +12,6 @@ class Settings(BaseSettings):
     BASE_MODEL_NAME: str
     MULTI_CONCEPT_TRAIN_PATH: str
 
-    # LOGGER
-    SENTRY_DSN: str
-
     # REDIS
     REDIS_HOST: str
     REDIS_PORT: str

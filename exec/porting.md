@@ -2,11 +2,11 @@
     - 사용한 JVM, 웹서버, WAS 제품 등의 종류와 설정 값, 버전(IDE 버전 포함) 기재
         - Docker 버전
         
-        ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/34cd3bd5-5f1c-4077-8cb9-11b27ae348ea/074618b3-c435-44e1-9a8c-bffd387c2d3e/image.png)
+        ![image.png](./images/docker.png)
         
         - nginX 버전
         
-        ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/34cd3bd5-5f1c-4077-8cb9-11b27ae348ea/f55c5ac0-54c0-4918-8770-18ed38fae3d8/image.png)
+        ![image.png](./images/nginx.png)
         
         - nginx 설정
             
@@ -160,7 +160,7 @@
             
             ```bash
             cd project/redis-7.4.0/src/
-            ./redis-server
+            ../redis-server
             ```
             
         - `ai/` Celery 실행
@@ -216,7 +216,7 @@
 
 ### 📌 Text To Image
 
-![text_to_image](./readme/text_to_image.gif)
+![text_to_image](../readme/text_to_image.gif)
 
 Text Prompt를 통해서 원하는 이미지를 생성할 수 있습니다.  
 이를 통해서 다양한 불량 이미지를 생성할 수 있습니다.
@@ -226,26 +226,26 @@ Advance 모드에서는 세부적인 Parameter들을 입력할 수 있습니다.
 
 ### 📌 Image To Image
 
-![image_to_image](./readme/image_to_image.gif)
+![image_to_image](../readme/image_to_image.gif)
 
 기존에 생성한 이미지를 업로드. 혹은 다른 파트에서 생성한 이미지를  
 바로 가져와서 해당 이미지 바탕으로 또다른 이미지를 생성할 수 있습니다!
 
 ### 📌 Inpainting
 
-![inpainting](./readme/inpainting.gif)
+![inpainting](../readme/inpainting.gif)
 
 특정 영역을 선택해서, 이에 관한 프롬프트를 입력하여 원하는 이미지를 생성 할 수 있습니다.
 
 ### 📌 Clean Up
 
-![cleanup](./readme/cleanup.gif)
+![cleanup](../readme/cleanup.gif)
 
 불필요한 요소들을 AI가 스스로 파악해서 없애서 이미지를 깔끔하게 만들어 줍니다!
 
 ### 📌 Remove Background
 
-![remove-bg](./readme/remove-bg.gif)
+![remove-bg](../readme/remove-bg.gif)
 
 배경화면 부분을 알아서 없애 주어 손쉽게 투명 이미지를 만들 수 있습니다.
 
@@ -253,21 +253,21 @@ Advance 모드에서는 세부적인 Parameter들을 입력할 수 있습니다.
 
 **Preset**
 
-![preset](./readme/general_preset.gif)
+![preset](../readme/general_preset.gif)
 
 각각 파트에서 자기가 원하는 Prompt 글 및 여러가지 Parameter 설정값을 저장할 수 있습니다.  
 이를 통해 쉽게 여러가지 parameter 및 프롬프트를 불러 올 수 있습니다.
 
 **Batch Mode**
 
-![batch](./readme/batch_mode.gif)
+![batch](../readme/batch_mode.gif)
 
 여러장의 이미지에 대해서 업로드 하지 않고, 파일 경로만 지정하면 알아서 이미지를 읽어와서  
 관련된 처리를 손쉽게 할 수 있습니다!
 
 **Side Bar**
 
-![sidebar](./readme/general_sidebar.gif)
+![sidebar](../readme/general_sidebar.gif)
 
 사이드를 통해서 이미지 선택, 다운로드, 작업물 삭제 등을 손쉽게 할 수 있습니다
 
@@ -275,37 +275,37 @@ Advance 모드에서는 세부적인 Parameter들을 입력할 수 있습니다.
 
 > 해당 기능은 `image-to-image`, `inpainting` 에만 가능합니다.
 
-![clip](./readme/clip.gif)
+![clip](../readme/clip.gif)
 
 해당 기능은 업로드한 이미지에 대해서 AI가 자동으로 분석하여 알맞는 프롬프트를 추천합니다.  
 사용자는 제시된 여러 프롬프트들 중 몇가지 선택하여 실제 프롬프트에 반영 할 수 있습니다.
 
 ## 🎯 Training
 
-![training](./readme/training.gif)
+![training](../readme/training.gif)
 
 사용자가 만약 특화된 이미지에 대한 학습을 시키고 싶을 때  
 해당 부분에서 다양한 파라미터 및 기본 Model 선택. 학습 이미지가 담긴 경로 선택 등을 할 수 있습니다.
 
 학습 중에는 실시간으로 학습 상황에 대한 통계를 볼 수 있습니다.
 
-![training_status](./readme/training_status.png)
+![training_status](../readme/training_status.png)
 
 ## 🎯 History
 
-![history1](./readme/history1.gif)
+![history1](../readme/history1.gif)
 
 사용자들은 Generation 사용한 기록들을 볼 수 있습니다.  
 해당 기록을 통해서 이전에 생성한 이미지들에 대해서 쉽게 다운로드 할 수 있으며,  
 해당 기록에는 프롬프트 정보, 툴 도구,를 확인할 수 있습니다.
 
-![history2](./readme/history2.gif)
+![history2](../readme/history2.gif)
 
 또한 북마크 기능을 활용하면 Home 페이지에 해당 북마크 목록을 볼 수 있도록 하였습니다.
 
 ## 🎯 Settings
 
-![setting](./readme/setting.png)
+![setting](../readme/setting.png)
 
 Settings에는 현재 GPU 서버 상태를 확인할 수 있고.  
 기본적으로 사용할 GPU 서버를 선택할 수 있습니다.
@@ -316,7 +316,7 @@ AI 생성 및 훈련에 대해서 많은 컴퓨터 자원을 소모합니다. �
 
 ### 📌 Token 발행
 
-![token_issue](./readme/token_issue.png)
+![token_issue](../readme/token_issue.png)
 
 본 기능은 계정 권한 중 최상위 **super_admin** 에만 활성화 되어 있습니다.
 
@@ -326,7 +326,7 @@ AI 생성 및 훈련에 대해서 많은 컴퓨터 자원을 소모합니다. �
 
 ### 📌 Token 분배
 
-![token_distribute](./readme/token_distribution.png)
+![token_distribute](../readme/token_distribution.png)
 
 본 기능은 계정 권한 중 **super_admin** 혹은 **department_admin** 에만 활성화가 되어 있습니다.
 
@@ -335,7 +335,7 @@ AI 생성 및 훈련에 대해서 많은 컴퓨터 자원을 소모합니다. �
 
 ### 📌 Statistics
 
-![token_statictics](./readme/token_statistics.png)
+![token_statictics](../readme/token_statistics.png)
 
 부서 (super_admin, department_admin 만 가능) 및 자기자신에 대한  
 다양한 사용 통계를 알 수 있습니다.
@@ -348,9 +348,9 @@ AI 생성 및 훈련에 대해서 많은 컴퓨터 자원을 소모합니다. �
 
 ### 📌 회원가입 & 이메일 인증
 
-![signup](./readme/signup.png)
+![signup](../readme/signup.png)
 
-![email_verify](./readme/email_verify.png)
+![email_verify](../readme/email_verify.png)
 
 회원 가입 시 해당 이메일이 유효한 이메일인지 확인하기 위해서  
 확인 코드를 요구합니다.
@@ -363,7 +363,7 @@ AI 생성 및 훈련에 대해서 많은 컴퓨터 자원을 소모합니다. �
 
 > 본 기능은 **super_admin** 만 가능한 기능입니다.
 
-![user_management](./readme/user_management.png)
+![user_management](../readme/user_management.png)
 
 기존 회원들에 대한 계정 권한 정보 수정, 계정 삭제 (강제 탈퇴) 등이 가능하며,  
 임시 회원에 대한 승인,거절 선택을 할 수 있습니다.

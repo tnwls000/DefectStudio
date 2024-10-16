@@ -1,9 +1,4 @@
 cache/
-#classification/
-classification/gen_data/output_images_choose/
-classification/gen_data/output_images/*
-classification/gen_data/model/
-classification/results/
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,venv

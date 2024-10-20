@@ -4,8 +4,6 @@ services:
   redis:
     image: redis:latest
     container_name: redis_message_broker
-    ports:
-      - ${REDIS_PORT}:${REDIS_PORT}
     restart: always
     networks:
       - defect_ai_network
@@ -16,10 +14,13 @@ services:
       dockerfile: Dockerfile
     container_name: ai_service
     restart: always
+    depends_on:
+      - redis
     ports:
-      - 9755:8000
+      - 9755:8000    # FastAPI 서비스
+      - 5555:5555    # Flower 대시보드를 위한 포트
     volumes:
-      -  "/mnt/j/conductzero/app:/app/venv:rw"  # 외부 venv 디렉토리를 컨테이너 내부로 마운트
+      - "/mnt/j/conductzero/model:/app/model:rw"
     deploy:
       resources:
         reservations:
@@ -29,40 +30,9 @@ services:
               capabilities: [ gpu ]
     networks:
       - defect_ai_network
+    # run.sh 파일을 실행 (이 파일에서 가상환경 활성화 및 FastAPI, Celery, Flower 실행)
     command: >
-      bash run.sh
-# run.sh 파일 실행
-
-#  celery_worker:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    container_name: celery_worker
-#    restart: always
-#    depends_on:
-#      - redis
-#    deploy:
-#      resources:
-#        reservations:
-#          devices:
-#            - driver: nvidia
-#              count: all
-#              capabilities: [ gpu ]
-#    environment:
-#      - CELERY_BROKER_URL=redis://redis_message_broker:6379/0
-#      - CELERY_RESULT_BACKEND=redis://redis_message_broker:6379/0
-#    ports:
-#      - 5555:5555  # Flower 대시보드를 위한 포트
-#    command: >
-#      bash -c "
-#      celery -A workers.celery.celery_app worker --hostname=gen --queues=gen_queue --loglevel=info --pool=threads &
-#      celery -A workers.celery.celery_app worker --hostname=tra --queues=tra_queue --loglevel=info --pool=threads &
-#      celery -A workers.celery.celery_app flower --address=0.0.0.0 --port=5555"
-#    networks:
-#      - defect_ai_network
-#    # 아래 두 명령어는 참고용으로 주석 처리되었습니다
-#    # celery -A utils.celery.celery_app worker --hostname=gen --queues=gen_queue --loglevel=info --max-tasks-per-child=1
-#    # celery -A utils.celery.celery_app worker --hostname=tra --queues=tra_queue --loglevel=info --max-tasks-per-child=1
+      bash run.sh       
 
 networks:
   defect_ai_network:

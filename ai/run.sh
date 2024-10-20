@@ -1,27 +1,29 @@
 #!/bin/bash
 
+# 훈련용 diffusers 수정본
+#if [ ! -d "/app/diffusers-fork-defectStudio" ]; then
+#    git clone https://github.com/Kimbumsoo99/diffusers-fork-defectStudio.git /app/diffusers-fork-defectStudio
+#fi
 
-
-# 가상환경이 마운트된 경로에서 가상환경 활성화
-echo "Activating virtual environment..."
-if [ -d "/app/venv/bin" ]; then
-    source /app/venv/bin/activate
-    echo "Virtual environment activated."
-else
-    echo "Virtual environment not found!"
-    python3 -m venv /app/venv
-    source /app/venv/bin/activate
-#    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-#    pip install nvidia-cudnn-cu11==8.9.2.26
-#    pip install -r requirements.txt
-fi
-
-#if [ -d "/app/model" ]; then
-#    git clone https://huggingface.co/stabilityai/stable-diffusion-2
-#    git clone https://huggingface.co/stabilityai/stable-diffusion-2-inpainting
-#if
-
+# 모델 다운로드: 디렉토리가 없을 때만 클론
+#if [ ! -d "/app/model/stable-diffusion-2" ]; then
+#    git clone https://huggingface.co/stabilityai/stable-diffusion-2 /app/model/stable-diffusion-2
+#fi
+#
+#if [ ! -d "/app/model/stable-diffusion-2-inpainting" ]; then
+#    git clone https://huggingface.co/stabilityai/stable-diffusion-2-inpainting /app/model/stable-diffusion-2-inpainting
+#fi
 
 # FastAPI 실행
 echo "Starting FastAPI application..."
-uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn main:app --host 0.0.0.0 --port 8000 &
+
+# Celery worker 실행 (2개의 큐)
+celery -A workers.celery.celery_app worker --hostname=gen --queues=gen_queue --loglevel=info --pool=threads &
+celery -A workers.celery.celery_app worker --hostname=tra --queues=tra_queue --loglevel=info --pool=threads &
+
+# Flower 실행
+celery -A workers.celery.celery_app flower --address=0.0.0.0 --port=5555 &
+
+# 컨테이너가 종료되지 않도록 대기
+tail -f /dev/null

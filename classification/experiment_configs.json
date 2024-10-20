@@ -1,0 +1,9 @@
+{
+    "exp_base_dir": "G:\\Project\\S11P21S001\\ai\\api\\routes\\classification\\results\\20240926234423\\anomaly_maps\\20240927002529",
+    "anomaly_maps_dirs": {
+      "convnext_tiny": "convnext_tiny",
+      "efficientnet_v2_s": "efficientnet_v2_s",
+      "mobilenet_v3_small": "mobilenet_v3_small",
+      "resnet34": "resnet34"
+    }
+}

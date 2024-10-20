@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis_message_broker
+    restart: always
+    networks:
+      - defect_ai_network
+
+  ai_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_service
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - 9755:8000    # FastAPI 서비스
+      - 5555:5555    # Flower 대시보드를 위한 포트
+    volumes:
+      - "/mnt/j/conductzero/model:/app/model:rw"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    networks:
+      - defect_ai_network
+    # run.sh 파일을 실행 (이 파일에서 가상환경 활성화 및 FastAPI, Celery, Flower 실행)
+    command: >
+      bash run.sh       
+
+networks:
+  defect_ai_network:
+    driver: bridge

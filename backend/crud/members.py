@@ -3,12 +3,14 @@ from datetime import datetime
 from fastapi import Depends, HTTPException
 from sqlalchemy import cast, Date
 from sqlalchemy.exc import SQLAlchemyError
+from core.config import settings
 from core.security import hash_password
 from dependencies import get_db
 from models import Member
 from schema.members import MemberCreate, MemberRead
 from typing import List
 from enums import Role
+from .departments import get_department_by_name, create_department
 
 def get_all_members(session: Depends(get_db)):
     return session.query(Member).all()
@@ -46,21 +48,43 @@ def create_member(session: Depends(get_db), member: MemberCreate):
     except SQLAlchemyError as e:
         raise HTTPException(status_code=400, detail=str(e.orig))
 
-def get_guests(session: Depends(get_db)):
-    guests = session.query(Member).filter(Member.role == Role.guest).all()
-    return [MemberRead.from_orm(guest) for guest in guests]
+def create_admin_account():
+    # 세션을 수동으로 가져오기
+    db = next(get_db())
 
-def update_member_role(session: Depends(get_db), member: Member, role: Role):
-    member.role = role
-    session.commit()
-    session.refresh(member)
+    try:
+        # "System Management" 부서가 있는지 확인
+        department = get_department_by_name(db, 'System Management')
 
-def get_expired_guests(session: Depends(get_db),
-                       three_days_ago: datetime,
-                       offset: int,
-                       limit: int):
-    return (session.query(Member)
-            .filter(Member.role == Role.guest, cast(Member.create_date, Date) < cast(three_days_ago, Date))
-            .offset(offset)
-            .limit(limit)
-            .all())
+        if not department:
+            # 부서가 없으면 생성
+            department = create_department(db, 'System Management')
+
+        # admin 계정이 이미 있는지 확인
+        member = get_member_by_login_id(db, 'admin')
+
+        if member is None:
+            # admin 계정 생성과 역할 설정을 동시에 처리
+            member = Member(
+                login_id=settings.ADMIN_ID,
+                password=settings.ADMIN_PASSWORD,  # 비밀번호는 나중에 해시 처리 필요
+                name='admin',
+                nickname='admin',
+                email='admin@domain.com',
+                role=Role.super_admin,  # 역할 설정
+                department_id=department.department_id
+            )
+
+            print("Admin account created.")
+        else:
+            member.role = Role.super_admin
+            print("Admin account already exists.")
+
+        # 새로 생성한 admin 계정을 데이터베이스에 추가
+        db.add(member)
+        db.commit()  # 변경 사항을 데이터베이스에 반영
+        db.refresh(member)  # 변경된 정보를 다시 가져오기
+
+    finally:
+        # 세션 닫기
+        db.close()

@@ -12,7 +12,9 @@ from core.config import settings
 from core.db import engine
 from models import *
 from scheduler import expire_tokens, delete_guests
+from schema.presets import GenerationPreset
 from schema.logs import GenerationLog
+from crud.members import create_admin_account
 from schema.presets import GenerationPreset
 
 
@@ -22,6 +24,7 @@ async def lifespan(app: FastAPI):
     # DB Table 생성 (존재하지 않는 테이블만 생성)
     Base.metadata.create_all(bind=engine)
 
+    create_admin_account()
     # Scheduler 설정
     scheduler = BackgroundScheduler()
     scheduler.add_job(expire_tokens, 'cron', hour=0, minute=0)  # 만료 TokenUsage 삭제 스케줄러
@@ -33,7 +36,7 @@ async def lifespan(app: FastAPI):
         "mongodb://%s:%s@%s:%s" % (
             settings.MONGO_DB_USERNAME,
             settings.MONGO_DB_PASSWORD,
-            settings.BACKEND_DOMAIN,
+            settings.MONGO_DB_SERVER,
             settings.MONGO_DB_PORT
         )
     )

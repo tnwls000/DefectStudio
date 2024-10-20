@@ -60,7 +60,12 @@ class Settings(BaseSettings):
             database=self.POSTGRES_DB
         ).render_as_string(hide_password=False)
 
+    # admin account
+    ADMIN_ID: str
+    ADMIN_PASSWORD: str
+
     # MONGO DB
+    MONGO_DB_SERVER: str
     MONGO_DB_PORT: int
     MONGO_DB_USERNAME: str
     MONGO_DB_PASSWORD: str
